@@ -1,3 +1,3 @@
-# St Cats CS Department Portal
+# St. Cats CS Department Portal
 
 WIP
