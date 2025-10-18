@@ -1,3 +1,4 @@
 from django.contrib import admin
+from .models import InviteCode, Room, RoomMembership, Message, Announcement, AuditLog
 
-# Register your models here.
+admin.site.register([InviteCode, Room, RoomMembership, Message, Announcement, AuditLog])

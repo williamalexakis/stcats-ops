@@ -1,8 +1,9 @@
-# Python stuff
+# General stuff
 __pycache__/
 *.py[cod]
 *$py.class
 venv/
+.env
 .env/
 .env.bak/
 .venv/
@@ -22,13 +23,13 @@ dist/
 *.pot
 *.pyc
 *.pyo
+
+# Project
 *.sqlite3
 db.sqlite3
+pyrightconfig.json
 
 # Django
 /media/
 staticfiles/
 local_settings.py
-
-# General
-.env

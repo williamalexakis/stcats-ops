@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Signup · CS Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-top: 0">Create account</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Sign up</button>
+    </form>
+    <p style="margin-top: 12px">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>.
+    </p>
+</div>
+{% endblock %}

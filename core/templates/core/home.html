@@ -1,0 +1,15 @@
+{% extends "base.html" %} {% block title %}Home · CS Dept Portal{% endblock %}
+{% block content %}
+<div class="card">
+    <h1 style="margin-top: 0">CS Dept Portal</h1>
+    <p>Welcome to the internal department platform.</p>
+    {% if user.is_authenticated %}
+    <p>You’re logged in as <strong>{{ user.username }}</strong>.</p>
+    {% else %}
+    <p>
+        <a href="{% url 'login' %}">Log in</a> or
+        <a href="{% url 'signup' %}">create an account (with invite)</a>.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}
