@@ -43,7 +43,12 @@ class SignupForm(UserCreationForm):
 
         if invite:
             invite.remaining_uses -= 1
-            invite.save(update_fields=["remaining_uses"])
+            
+            # Delete the invite if it's used up or expired
+            if invite.remaining_uses <= 0 or (invite.expiration_date and invite.expiration_date < timezone.now()):
+                invite.delete()
+            else:
+                invite.save(update_fields=["remaining_uses"])
 
         teacher_group = Group.objects.filter(name="teacher").first()
 

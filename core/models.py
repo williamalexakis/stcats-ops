@@ -5,7 +5,19 @@ from django.utils import timezone
 User = settings.AUTH_USER_MODEL
 
 
+class InviteCodeManager(models.Manager):
+
+    def cleanup_invalid(self):
+
+        now = timezone.now()
+        deleted_count = self.filter(remaining_uses__lte=0).delete()[0]
+        deleted_count += self.filter(expiration_date__lt=now).delete()[0]
+
+        return deleted_count
+
+
 class InviteCode(models.Model):
+
     code = models.CharField(max_length=32, unique=True)
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -15,6 +27,8 @@ class InviteCode(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     expiration_date = models.DateTimeField(null=True, blank=True)
     remaining_uses = models.PositiveIntegerField(default=1)
+
+    objects = InviteCodeManager()
 
     def is_valid(self):
         if self.expiration_date and self.expiration_date < timezone.now():
