@@ -3,12 +3,14 @@ from django.contrib.auth.models import Group
 
 GROUPS = ["teacher", "admin"]
 
-
 class Command(BaseCommand):
+
     help = "Create default groups"
 
     def handle(self, *args, **kwargs):
+
         for name in GROUPS:
+
             Group.objects.get_or_create(name=name)
 
         self.stdout.write(self.style.SUCCESS("Groups ensured: " + ", ".join(GROUPS)))

@@ -12,7 +12,7 @@
         {{ a.title }} {% if a.pinned %}📌{% endif %}
     </div>
     <div style="font-size: 12px; color: #6b7280">
-        by {{ a.creator.username }} · {{ a.created_at|date:"d-m-Y H:i" }}
+        by {{ a.creator.username }} · {{ a.creation_date|date:"d-m-Y H:i" }}
     </div>
     <p>{{ a.body|linebreaksbr }}</p>
 </div>
