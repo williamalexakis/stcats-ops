@@ -4,17 +4,21 @@ from django.urls import reverse
 from django.contrib.auth import login, logout
 from .forms import SignupForm
 
-
 def signup(request):
+
     if request.method == "POST":
+
         form = SignupForm(request.POST)
 
         if form.is_valid():
+
             user = form.save()
+
             messages.success(request, "Account successfully created!")
             login(request, user)
 
             return redirect(reverse("home"))
+
     else:
 
         form = SignupForm()

@@ -13,10 +13,10 @@ TEMPLATES = [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        },
-    },
+                "django.contrib.messages.context_processors.messages"
+            ]
+        }
+    }
 ]
 
 # Env stuff
@@ -25,10 +25,8 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 DEBUG = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
+ALLOWED_HOSTS = [host.strip() for host in env("ALLOWED_HOSTS", default="").split(",") if host.strip()]
 
-ALLOWED_HOSTS = [
-    host.strip() for host in env("ALLOWED_HOSTS", default="").split(",") if host.strip()
-]
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in env("CSRF_TRUSTED_ORIGINS", default="").split(",")
@@ -57,7 +55,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "core",
+    "core"
 ]
 
 MIDDLEWARE = [
@@ -68,11 +66,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "core.middleware.AuditMiddleware",
+    "core.middleware.AuditMiddleware"
 ]
 
 ROOT_URLCONF = "stcats_cs.urls"
-
 WSGI_APPLICATION = "stcats_cs.wsgi.application"
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -87,15 +84,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    }
 ]
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

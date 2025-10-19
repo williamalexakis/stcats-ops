@@ -1,15 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Login · CS Portal{% endblock %}
+{% block title %}Login - CS Dept Platform{% endblock %}
 
 {% block content %}
+
 <div class="card">
     <h2 style="margin-top: 0">Login</h2>
 
     <form method="post">
+
         {% csrf_token %}
         {{ form.as_p }}
+
         <button type="submit">Login</button>
     </form>
 </div>
+
 {% endblock %}
