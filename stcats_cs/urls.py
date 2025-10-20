@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from core.views import home, rooms, healthcheck
+from core.views import home, rooms, healthcheck, members
 from core.views_auth import signup, logout_view
 from core.views_announce import announcement_list
 from django.contrib.auth import views as auth_views
@@ -13,5 +13,6 @@ urlpatterns = [
     path("signup/", signup, name="signup"),
     path("rooms/", rooms, name="rooms"),
     path("announcements/", announcement_list, name="announcements"),
+    path("members/", members, name="members"),
     path("healthcheck/", healthcheck, name="healthcheck")
 ]

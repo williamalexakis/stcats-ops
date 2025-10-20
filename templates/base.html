@@ -1,106 +1,501 @@
 <!doctype html>
 
-<html lang="en">
+<html lang="en" data-theme="light">
 
-    <head>
-        <meta charset="utf-8" />
-        <title>{% block title %}CS Dept Platform{% endblock %}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="data:," />
+<head>
+    <meta charset="utf-8" />
+    <title>{% block title %}CS Dept Platform{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" href="data:," />
 
-        <style>
-            body {
-                font-family:
-                    system-ui,
-                    -apple-system,
-                    Segoe UI,
-                    Roboto,
-                    sans-serif;
-                margin: 0;
+    <style>
+        :root[data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --border-color: #e5e7eb;
+            --border-hover: #d1d5db;
+            --card-bg: #ffffff;
+            --card-border: #e5e7eb;
+            --header-bg: #0f172a;
+            --header-text: #ffffff;
+            --link-color: #2563eb;
+            --link-hover: #1d4ed8;
+            --button-bg: #2563eb;
+            --button-hover: #1d4ed8;
+            --button-text: #ffffff;
+            --success-bg: #ecfdf5;
+            --success-border: #a7f3d0;
+            --success-text: #065f46;
+            --error-bg: #fef2f2;
+            --error-border: #fecaca;
+            --error-text: #991b1b;
+            --info-bg: #eff6ff;
+            --info-border: #bfdbfe;
+            --info-text: #1e40af;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-hover: rgba(0, 0, 0, 0.15);
+        }
+
+        :root[data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #334155;
+            --border-hover: #475569;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --header-bg: #020617;
+            --header-text: #f1f5f9;
+            --link-color: #60a5fa;
+            --link-hover: #93c5fd;
+            --button-bg: #2563eb;
+            --button-hover: #3b82f6;
+            --button-text: #ffffff;
+            --success-bg: #064e3b;
+            --success-border: #059669;
+            --success-text: #6ee7b7;
+            --error-bg: #7f1d1d;
+            --error-border: #dc2626;
+            --error-text: #fca5a5;
+            --info-bg: #1e3a8a;
+            --info-border: #2563eb;
+            --info-text: #93c5fd;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            line-height: 1.6;
+        }
+
+        header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 0;
+            box-shadow: 0 1px 3px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--header-text);
+            text-decoration: none;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--header-text);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--header-text);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 18px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 20px;
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--link-hover);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px var(--shadow-hover);
+        }
+
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
             }
-            header {
-                background: #0f172a;
-                color: #fff;
-                padding: 12px 16px;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
+        }
+
+        .flash.info {
+            background: var(--info-bg);
+            border-color: var(--info-border);
+            color: var(--info-text);
+        }
+
+        .flash.success {
+            background: var(--success-bg);
+            border-color: var(--success-border);
+            color: var(--success-text);
+        }
+
+        .flash.error {
+            background: var(--error-bg);
+            border-color: var(--error-border);
+            color: var(--error-text);
+        }
+
+        button, input[type="submit"], .btn {
+            background: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        button:hover, input[type="submit"]:hover, .btn:hover {
+            background: var(--button-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-primary);
+            margin-top: 0;
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .icon-lg {
+            width: 20px;
+            height: 20px;
+        }
+
+        form p {
+            margin: 16px 0;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .helptext {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .errorlist {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 0 0;
+        }
+
+        .errorlist li {
+            color: var(--error-text);
+            font-size: 14px;
+            background: var(--error-bg);
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            nav {
+                width: 100%;
+            }
+
             main {
-                max-width: 900px;
-                margin: 24px auto;
                 padding: 0 16px;
             }
-            nav a {
-                color: #fff;
-                margin-right: 12px;
-                text-decoration: none;
-            }
+
             .card {
-                background: #fff;
-                border: 1px solid #e5e7eb;
-                border-radius: 10px;
                 padding: 16px;
             }
-            .flash {
-                padding: 10px 12px;
-                border-radius: 8px;
-                margin: 12px 0;
-            }
-            .flash.info {
-                background: #eff6ff;
-                border: 1px solid #bfdbfe;
-            }
-            .flash.success {
-                background: #ecfdf5;
-                border: 1px solid #a7f3d0;
-            }
-            .flash.error {
-                background: #fef2f2;
-                border: 1px solid #fecaca;
-            }
+        }
+    </style>
 
-        </style>
+    {% block head %}{% endblock %}
+</head>
 
-        {% block head %}{% endblock %}
+<body>
+    <header>
+        <div class="header-content">
+            <a href="{% url 'home' %}" class="logo">
+                <svg class="icon icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: -4px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
 
-    </head>
+                CS Portal
 
-    <body>
-        <header>
+            </a>
 
             <nav>
-                <a href="{% url 'home' %}">Home</a>
-
                 {% if user.is_authenticated %}
+                    <a href="{% url 'announcements' %}">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                        </svg>
 
-                    <a href="{% url 'announcements' %}">Announcements</a>
-                    <a href="{% url 'rooms' %}">Rooms</a>
-                    <a href="/admin/">Admin</a>
-                    <a href="{% url 'logout' %}">Logout</a>
+                        Announcements
+
+                    </a>
+
+                    <a href="{% url 'rooms' %}">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+
+                        Rooms
+
+                    </a>
+
+                    <a href="{% url 'members' %}">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+
+                        Members
+
+                    </a>
+
+                    <a href="/admin/">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+
+                        Admin
+
+                    </a>
+
+                    <a href="{% url 'logout' %}">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+
+                        Logout
+
+                    </a>
 
                 {% else %}
 
-                    <a href="{% url 'login' %}">Login</a>
-                    <a href="{% url 'signup' %}">Signup</a>
+                    <a href="{% url 'login' %}">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                        </svg>
+                        Login
+                    </a>
+
+                    <a href="{% url 'signup' %}">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                        </svg>
+
+                        Signup
+
+                    </a>
 
                 {% endif %}
+
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                    <span class="theme-icon-light">☀️</span>
+                    <span class="theme-icon-dark" style="display: none;">🌙</span>
+                </button>
             </nav>
+        </div>
+    </header>
 
-        </header>
+    <main>
 
-        <main>
-            {% if messages %}
+        {% if messages %}
 
-                {% for message in messages %}
+            {% for message in messages %}
 
                 <div class="flash {{ message.tags|default:'info' }}">
-                    {{ message }}
+
+                    {% if message.tags == 'success' %}
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+
+                    {% elif message.tags == 'error' %}
+
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+
+                    {% else %}
+
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+
+                    {% endif %}
+
+                    <span>{{ message }}</span>
                 </div>
 
-                {% endfor %}
+            {% endfor %}
 
-            {% endif %}
+        {% endif %}
 
-            {% block content %}{% endblock %}
-        </main>
-    </body>
+        {% block content %}{% endblock %}
+
+    </main>
+
+    <script>
+        function toggleTheme() {
+
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            // Update the theme icon
+            document.querySelector('.theme-icon-light').style.display = newTheme === 'light' ? 'inline' : 'none';
+            document.querySelector('.theme-icon-dark').style.display = newTheme === 'dark' ? 'inline' : 'none';
+
+        }
+
+        // Load the previous theme when loading the page
+        (function() {
+
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+
+            // Update the theme icon
+            document.querySelector('.theme-icon-light').style.display = savedTheme === 'light' ? 'inline' : 'none';
+            document.querySelector('.theme-icon-dark').style.display = savedTheme === 'dark' ? 'inline' : 'none';
+
+        })();
+    </script>
+
+    {% block scripts %}{% endblock %}
+
+</body>
 
 </html>

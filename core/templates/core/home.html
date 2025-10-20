@@ -4,22 +4,78 @@
 
 {% block content %}
 
-<div class="card">
-    <h1 style="margin-top: 0">CS Department Platform</h1>
-    <p>Internal management and communications for the St. Cats CS department.</p>
+<div class="card" style="text-align: center; padding: 48px 24px; max-width: 700px; margin: 0 auto;">
+    <div style="font-size: 100px; margin: 0 auto 24px; color: var(--button-hover);">
+        <i class="fa-solid fa-computer"></i>
+    </div>
+
+    <h1 style="margin: 0 0 12px 0; font-size: 36px;">CS Department Platform</h1>
+
+    <p style="color: var(--text-secondary); margin: 0 0 32px 0; font-size: 18px;">
+        Internal management and communications for the St. Catherine's computer science department.
+    </p>
 
     {% if user.is_authenticated %}
 
-        <p>Currently logged in as <strong>{{ user.username }}</strong>.</p>
+        <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--link-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px;">
+                    {{ user.username|first|upper }}
+                </div>
+
+                <div style="text-align: left;">
+                    <div style="font-size: 14px; color: var(--text-secondary);">Logged in as</div>
+                    <div style="font-weight: 600; font-size: 18px; color: var(--text-primary);">{{ user.username }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 32px;">
+            <a href="{% url 'announcements' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: var(--link-color);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                </svg>
+
+                <span style="font-weight: 500; color: var(--text-primary);">Announcements</span>
+            </a>
+
+            <a href="{% url 'rooms' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: var(--link-color);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <span style="font-weight: 500; color: var(--text-primary);">Chat Rooms</span>
+            </a>
+
+            <a href="{% url 'members' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: var(--link-color);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <span style="font-weight: 500; color: var(--text-primary);">Members</span>
+            </a>
+        </div>
 
     {% else %}
 
-        <p>
-            <a href="{% url 'login' %}">Login</a> or
-            <a href="{% url 'signup' %}">signup</a>.
-        </p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'login' %}" class="btn" style="display: inline-flex; align-items: center; gap: 8px;">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+
+                Login
+            </a>
+
+            <a href="{% url 'signup' %}" class="btn" style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-tertiary); color: var(--text-primary);">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+
+                Sign Up
+            </a>
+        </div>
 
     {% endif %}
+
 </div>
 
 {% endblock %}

@@ -3,21 +3,35 @@
 {% block title %}Signup - CS Dept Platform{% endblock %}
 
 {% block content %}
+<div class="card" style="max-width: 450px; margin: 60px auto;">
+    <div style="text-align: center; margin-bottom: 32px;">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 56px; height: 56px; margin: 0 auto 16px; color: var(--link-color);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+        </svg>
 
-<div class="card">
-    <h2 style="margin-top: 0">Create account</h2>
+        <h2 style="margin: 0; font-size: 28px;">Create Account</h2>
+    </div>
 
     <form method="post">
 
         {% csrf_token %}
         {{ form.as_p }}
 
-        <button type="submit">Sign up</button>
+        <button type="submit" style="width: 100%; margin-top: 8px; padding: 12px;">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 6px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+
+            Create Account
+
+        </button>
     </form>
 
-    <br/>
-    <a href="{% url 'login' %}">Already have an account? Login here.</a>
-
+    <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color);">
+        <p style="color: var(--text-secondary); margin: 0;">
+            Already have an account?
+            <a href="{% url 'login' %}" style="font-weight: 500;">Login here</a>
+        </p>
+    </div>
 </div>
-
 {% endblock %}
