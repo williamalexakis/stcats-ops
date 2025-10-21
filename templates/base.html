@@ -12,40 +12,41 @@
     <style>
         :root[data-theme="light"] {
             --bg-primary: #ffffff;
-            --bg-secondary: #f9fafb;
-            --bg-tertiary: #f3f4f6;
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --text-tertiary: #9ca3af;
-            --border-color: #e5e7eb;
-            --border-hover: #d1d5db;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
             --card-bg: #ffffff;
-            --card-border: #e5e7eb;
+            --card-border: #e2e8f0;
             --header-bg: #0f172a;
             --header-text: #ffffff;
+            --nav-hover: rgba(255, 255, 255, 0.15);
             --link-color: #2563eb;
-            --link-hover: #1d4ed8;
+            --link-hover: #2563eb;
             --button-bg: #2563eb;
-            --button-hover: #1d4ed8;
+            --button-hover: #3b82f6;
             --button-text: #ffffff;
-            --success-bg: #ecfdf5;
-            --success-border: #a7f3d0;
-            --success-text: #065f46;
+            --success-bg: #f0fdf4;
+            --success-border: #86efac;
+            --success-text: #166534;
             --error-bg: #fef2f2;
-            --error-border: #fecaca;
+            --error-border: #fca5a5;
             --error-text: #991b1b;
             --info-bg: #eff6ff;
-            --info-border: #bfdbfe;
+            --info-border: #93c5fd;
             --info-text: #1e40af;
-            --shadow: rgba(0, 0, 0, 0.1);
-            --shadow-hover: rgba(0, 0, 0, 0.15);
+            --shadow: rgba(15, 23, 42, 0.08);
+            --shadow-hover: rgba(15, 23, 42, 0.12);
         }
 
         :root[data-theme="dark"] {
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
-            --text-primary: #f1f5f9;
+            --text-primary: #f8fafc;
             --text-secondary: #cbd5e1;
             --text-tertiary: #94a3b8;
             --border-color: #334155;
@@ -53,23 +54,24 @@
             --card-bg: #1e293b;
             --card-border: #334155;
             --header-bg: #020617;
-            --header-text: #f1f5f9;
+            --header-text: #f8fafc;
+            --nav-hover: rgba(255, 255, 255, 0.12);
             --link-color: #60a5fa;
             --link-hover: #93c5fd;
             --button-bg: #2563eb;
             --button-hover: #3b82f6;
             --button-text: #ffffff;
             --success-bg: #064e3b;
-            --success-border: #059669;
-            --success-text: #6ee7b7;
+            --success-border: #10b981;
+            --success-text: #86efac;
             --error-bg: #7f1d1d;
-            --error-border: #dc2626;
+            --error-border: #ef4444;
             --error-text: #fca5a5;
             --info-bg: #1e3a8a;
-            --info-border: #2563eb;
+            --info-border: #3b82f6;
             --info-text: #93c5fd;
-            --shadow: rgba(0, 0, 0, 0.3);
-            --shadow-hover: rgba(0, 0, 0, 0.4);
+            --shadow: rgba(0, 0, 0, 0.25);
+            --shadow-hover: rgba(0, 0, 0, 0.35);
         }
 
         * {
@@ -132,26 +134,26 @@
         }
 
         nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--nav-hover);
         }
 
         .theme-toggle {
-            background: rgba(255, 255, 255, 0.1);
+            background: transparent;
             border: none;
             color: var(--header-text);
             padding: 8px 12px;
             border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s ease;
             font-size: 18px;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
+            opacity: 0.9;
         }
 
         .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
+            opacity: 1;
         }
 
         main {
@@ -240,6 +242,7 @@
 
         button:hover, input[type="submit"]:hover, .btn:hover {
             background: var(--button-hover);
+            color: var(--button-text);
             transform: translateY(-1px);
             box-shadow: 0 4px 6px var(--shadow);
         }
@@ -343,11 +346,9 @@
     <header>
         <div class="header-content">
             <a href="{% url 'home' %}" class="logo">
-                <svg class="icon icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: -4px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                </svg>
+                <i class="fa-solid fa-computer"></i>
 
-                CS Portal
+                CS Department Platform
 
             </a>
 
