@@ -40,7 +40,7 @@ class AuditMiddleware:
                     target=request.path[:200],
                     ip=request.META.get("REMOTE_ADDR"),
                     user_agent=user_agent,
-                    extra=extra,
+                    extra=extra
                 )
 
         # Do nothing to prevent request interruption
@@ -73,9 +73,9 @@ def log_admin_action(user, action, obj=None, obj_repr=None, extra_data=None):
             actor=user,
             action=f"admin.{action}",
             target=target[:200],
-            ip=None,  # Not available in this context
+            ip=None,
             user_agent="",
-            extra=extra,
+            extra=extra
         )
 
     # Do nothing to prevent request interruption

@@ -12,66 +12,68 @@
     <style>
         :root[data-theme="light"] {
             --bg-primary: #ffffff;
-            --bg-secondary: #f8fafc;
-            --bg-tertiary: #f1f5f9;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-tertiary: #94a3b8;
-            --border-color: #e2e8f0;
-            --border-hover: #cbd5e1;
+            --bg-secondary: #f0f4f8;
+            --bg-tertiary: #e1e8f0;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-tertiary: #718096;
+            --border-color: #cbd5e0;
+            --border-hover: #a0aec0;
             --card-bg: #ffffff;
             --card-border: #e2e8f0;
-            --header-bg: #0f172a;
+            --header-bg: #1e3a8a;
             --header-text: #ffffff;
-            --nav-hover: rgba(255, 255, 255, 0.15);
+            --nav-hover: rgba(255, 255, 255, 0.2);
             --link-color: #2563eb;
-            --link-hover: #2563eb;
-            --button-bg: #2563eb;
-            --button-hover: #3b82f6;
+            --link-hover: #1d4ed8;
+            --button-bg: #3b82f6;
+            --button-hover: #2563eb;
             --button-text: #ffffff;
-            --success-bg: #f0fdf4;
-            --success-border: #86efac;
-            --success-text: #166534;
-            --error-bg: #fef2f2;
-            --error-border: #fca5a5;
+            --success-bg: #d1fae5;
+            --success-border: #34d399;
+            --success-text: #065f46;
+            --error-bg: #fee2e2;
+            --error-border: #f87171;
             --error-text: #991b1b;
-            --info-bg: #eff6ff;
-            --info-border: #93c5fd;
+            --info-bg: #dbeafe;
+            --info-border: #60a5fa;
             --info-text: #1e40af;
-            --shadow: rgba(15, 23, 42, 0.08);
-            --shadow-hover: rgba(15, 23, 42, 0.12);
+            --shadow: rgba(15, 23, 42, 0.1);
+            --shadow-hover: rgba(15, 23, 42, 0.15);
+            --crown: #f59e0b;
         }
 
         :root[data-theme="dark"] {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --text-tertiary: #94a3b8;
-            --border-color: #334155;
-            --border-hover: #475569;
-            --card-bg: #1e293b;
-            --card-border: #334155;
-            --header-bg: #020617;
-            --header-text: #f8fafc;
-            --nav-hover: rgba(255, 255, 255, 0.12);
+            --bg-primary: #0a0f1e;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --border-color: #374151;
+            --border-hover: #4b5563;
+            --card-bg: #1f2937;
+            --card-border: #374151;
+            --header-bg: #030712;
+            --header-text: #f9fafb;
+            --nav-hover: rgba(255, 255, 255, 0.15);
             --link-color: #60a5fa;
             --link-hover: #93c5fd;
-            --button-bg: #2563eb;
-            --button-hover: #3b82f6;
+            --button-bg: #3b82f6;
+            --button-hover: #60a5fa;
             --button-text: #ffffff;
-            --success-bg: #064e3b;
+            --success-bg: #022c22;
             --success-border: #10b981;
-            --success-text: #86efac;
-            --error-bg: #7f1d1d;
+            --success-text: #6ee7b7;
+            --error-bg: #450a0a;
             --error-border: #ef4444;
             --error-text: #fca5a5;
             --info-bg: #1e3a8a;
             --info-border: #3b82f6;
             --info-text: #93c5fd;
-            --shadow: rgba(0, 0, 0, 0.25);
-            --shadow-hover: rgba(0, 0, 0, 0.35);
+            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(0, 0, 0, 0.4);
+            --crown: #fbbf24;
         }
 
         * {
@@ -91,7 +93,7 @@
             background: var(--header-bg);
             color: var(--header-text);
             padding: 0;
-            box-shadow: 0 1px 3px var(--shadow);
+            box-shadow: 0 2px 8px var(--shadow);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -135,25 +137,61 @@
 
         nav a:hover {
             background: var(--nav-hover);
+            color: var(--header-text);
         }
 
         .theme-toggle {
-            background: transparent;
-            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: var(--header-text);
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 18px;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0.9;
+            transition: all 0.3s ease;
+            position: relative;
+            width: 42px;
+            height: 42px;
         }
 
         .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .theme-icon-light,
+        .theme-icon-dark {
+            transition: all 0.3s ease;
+            position: absolute;
+        }
+
+        .theme-icon-light {
             opacity: 1;
+            transform: rotate(0deg) scale(1);
+        }
+
+        .theme-icon-dark {
+            opacity: 0;
+            transform: rotate(180deg) scale(0.5);
+        }
+
+        [data-theme="dark"] .theme-icon-light {
+            opacity: 0;
+            transform: rotate(-180deg) scale(0.5);
+        }
+
+        [data-theme="dark"] .theme-icon-dark {
+            opacity: 1;
+            transform: rotate(0deg) scale(1);
         }
 
         main {
@@ -178,12 +216,13 @@
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 20px;
-            box-shadow: 0 1px 3px var(--shadow);
+            box-shadow: 0 2px 4px var(--shadow);
             transition: all 0.3s ease;
         }
 
         .card:hover {
-            box-shadow: 0 4px 6px var(--shadow-hover);
+            box-shadow: 0 6px 12px var(--shadow-hover);
+            transform: translateY(-2px);
         }
 
         .flash {
@@ -243,8 +282,8 @@
         button:hover, input[type="submit"]:hover, .btn:hover {
             background: var(--button-hover);
             color: var(--button-text);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px var(--shadow);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
         }
 
         input[type="text"],
@@ -267,7 +306,7 @@
         select:focus {
             outline: none;
             border-color: var(--button-bg);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -355,46 +394,35 @@
             <nav>
                 {% if user.is_authenticated %}
                     <a href="{% url 'announcements' %}">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
-                        </svg>
+                        <i class="fa-solid fa-bullhorn"></i>
 
                         Announcements
 
                     </a>
 
-                    <a href="{% url 'rooms' %}">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                        </svg>
+                    <a href="{% url 'chat' %}">
+                        <i class="fa-solid fa-comment-dots"></i>
 
-                        Rooms
+                        Chat
 
                     </a>
 
                     <a href="{% url 'members' %}">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
+                        <i class="fa-solid fa-users"></i>
 
                         Members
 
                     </a>
 
                     <a href="/admin/">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
+                        <i class="fa-solid fa-gears"></i>
 
                         Admin
 
                     </a>
 
                     <a href="{% url 'logout' %}">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                        </svg>
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
 
                         Logout
 
@@ -403,16 +431,14 @@
                 {% else %}
 
                     <a href="{% url 'login' %}">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                        </svg>
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+
                         Login
+
                     </a>
 
                     <a href="{% url 'signup' %}">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                        </svg>
+                        <i class="fa-solid fa-user-plus"></i>
 
                         Signup
 
@@ -420,9 +446,9 @@
 
                 {% endif %}
 
-                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
                     <span class="theme-icon-light">☀️</span>
-                    <span class="theme-icon-dark" style="display: none;">🌙</span>
+                    <span class="theme-icon-dark">🌙</span>
                 </button>
             </nav>
         </div>
@@ -468,30 +494,18 @@
 
     <script>
         function toggleTheme() {
-
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
 
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-
-            // Update the theme icon
-            document.querySelector('.theme-icon-light').style.display = newTheme === 'light' ? 'inline' : 'none';
-            document.querySelector('.theme-icon-dark').style.display = newTheme === 'dark' ? 'inline' : 'none';
-
         }
 
         // Load the previous theme when loading the page
         (function() {
-
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
-
-            // Update the theme icon
-            document.querySelector('.theme-icon-light').style.display = savedTheme === 'light' ? 'inline' : 'none';
-            document.querySelector('.theme-icon-dark').style.display = savedTheme === 'dark' ? 'inline' : 'none';
-
         })();
     </script>
 

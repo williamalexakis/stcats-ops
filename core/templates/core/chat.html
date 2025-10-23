@@ -1,36 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Announcements - CS Dept Platform{% endblock %}
+{% block title %}Chat - CS Dept Platform{% endblock %}
 
 {% block content %}
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-    <h2 style="margin: 0;">Announcements</h2>
+    <h2 style="margin: 0;">Chat</h2>
 </div>
 
-{% if announcements %}
+{% if chat_messages %}
 
-    {% for a in announcements %}
+    {% for a in chat_messages %}
 
     <div class="card" style="margin-bottom: 16px;">
         <div style="display: flex; align-items: start; gap: 12px;">
 
-            {% if a.pinned %}
-
-            <i class="fa-solid fa-thumbtack" style="margin-top: 5px; font-size: 22px; color: var(--link-color);"></i>
-
-            {% endif %}
-
             <div style="flex: 1;">
-                <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">
-                    {{ a.title }}
-                </div>
-
                 <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
                     <span style="display: flex; align-items: center; gap: 4px;">
                         <i class="fa-solid fa-user"></i>
 
-                        {{ a.creator.username }}
+                        {{ a.author.username }}
                     </span>
 
                     <span style="display: flex; align-items: center; gap: 4px;">
@@ -56,7 +46,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
         </svg>
 
-        <p style="color: var(--text-secondary); margin: 0;">No announcements available.</p>
+        <p style="color: var(--text-secondary); margin: 0;">No messages available.</p>
     </div>
 
 {% endif %}

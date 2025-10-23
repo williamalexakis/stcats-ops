@@ -9,4 +9,4 @@ def announcement_list(request):
     # by date created or pin status
     announcements = Announcement.objects.order_by("-pinned", "-creation_date")[:50]
 
-    return render(request, "core/announcements.html", {"announcements": announcements})
+    return render(request, "core/announcements.html", {"announcements" : announcements})
