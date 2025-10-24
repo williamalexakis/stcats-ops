@@ -80,23 +80,17 @@ class Message(models.Model):
     body = models.TextField()
     creation_date = models.DateTimeField(auto_now_add=True)
     edit_date = models.DateTimeField(null=True, blank=True)
+    is_announcement = models.BooleanField(default=False)
+    is_pinned = models.BooleanField(default=False)
 
     class Meta:
 
         ordering = ["id"]
 
-class Announcement(models.Model):
-
-    title = models.CharField(max_length=200)
-    body = models.TextField()
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    creation_date = models.DateTimeField(auto_now_add=True)
-    pinned = models.BooleanField(default=False)
-
     def __str__(self):
 
-        return self.title
-
+        preview = self.body[:50]
+        return f"{self.author.username}: {preview}..." if len(self.body) > 50 else f"{self.author.username}: {preview}"
 
 class AuditLog(models.Model):
 

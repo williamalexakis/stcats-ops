@@ -5,43 +5,58 @@
 {% block content %}
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-    <h2 style="margin: 0;">Announcements</h2>
+    <div>
+        <h2 style="margin: 0 0 8px 0;">Announcements</h2>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 14px;">Important messages from chat rooms</p>
+    </div>
 </div>
 
 {% if announcements %}
 
-    {% for a in announcements %}
+    {% for message in announcements %}
 
-    <div class="card" style="margin-bottom: 16px;">
+    <div class="card" style="margin-bottom: 16px; {% if message.is_pinned %}border: 2px solid var(--link-color); background: var(--info-bg);{% endif %}">
         <div style="display: flex; align-items: start; gap: 12px;">
 
-            {% if a.pinned %}
-
-            <i class="fa-solid fa-thumbtack" style="margin-top: 5px; font-size: 22px; color: var(--link-color);"></i>
-
+            {% if message.is_pinned %}
+                <i class="fa-solid fa-thumbtack" style="flex-shrink: 0; margin-top: 2px; color: var(--link-color); font-size: 18px;"></i>
+            {% else %}
+                <i class="fa-solid fa-bullhorn" style="flex-shrink: 0; margin-top: 2px; color: var(--link-color); font-size: 18px;"></i>
             {% endif %}
 
             <div style="flex: 1;">
-                <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">
-                    {{ a.title }}
-                </div>
+                {% if message.is_pinned %}
+                    <div style="display: inline-block; background: var(--link-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+                        Pinned
+                    </div>
+                {% endif %}
 
-                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                     <span style="display: flex; align-items: center; gap: 4px;">
                         <i class="fa-solid fa-user"></i>
+                        <strong style="color: var(--text-primary);">{{ message.author.username }}</strong>
+                    </span>
 
-                        {{ a.creator.username }}
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                        <i class="fa-solid fa-door-open"></i>
+                        {{ message.room.name }}
                     </span>
 
                     <span style="display: flex; align-items: center; gap: 4px;">
                         <i class="fa-solid fa-clock"></i>
-
-                        {{ a.creation_date|date:"d/m/Y H:i" }}
+                        {{ message.creation_date|date:"d/m/Y H:i" }}
                     </span>
+
+                    {% if message.edit_date %}
+                        <span style="display: flex; align-items: center; gap: 4px; color: var(--text-tertiary);">
+                            <i class="fa-solid fa-pen"></i>
+                            Edited
+                        </span>
+                    {% endif %}
                 </div>
 
-                <div style="color: var(--text-primary); line-height: 1.6;">
-                    {{ a.body|linebreaksbr }}
+                <div style="color: var(--text-primary); line-height: 1.6; font-size: 15px;">
+                    {{ message.body|linebreaksbr }}
                 </div>
             </div>
         </div>
@@ -52,11 +67,9 @@
 {% else %}
 
     <div class="card" style="text-align: center; padding: 48px 24px;">
-        <svg class="icon icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 48px; height: 48px; margin: 0 auto 16px; opacity: 0.5;">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-        </svg>
-
-        <p style="color: var(--text-secondary); margin: 0;">No announcements available.</p>
+        <i class="fa-solid fa-bullhorn" style="font-size: 48px; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 16px;"></i>
+        <p style="color: var(--text-secondary); margin: 0;">No announcements yet.</p>
+        <p style="color: var(--text-tertiary); margin: 8px 0 0 0; font-size: 14px;">Announcements from chat rooms will appear here.</p>
     </div>
 
 {% endif %}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import InviteCode, Room, RoomMembership, Message, Announcement, AuditLog
+from .models import InviteCode, Room, RoomMembership, Message, AuditLog
 from .middleware import log_admin_action
 
 class AuditedModelAdmin(admin.ModelAdmin):
@@ -85,8 +85,8 @@ class RoomMembershipAdmin(AuditedModelAdmin):
 
 class MessageAdmin(AuditedModelAdmin):
 
-    list_display = ('room', 'author', 'body_preview', 'creation_date', 'edit_date')
-    list_filter = ('creation_date', 'room')
+    list_display = ('room', 'author', 'body_preview', 'is_announcement', 'is_pinned', 'creation_date', 'edit_date')
+    list_filter = ('is_announcement', 'is_pinned', 'creation_date', 'room')
     search_fields = ('author__username', 'body', 'room__name')
     readonly_fields = ('creation_date', 'edit_date')
 
@@ -95,22 +95,6 @@ class MessageAdmin(AuditedModelAdmin):
         return obj.body[:50] + ('...' if len(obj.body) > 50 else '')
 
     body_preview.short_description = 'Message Preview'
-
-
-class AnnouncementAdmin(AuditedModelAdmin):
-
-    list_display = ('title', 'creator', 'creation_date', 'pinned')
-    list_filter = ('pinned', 'creation_date')
-    search_fields = ('title', 'body', 'creator__username')
-    readonly_fields = ('creator', 'creation_date')
-
-    def save_model(self, request, obj, form, change):
-
-        if not change:
-
-            obj.creator = request.user
-
-        super().save_model(request, obj, form, change)
 
 
 class AuditLogAdmin(admin.ModelAdmin):
@@ -148,5 +132,4 @@ admin.site.register(InviteCode, InviteCodeAdmin)
 admin.site.register(Room, RoomAdmin)
 admin.site.register(RoomMembership, RoomMembershipAdmin)
 admin.site.register(Message, MessageAdmin)
-admin.site.register(Announcement, AnnouncementAdmin)
 admin.site.register(AuditLog, AuditLogAdmin)
