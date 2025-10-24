@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 from datetime import timedelta
 import secrets
-from .models import Message, InviteCode
+from .models import Message, InviteCode, Room
 
 User = get_user_model()
 
@@ -46,10 +46,47 @@ def members(request):
 
 @login_required
 def chat(request):
-
-    chat_messages = Message.objects.order_by("-creation_date")[:50]
-
-    return render(request, "core/chat.html", {"chat_messages": chat_messages})
+    # Get or create the default "General" room
+    room, created = Room.objects.get_or_create(
+        name="General",
+        defaults={
+            "creator": request.user,
+            "is_private": False
+        }
+    )
+    
+    # Handle message posting
+    if request.method == "POST":
+        body = request.POST.get("body", "").strip()
+        is_announcement = request.POST.get("is_announcement") == "on"
+        is_pinned = request.POST.get("is_pinned") == "on" if is_announcement else False
+        
+        if body:
+            Message.objects.create(
+                room=room,
+                author=request.user,
+                body=body,
+                is_announcement=is_announcement,
+                is_pinned=is_pinned
+            )
+            flash_messages.success(request, "Message sent!")
+        else:
+            flash_messages.error(request, "Message cannot be empty.")
+        
+        return redirect("chat")
+    
+    # Get messages from the room (newest first)
+    chat_messages = Message.objects.filter(room=room).select_related("author").order_by("-creation_date")[:100]
+    
+    # Reverse to show oldest first in display
+    chat_messages = list(reversed(chat_messages))
+    
+    context = {
+        "chat_messages": chat_messages,
+        "room": room
+    }
+    
+    return render(request, "core/chat.html", context)
 
 @login_required
 def admin_panel(request):
@@ -146,6 +183,74 @@ def promote_user(request, user_id):
         flash_messages.error(request, "Admin group not found.")
 
     return redirect('members')
+
+
+@login_required
+def edit_message(request, message_id):
+    try:
+        message = Message.objects.get(id=message_id)
+        
+        # Only allow editing own messages
+        if message.author != request.user:
+            flash_messages.error(request, "You can only edit your own messages.")
+            return redirect('chat')
+        
+        if request.method == 'POST':
+            body = request.POST.get('body', '').strip()
+            is_announcement = request.POST.get('is_announcement') == 'on'
+            is_pinned = request.POST.get('is_pinned') == 'on' if is_announcement else False
+            
+            if body:
+                message.body = body
+                message.is_announcement = is_announcement
+                message.is_pinned = is_pinned
+                message.edit_date = timezone.now()
+                message.save()
+                flash_messages.success(request, "Message updated!")
+            else:
+                flash_messages.error(request, "Message cannot be empty.")
+            
+            return redirect('chat')
+        
+        context = {
+            'message': message
+        }
+        return render(request, "core/edit_message.html", context)
+        
+    except Message.DoesNotExist:
+        flash_messages.error(request, "Message not found.")
+        return redirect('chat')
+
+
+@login_required
+def delete_message(request, message_id):
+    try:
+        message = Message.objects.get(id=message_id)
+        
+        # Check permissions
+        can_delete = False
+        
+        # User can delete their own messages
+        if message.author == request.user:
+            can_delete = True
+        # Admins can delete any message except superuser messages
+        elif (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
+            if not message.author.is_superuser:
+                can_delete = True
+            else:
+                flash_messages.error(request, "Cannot delete superuser messages.")
+                return redirect('chat')
+        
+        if can_delete:
+            message.delete()
+            flash_messages.success(request, "Message deleted.")
+        else:
+            flash_messages.error(request, "You don't have permission to delete this message.")
+            
+    except Message.DoesNotExist:
+        flash_messages.error(request, "Message not found.")
+    
+    return redirect('chat')
 
 
 @login_required

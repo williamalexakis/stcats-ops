@@ -3,7 +3,8 @@ from django.urls import path
 from core.views import (
     home, healthcheck, members, chat,
     admin_panel, delete_invite_code,
-    promote_user, demote_user, remove_user
+    promote_user, demote_user, remove_user,
+    edit_message, delete_message
 )
 from core.views_auth import signup, logout_view
 from core.views_announce import announcement_list
@@ -16,6 +17,8 @@ urlpatterns = [
     path("logout/", logout_view, name="logout"),
     path("signup/", signup, name="signup"),
     path("chat/", chat, name="chat"),
+    path("chat/message/<int:message_id>/edit/", edit_message, name="edit_message"),
+    path("chat/message/<int:message_id>/delete/", delete_message, name="delete_message"),
     path("announcements/", announcement_list, name="announcements"),
     path("members/", members, name="members"),
     path("panel/", admin_panel, name="admin_panel"),
