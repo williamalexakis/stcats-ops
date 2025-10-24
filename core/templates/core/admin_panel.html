@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - CS Dept Platform{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 24px;">
+    <h2 style="margin: 0 0 8px 0;">Admin Panel</h2>
+
+    <p style="color: var(--text-secondary); margin: 0;">Manage invite codes and system settings</p>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+        <i class="fa-solid fa-ticket" style="color: var(--link-color); font-size: 20px;"></i>
+
+        <h3 style="margin: 0;">Generate Invite Code</h3>
+    </div>
+
+    <form method="post" style="max-width: 600px;">
+
+        {% csrf_token %}
+
+        <div style="margin-bottom: 16px;">
+            <label for="uses" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary);">
+
+                Number of Uses
+
+            </label>
+
+            <input
+                type="number"
+                id="uses"
+                name="uses"
+                value="1"
+                min="1"
+                required
+                style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px;"
+            />
+
+            <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">How many times this code can be used</small>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label for="expiry_days" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary);">
+
+                Expiration (Days)
+
+            </label>
+
+            <input
+                type="number"
+                id="expiry_days"
+                name="expiry_days"
+                placeholder="Leave empty for no expiration"
+                min="1"
+                style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px;"
+            />
+
+            <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">Leave blank for codes that never expire</small>
+        </div>
+
+        <button type="submit" style="background: var(--button-bg); color: var(--button-text); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-plus"></i>
+
+            Generate Code
+
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+        <i class="fa-solid fa-list" style="color: var(--link-color); font-size: 20px;"></i>
+
+        <h3 style="margin: 0;">Active Invite Codes</h3>
+
+        <span style="background: var(--info-bg); color: var(--info-text); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{ invite_codes|length }}</span>
+    </div>
+
+    {% if invite_codes %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color);">
+                        <th style="text-align: left; padding: 12px 8px; font-weight: 600; color: var(--text-primary);">Code</th>
+                        <th style="text-align: left; padding: 12px 8px; font-weight: 600; color: var(--text-primary);">Creator</th>
+                        <th style="text-align: center; padding: 12px 8px; font-weight: 600; color: var(--text-primary);">Uses Left</th>
+                        <th style="text-align: left; padding: 12px 8px; font-weight: 600; color: var(--text-primary);">Expires</th>
+                        <th style="text-align: center; padding: 12px 8px; font-weight: 600; color: var(--text-primary);">Created</th>
+                        <th style="text-align: center; padding: 12px 8px; font-weight: 600; color: var(--text-primary);">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for code in invite_codes %}
+
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 12px 8px;">
+                                <code style="background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 13px; color: var(--text-primary);">{{ code.code }}</code>
+                            </td>
+
+                            <td style="padding: 12px 8px; color: var(--text-secondary);">
+                                {{ code.creator.username }}
+                            </td>
+
+                            <td style="padding: 12px 8px; text-align: center;">
+                                <span style="background: {% if code.remaining_uses > 0 %}var(--success-bg){% else %}var(--error-bg){% endif %}; color: {% if code.remaining_uses > 0 %}var(--success-text){% else %}var(--error-text){% endif %}; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                    {{ code.remaining_uses }}
+                                </span>
+                            </td>
+
+                            <td style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">
+
+                                {% if code.expiration_date %}
+
+                                    {{ code.expiration_date|date:"d/m/Y H:i" }}
+
+                                {% else %}
+
+                                    <span style="color: var(--text-tertiary);">Never</span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td style="padding: 12px 8px; text-align: center; color: var(--text-secondary); font-size: 13px;">
+                                {{ code.creation_date|date:"d/m/Y" }}
+                            </td>
+
+                            <td style="padding: 12px 8px; text-align: center;">
+                                <a href="{% url 'delete_invite_code' code.id %}"
+                                   onclick="return confirm('Are you sure you want to delete this invite code?');"
+                                   style="background: var(--error-bg); color: var(--error-text); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                                   onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
+                                   onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';">
+                                    <i class="fa-solid fa-trash"></i>
+
+                                    Delete
+
+                                </a>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+
+        <div style="text-align: center; padding: 32px 24px;">
+            <i class="fa-solid fa-ticket" style="font-size: 48px; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 16px;"></i>
+
+            <p style="color: var(--text-secondary); margin: 0;">No invite codes yet. Generate one above!</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

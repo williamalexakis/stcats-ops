@@ -49,6 +49,33 @@
 
                         </div>
                     </div>
+
+                    {% if request.user.is_superuser or request.user.groups.all.0.name == 'admin' %}
+
+                        {% if not user.is_superuser %}
+
+                            <div style="display: flex; gap: 6px;">
+                                <a href="{% url 'demote_user' user.id %}"
+                                   onclick="return confirm('Demote {{ user.username }} to teacher?');"
+                                   style="background: var(--info-bg); color: var(--info-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                                   onmouseover="this.style.background='var(--info-border)'; this.style.color='white';"
+                                   onmouseout="this.style.background='var(--info-bg)'; this.style.color='var(--info-text)';">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                </a>
+
+                                <a href="{% url 'remove_user' user.id %}"
+                                   onclick="return confirm('Are you sure you want to remove {{ user.username }}?');"
+                                   style="background: var(--error-bg); color: var(--error-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                                   onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
+                                   onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
                 </div>
 
             {% endfor %}
@@ -90,6 +117,29 @@
 
                         </div>
                     </div>
+
+                    {% if request.user.is_superuser or request.user.groups.all.0.name == 'admin' %}
+
+                        <div style="display: flex; gap: 6px;">
+                            <a href="{% url 'promote_user' user.id %}"
+                               onclick="return confirm('Promote {{ user.username }} to admin?');"
+                               style="background: var(--success-bg); color: var(--success-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                               onmouseover="this.style.background='var(--success-border)'; this.style.color='white';"
+                               onmouseout="this.style.background='var(--success-bg)'; this.style.color='var(--success-text)';">
+                                <i class="fa-solid fa-arrow-up"></i>
+                            </a>
+
+                            <a href="{% url 'remove_user' user.id %}"
+                               onclick="return confirm('Are you sure you want to remove {{ user.username }}?');"
+                               style="background: var(--error-bg); color: var(--error-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                               onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
+                               onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+
+                    {% endif %}
+
                 </div>
 
             {% endfor %}

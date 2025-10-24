@@ -414,12 +414,34 @@
 
                     </a>
 
-                    <a href="/admin/">
-                        <i class="fa-solid fa-gears"></i>
+                    {% if user.groups.all.0.name == 'admin' and not user.is_superuser %}
 
-                        Admin
+                        <a href="{% url 'admin_panel' %}">
+                            <i class="fa-solid fa-gears"></i>
 
-                    </a>
+                            Admin Panel
+
+                        </a>
+
+                    {% endif %}
+
+                    {% if user.is_superuser %}
+
+                        <a href="{% url 'admin_panel' %}">
+                            <i class="fa-solid fa-gears"></i>
+
+                            Admin Panel
+
+                        </a>
+
+                        <a href="/admin/">
+                            <i class="fa-solid fa-server"></i>
+
+                            Backend Interface
+
+                        </a>
+
+                    {% endif %}
 
                     <a href="{% url 'logout' %}">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i>
