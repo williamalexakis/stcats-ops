@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule - CS Dept Platform{% endblock %}
+
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div>
+        <h2 style="margin: 0 0 8px 0;">Schedule</h2>
+    </div>
+
+    {% if is_admin %}
+
+        <a href="{% url 'create_schedule_entry' %}" style="background: var(--button-bg); color: var(--button-text); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease;" onmouseover="this.style.background='var(--button-hover)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--button-bg)'; this.style.transform='translateY(0)';">
+            <i class="fa-solid fa-plus"></i>
+
+            Add Entry
+
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% if entries %}
+
+    <div class="card" style="padding: 0; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color); background: var(--bg-secondary);">
+                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Date</th>
+                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Time</th>
+                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Teacher</th>
+                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Room</th>
+                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Subject</th>
+                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Course</th>
+
+                    {% if is_admin %}
+
+                        <th style="text-align: center; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Actions</th>
+
+                    {% endif %}
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for entry in entries %}
+
+                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease; {% if entry.is_active %}background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981;{% endif %}" onmouseover="this.style.background='{% if entry.is_active %}rgba(16, 185, 129, 0.15){% else %}var(--bg-secondary){% endif %}';" onmouseout="this.style.background='{% if entry.is_active %}rgba(16, 185, 129, 0.1){% else %}transparent{% endif %}';">
+                        <td style="padding: 16px; color: var(--text-primary); white-space: nowrap;">
+                            <i class="fa-solid fa-calendar-days" style="color: var(--link-color); margin-right: 6px;"></i>
+
+                            {{ entry.date|date:"d/m/Y" }}
+
+                        </td>
+
+                        <td style="padding: 16px; color: var(--text-primary); white-space: nowrap;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span>
+                                    <i class="fa-solid fa-clock" style="color: var(--link-color); margin-right: 6px;"></i>
+
+                                    {{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}
+
+                                </span>
+
+                                {% if entry.is_active %}
+
+                                    <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fa-solid fa-circle" style="font-size: 6px; animation: pulse 2s infinite;"></i>
+
+                                        Active
+
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+                        </td>
+
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">
+                                    {{ entry.teacher.username|first|upper }}
+                                </div>
+
+                                <span style="color: var(--text-primary); font-weight: 500;">{{ entry.teacher.username }}</span>
+                            </div>
+                        </td>
+
+                        <td style="padding: 16px; color: var(--text-primary);">
+                            <span style="background: var(--error-bg); color: var(--error-text); padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; font-weight: 500;">
+                                {{ entry.room }}
+                            </span>
+                        </td>
+
+                        <td style="padding: 16px; color: var(--text-primary);">
+                            <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; font-weight: 500;">
+                                {{ entry.subject }}
+                            </span>
+                        </td>
+
+                        <td style="padding: 16px; color: var(--text-primary);">
+                            <span style="background: var(--info-bg); color: var(--info-text); padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; font-weight: 500;">
+                                {{ entry.course }}
+                            </span>
+                        </td>
+
+                        {% if is_admin %}
+
+                            <td style="padding: 16px; text-align: center;">
+                                <div style="display: flex; gap: 8px; justify-content: center;">
+                                    <a href="{% url 'edit_schedule_entry' entry.id %}"
+                                       style="background: var(--bg-tertiary); color: var(--text-secondary); padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; border: 1px solid var(--border-color);"
+                                       onmouseover="this.style.background='var(--info-bg)'; this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';"
+                                       onmouseout="this.style.background='var(--bg-tertiary)'; this.style.borderColor='var(--border-color)'; this.style.color='var(--text-secondary)';"
+                                       title="Edit entry">
+                                        <i class="fa-solid fa-pen"></i>
+
+                                        Edit
+
+                                    </a>
+
+                                    <a href="{% url 'delete_schedule_entry' entry.id %}"
+                                       onclick="return confirm('Delete this schedule entry?');"
+                                       style="background: var(--error-bg); color: var(--error-text); padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                                       onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
+                                       onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';"
+                                       title="Delete entry">
+                                        <i class="fa-solid fa-trash"></i>
+
+                                        Delete
+
+                                    </a>
+                                </div>
+                            </td>
+
+                        {% endif %}
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+    {% if entries.has_other_pages %}
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; flex-wrap: wrap;">
+
+            {% if entries.has_previous %}
+
+                <a href="?page=1" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                    <i class="fa-solid fa-angles-left"></i>
+                </a>
+
+                <a href="?page={{ entries.previous_page_number }}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                    <i class="fa-solid fa-angle-left"></i>
+                </a>
+
+            {% endif %}
+
+            {% for num in entries.paginator.page_range %}
+
+                {% if entries.number == num %}
+
+                    <span style="background: var(--button-bg); color: var(--button-text); padding: 8px 14px; border-radius: 6px; font-weight: 600; border: 1px solid var(--button-bg);">
+                        {{ num }}
+                    </span>
+
+                {% elif num > entries.number|add:'-3' and num < entries.number|add:'3' %}
+
+                    <a href="?page={{ num }}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 14px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                        {{ num }}
+                    </a>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% if entries.has_next %}
+
+                <a href="?page={{ entries.next_page_number }}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                    <i class="fa-solid fa-angle-right"></i>
+                </a>
+
+                <a href="?page={{ entries.paginator.num_pages }}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                    <i class="fa-solid fa-angles-right"></i>
+                </a>
+
+            {% endif %}
+
+        </div>
+
+        <div style="text-align: center; margin-top: 16px;">
+            <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
+                Page {{ entries.number }} of {{ entries.paginator.num_pages }} • {{ entries.paginator.count }} total entries
+            </p>
+        </div>
+
+    {% endif %}
+
+{% else %}
+
+    <div class="card" style="text-align: center; padding: 64px 24px;">
+        <i class="fa-solid fa-calendar-xmark" style="font-size: 64px; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 16px;"></i>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 16px;">No schedule entries available.</p>
+
+        {% if is_admin %}
+
+            <a href="{% url 'create_schedule_entry' %}" style="background: var(--button-bg); color: var(--button-text); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px;">
+                <i class="fa-solid fa-plus"></i>
+
+                Add Entry
+
+            </a>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}
+
+<style>
+@keyframes pulse {
+
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+</style>
+
+{% endblock %}

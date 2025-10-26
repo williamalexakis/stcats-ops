@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import InviteCode, Room, RoomMembership, Message, AuditLog
+from .models import InviteCode, Room, RoomMembership, Message, AuditLog, ScheduleEntry
 from .middleware import log_admin_action
 
 class AuditedModelAdmin(admin.ModelAdmin):
@@ -16,7 +16,7 @@ class AuditedModelAdmin(admin.ModelAdmin):
             obj=obj,
             obj_repr=str(obj),
             extra_data={
-                "changed_fields": list(form.changed_data) if hasattr(form, 'changed_data') else []
+                "changed_fields": list(form.changed_data) if hasattr(form, "changed_data") else []
             }
         )
 
@@ -48,16 +48,15 @@ class AuditedModelAdmin(admin.ModelAdmin):
 
         super().delete_queryset(request, queryset)
 
-
 class InviteCodeAdmin(AuditedModelAdmin):
 
-    list_display = ('code', 'creator', 'remaining_uses', 'expiration_date', 'creation_date')
-    list_filter = ('creation_date', 'expiration_date')
-    search_fields = ('code', 'creator__username')
-    readonly_fields = ('creator', 'creation_date')
+    list_display = ("code", "creator", "remaining_uses", "expiration_date", "creation_date")
+    list_filter = ("creation_date", "expiration_date")
+    search_fields = ("code", "creator__username")
+    readonly_fields = ("creator", "creation_date")
     fieldsets = (
-        (None, {'fields': ('code', 'remaining_uses', 'expiration_date')}),
-        ('Info', {'fields': ('creator', 'creation_date'),'classes': ('collapse',)})
+        (None, {"fields": ("code", "remaining_uses", "expiration_date")}),
+        ("Info", {"fields": ("creator", "creation_date"),"classes": ("collapse",)})
     )
 
     def save_model(self, request, obj, form, change):
@@ -68,51 +67,64 @@ class InviteCodeAdmin(AuditedModelAdmin):
 
         super().save_model(request, obj, form, change)
 
-
 class RoomAdmin(AuditedModelAdmin):
 
-    list_display = ('name', 'is_private', 'creator', 'creation_date')
-    list_filter = ('is_private', 'creation_date')
-    search_fields = ('name', 'creator__username')
-    readonly_fields = ('creator', 'creation_date')
+    list_display = ("name", "is_private", "creator", "creation_date")
+    list_filter = ("is_private", "creation_date")
+    search_fields = ("name", "creator__username")
+    readonly_fields = ("creator", "creation_date")
 
 class RoomMembershipAdmin(AuditedModelAdmin):
 
-    list_display = ('room', 'user', 'join_date')
-    list_filter = ('join_date', 'room')
-    search_fields = ('room__name', 'user__username')
-    readonly_fields = ('join_date',)
+    list_display = ("room", "user", "join_date")
+    list_filter = ("join_date", "room")
+    search_fields = ("room__name", "user__username")
+    readonly_fields = ("join_date",)
 
 class MessageAdmin(AuditedModelAdmin):
 
-    list_display = ('room', 'author', 'body_preview', 'is_announcement', 'is_pinned', 'creation_date', 'edit_date')
-    list_filter = ('is_announcement', 'is_pinned', 'creation_date', 'room')
-    search_fields = ('author__username', 'body', 'room__name')
-    readonly_fields = ('creation_date', 'edit_date')
+    list_display = ("room", "author", "body_preview", "is_announcement", "is_pinned", "creation_date", "edit_date")
+    list_filter = ("is_announcement", "is_pinned", "creation_date", "room")
+    search_fields = ("author__username", "body", "room__name")
+    readonly_fields = ("creation_date", "edit_date")
 
     def body_preview(self, obj):
 
-        return obj.body[:50] + ('...' if len(obj.body) > 50 else '')
+        return obj.body[:50] + ("..." if len(obj.body) > 50 else "")
 
-    body_preview.short_description = 'Message Preview'
+    body_preview.short_description = "Message Preview"
 
+class ScheduleEntryAdmin(AuditedModelAdmin):
+
+    list_display = ("date", "start_time", "end_time", "teacher", "room", "subject", "course", "created_by")
+    list_filter = ("date", "room", "subject", "course")
+    search_fields = ("teacher__username", "subject", "course")
+    readonly_fields = ("created_by", "creation_date")
+
+    def save_model(self, request, obj, form, change):
+
+        if not change:
+
+            obj.created_by = request.user
+
+        super().save_model(request, obj, form, change)
 
 class AuditLogAdmin(admin.ModelAdmin):
 
-    list_display = ('creation_date', 'actor', 'action', 'target', 'ip')
-    list_filter = ('creation_date', 'action')
-    search_fields = ('actor__username', 'action', 'target', 'ip')
-    readonly_fields = ('actor', 'action', 'target', 'ip', 'user_agent', 'extra', 'creation_date')
+    list_display = ("creation_date", "actor", "action", "target", "ip")
+    list_filter = ("creation_date", "action")
+    search_fields = ("actor__username", "action", "target", "ip")
+    readonly_fields = ("actor", "action", "target", "ip", "user_agent", "extra", "creation_date")
     fieldsets = (
-        ('Action Details', {
-            'fields': ('action', 'target', 'creation_date')
+        ("Action Details", {
+            "fields": ("action", "target", "creation_date")
         }),
-        ('Actor Information', {
-            'fields': ('actor', 'ip', 'user_agent')
+        ("Actor Information", {
+            "fields": ("actor", "ip", "user_agent")
         }),
-        ('Additional Data', {
-            'fields': ('extra',),
-            'classes': ('collapse',)
+        ("Additional Data", {
+            "fields": ("extra",),
+            "classes": ("collapse",)
         })
     )
 
@@ -132,4 +144,5 @@ admin.site.register(InviteCode, InviteCodeAdmin)
 admin.site.register(Room, RoomAdmin)
 admin.site.register(RoomMembership, RoomMembershipAdmin)
 admin.site.register(Message, MessageAdmin)
+admin.site.register(ScheduleEntry, ScheduleEntryAdmin)
 admin.site.register(AuditLog, AuditLogAdmin)

@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Schedule Entry - CS Dept Platform{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 24px;">
+    <a href="{% url 'scheduler' %}" style="color: var(--link-color); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin-bottom: 12px;">
+        <i class="fa-solid fa-arrow-left"></i> Back to Scheduler
+    </a>
+
+    <h2 style="margin: 8px 0 0 0;">Edit Schedule Entry</h2>
+</div>
+
+<div class="card">
+    <form method="post" style="display: grid; gap: 20px; max-width: 700px;">
+
+        {% csrf_token %}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <label for="teacher" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fa-solid fa-chalkboard-user"></i> Teacher
+                </label>
+
+                <select
+                    id="teacher"
+                    name="teacher"
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                >
+                    <option value="">Select teacher...</option>
+
+                    {% for teacher in teachers %}
+
+                        <option value="{{ teacher.id }}" {% if teacher.id == entry.teacher.id %}selected{% endif %}>{{ teacher.username }}</option>
+
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div>
+                <label for="room" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fa-solid fa-door-open"></i> Room
+                </label>
+
+                <select
+                    id="room"
+                    name="room"
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                >
+                    <option value="">Select room...</option>
+
+                    {% for value, label in room_choices %}
+
+                        <option value="{{ value }}" {% if value == entry.room %}selected{% endif %}>{{ label }}</option>
+
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <label for="subject" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fa-solid fa-book"></i> Subject
+                </label>
+
+                <select
+                    id="subject"
+                    name="subject"
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                >
+                    <option value="">Select subject...</option>
+
+                    {% for value, label in subject_choices %}
+
+                        <option value="{{ value }}" {% if value == entry.subject %}selected{% endif %}>{{ label }}</option>
+
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="course" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fa-solid fa-graduation-cap"></i> Course
+                </label>
+
+                <select
+                    id="course"
+                    name="course"
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                >
+                    <option value="">Select course...</option>
+
+                    {% for value, label in course_choices %}
+
+                        <option value="{{ value }}" {% if value == entry.course %}selected{% endif %}>{{ label }}</option>
+
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label for="date" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                <i class="fa-solid fa-calendar-days"></i> Date
+            </label>
+
+            <input
+                type="date"
+                id="date"
+                name="date"
+                value="{{ entry.date|date:'Y-m-d' }}"
+                required
+                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+            />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <label for="start_time" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fa-solid fa-clock"></i> Start Time
+                </label>
+
+                <input
+                    type="time"
+                    id="start_time"
+                    name="start_time"
+                    value="{{ entry.start_time|time:'H:i' }}"
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                />
+            </div>
+
+            <div>
+                <label for="end_time" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fa-solid fa-clock"></i> End Time
+                </label>
+
+                <input
+                    type="time"
+                    id="end_time"
+                    name="end_time"
+                    value="{{ entry.end_time|time:'H:i' }}"
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                />
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; padding-top: 8px;">
+            <button type="submit" style="background: var(--button-bg); color: var(--button-text); border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-check"></i>
+
+                Save Changes
+
+            </button>
+
+            <a href="{% url 'scheduler' %}" style="background: var(--bg-tertiary); color: var(--text-primary); padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border-color);">
+                <i class="fa-solid fa-xmark"></i>
+
+                Cancel
+
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

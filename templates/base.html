@@ -100,7 +100,7 @@
         }
 
         .header-content {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 12px 20px;
             display: flex;
@@ -141,27 +141,30 @@
         }
 
         .theme-toggle {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: var(--header-text);
-            padding: 8px 12px;
-            border-radius: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: 50%;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            position: relative;
-            width: 42px;
-            height: 42px;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            box-shadow: 0 4px 12px var(--shadow-hover);
+            z-index: 1000;
         }
 
         .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px var(--shadow-hover);
         }
 
         .theme-toggle:active {
@@ -195,7 +198,7 @@
         }
 
         main {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 24px auto;
             padding: 0 20px;
         }
@@ -414,6 +417,13 @@
 
                     </a>
 
+                    <a href="{% url 'scheduler' %}">
+                        <i class="fa-solid fa-calendar-days"></i>
+
+                        Schedule
+
+                    </a>
+
                     {% if user.groups.all.0.name == 'admin' and not user.is_superuser %}
 
                         <a href="{% url 'admin_panel' %}">
@@ -467,11 +477,6 @@
                     </a>
 
                 {% endif %}
-
-                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
-                    <span class="theme-icon-light">☀️</span>
-                    <span class="theme-icon-dark">🌙</span>
-                </button>
             </nav>
         </div>
     </header>
@@ -514,7 +519,13 @@
 
     </main>
 
-    <footer style="max-width: 1200px; margin: 40px auto 0; padding: 20px; text-align: center; border-top: 1px solid var(--border-color);">
+    <!-- Fixed Theme Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon-light">☀️</span>
+        <span class="theme-icon-dark">🌙</span>
+    </button>
+
+    <footer style="max-width: 1400px; margin: 40px auto 0; padding: 20px 20px 100px 20px; text-align: center; border-top: 1px solid var(--border-color);">
         <div style="color: var(--text-tertiary); font-size: 13px;">
             <p style="margin: 0 0 8px 0;">
                 Made by <span style="color: var(--text-secondary); font-weight: 500;">William Alexakis</span>
