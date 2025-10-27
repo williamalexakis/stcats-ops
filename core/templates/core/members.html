@@ -5,9 +5,15 @@
 {% block content %}
 
 <div style="margin-bottom: 24px;">
-    <h2 style="margin: 0 0 8px 0;">Members</h2>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <h1 style="margin: 0 0 8px 0;">Members</h1>
 
-    <p style="color: var(--text-secondary); margin: 0;">{{ total_count }} member{{ total_count|pluralize }} total</p>
+        <td style="padding: 12px 8px; text-align: center;">
+            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--success-bg); color: var(--success-text); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; flex-shrink: 0;">
+                {{ total_count }}
+            </div>
+        </td>
+    </div>
 </div>
 
 {% if admins %}

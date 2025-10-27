@@ -5,8 +5,14 @@
 {% block content %}
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-    <div>
-        <h2 style="margin: 0 0 8px 0;">Chat - {{ room.name }}</h2>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <h1 style="margin: 0 0 8px 0;">Chat</h1>
+
+        <td style="padding: 16px; color: var(--text-primary);">
+            <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 17px; font-weight: 500;">
+                {{ room.name }}
+            </span>
+        </td>
     </div>
 </div>
 
@@ -127,8 +133,8 @@
 
         <div style="text-align: center; padding: 64px 24px;">
             <i class="fa-solid fa-comment-dots" style="font-size: 64px; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 16px;"></i>
-            <p style="color: var(--text-secondary); margin: 0; font-size: 16px;">No messages yet.</p>
-            <p style="color: var(--text-tertiary); margin: 8px 0 0 0; font-size: 14px;">Be the first to send a message!</p>
+
+            <p style="color: var(--text-secondary); margin: 0; font-size: 16px;">No messages available.</p>
         </div>
 
     {% endif %}
@@ -145,12 +151,6 @@
         {% csrf_token %}
 
         <div>
-            <label for="body" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
-
-                Message
-
-            </label>
-
             <textarea
                 id="body"
                 name="body"
