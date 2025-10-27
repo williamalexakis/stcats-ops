@@ -1,0 +1,143 @@
+{% extends "core/admin_base.html" %}
+
+{% block title %}Admin Dashboard - CS Dept Platform{% endblock %}
+
+{% block admin_content %}
+
+<div style="margin-bottom: 24px;">
+    <h2 style="margin: 0 0 8px 0;">Administration Dashboard</h2>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px;">
+
+    <div class="card" style="padding: 20px; border-left: 4px solid var(--link-color);">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+                <div style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px;">Total Users</div>
+
+                <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ total_users }}</div>
+            </div>
+
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--info-bg); color: var(--info-text); display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-users" style="font-size: 24px;"></i>
+            </div>
+        </div>
+
+        <div style="font-size: 13px; color: var(--text-secondary);">
+            <i class="fa-solid fa-user-shield" style="color: var(--error-text);"></i>
+
+            {{ admin_count }} admin{{ admin_count|pluralize }} ·
+
+            <i class="fa-solid fa-chalkboard-user" style="color: var(--link-color);"></i>
+
+            {{ teacher_count }} teacher{{ teacher_count|pluralize }}
+        </div>
+    </div>
+
+    <div class="card" style="padding: 20px; border-left: 4px solid var(--success-border);">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+                <div style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px;">Active Invites</div>
+
+                <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ active_invites }}</div>
+            </div>
+
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--success-bg); color: var(--success-text); display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-ticket" style="font-size: 24px;"></i>
+            </div>
+        </div>
+
+        <div style="font-size: 13px; color: var(--text-secondary);">
+
+            {% if total_invite_uses > 0 %}
+
+                <i class="fa-solid fa-arrow-up" style="color: var(--success-text);"></i>
+
+                {{ total_invite_uses }} use{{ total_invite_uses|pluralize }} available
+
+            {% else %}
+
+                <span style="color: var(--text-tertiary);">No uses available</span>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+    <div class="card" style="padding: 20px; border-left: 4px solid var(--warning-border);">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+                <div style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px;">Schedule Entries</div>
+
+                <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ total_schedule_entries }}</div>
+            </div>
+
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--warning-bg); color: var(--warning-text); display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-calendar-days" style="font-size: 24px;"></i>
+            </div>
+        </div>
+        <div style="font-size: 13px; color: var(--text-secondary);">
+
+            {% if upcoming_entries > 0 %}
+
+                <i class="fa-solid fa-clock" style="color: var(--warning-text);"></i>
+
+                {{ upcoming_entries }} upcoming
+
+            {% else %}
+
+                <span style="color: var(--text-tertiary);">No upcoming entries</span>
+
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="padding: 20px; border-left: 4px solid var(--info-border);">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+                <div style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px;">Total Messages</div>
+
+                <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ total_messages }}</div>
+            </div>
+
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--info-bg); color: var(--info-text); display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-comment-dots" style="font-size: 24px;"></i>
+            </div>
+        </div>
+        <div style="font-size: 13px; color: var(--text-secondary);">
+
+            {% if announcement_count > 0 %}
+
+                <i class="fa-solid fa-bullhorn" style="color: var(--info-text);"></i>
+
+                {{ announcement_count }} announcement{{ announcement_count|pluralize }}
+
+            {% else %}
+
+                <span style="color: var(--text-tertiary);">No announcements</span>
+
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+        <i class="fa-solid fa-bolt" style="color: var(--link-color); font-size: 20px;"></i>
+
+        <h3 style="margin: 0;">Quick Actions</h3>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <a href="{% url 'admin_invites' %}"
+           style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;"
+           onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';"
+           onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+            <i class="fa-solid fa-ticket" style="font-size: 35px; color: var(--link-color);"></i>
+
+            <span style="font-weight: 500; color: var(--text-primary);">Manage Invites</span>
+        </a>
+    </div>
+</div>
+
+{% endblock %}

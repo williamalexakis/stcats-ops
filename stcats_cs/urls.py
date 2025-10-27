@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from core.views import (
     home, healthcheck, members, chat,
-    admin_panel, delete_invite_code,
+    admin_dashboard, admin_invites, delete_invite_code,
     promote_user, demote_user, remove_user,
     edit_message, delete_message,
     scheduler, create_schedule_entry, edit_schedule_entry, delete_schedule_entry
@@ -22,7 +22,9 @@ urlpatterns = [
     path("chat/message/<int:message_id>/delete/", delete_message, name="delete_message"),
     path("announcements/", announcement_list, name="announcements"),
     path("members/", members, name="members"),
-    path("panel/", admin_panel, name="admin_panel"),
+    path("panel/", admin_dashboard, name="admin_dashboard"),
+    path("panel/", admin_dashboard, name="admin_panel"),  # Admin invites, changing this is too annoying
+    path("panel/invites/", admin_invites, name="admin_invites"),
     path("panel/invite/<int:code_id>/delete/", delete_invite_code, name="delete_invite_code"),
     path("members/<int:user_id>/promote/", promote_user, name="promote_user"),
     path("members/<int:user_id>/demote/", demote_user, name="demote_user"),

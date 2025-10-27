@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "core/admin_base.html" %}
 
-{% block title %}Admin Panel - CS Dept Platform{% endblock %}
+{% block title %}Invite Codes - Admin Panel{% endblock %}
 
-{% block content %}
+{% block admin_content %}
 
 <div style="margin-bottom: 24px;">
-    <h2 style="margin: 0 0 8px 0;">Admin Panel</h2>
+    <h2 style="margin: 0 0 8px 0;">Invite Codes</h2>
 </div>
 
 <div class="card" style="margin-bottom: 24px;">
@@ -39,9 +39,7 @@
 
         <div style="margin-bottom: 20px;">
             <label for="expiry_days" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary);">
-
                 Expiration (Days)
-
             </label>
 
             <input
@@ -100,7 +98,7 @@
 
                             <td style="padding: 12px 8px; color: var(--text-secondary);">
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div style="width: 32px; height: 32px; border: 1px solid var(--border-color); border-radius: 50%; background: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">
+                                    <div style="width: 32px; height: 32px; border: 1px solid var(--border-color); border-radius: 50%; background: {% if code.creator.is_superuser or code.creator.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if code.creator.is_superuser or code.creator.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">
                                         {{ code.creator.username|first|upper }}
                                     </div>
 
@@ -138,6 +136,7 @@
                                    style="background: var(--error-bg); color: var(--error-text); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
                                    onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
                                    onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';">
+
                                     <i class="fa-solid fa-trash"></i>
 
                                     Delete

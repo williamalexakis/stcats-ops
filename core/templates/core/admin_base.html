@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div style="display: flex; gap: 24px; min-height: calc(100vh - 200px);">
+
+    <aside style="width: 250px; flex-shrink: 0;">
+        <div class="card" style="position: sticky; top: 24px; padding: 16px;">
+            <div style="margin-bottom: 20px; padding-bottom: 9px; border-bottom: 2px solid var(--border-color);">
+                <h2 style="margin: 0 0 4px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-gears" style="color: var(--link-color);"></i>
+
+                    Admin Options
+
+                </h2>
+            </div>
+
+            <nav style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+                <a href="{% url 'admin_dashboard' %}"
+                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary)"
+                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
+                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
+                    <i class="fa-solid fa-house" style="width: 16px; text-align: center;"></i>
+                    <span style="font-weight: 500;">Dashboard</span>
+                </a>
+
+                <a href="{% url 'admin_invites' %}"
+                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary);"
+                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
+                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
+                    <i class="fa-solid fa-ticket" style="width: 16px; text-align: center;"></i>
+                    <span style="font-weight: 500;">Invite Codes</span>
+                </a>
+
+                <div style="height: 1px; background: var(--border-color); margin: 8px 0;"></div>
+
+                <a href="{% url 'home' %}"
+                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary);"
+                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
+                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
+                    <i class="fa-solid fa-arrow-left" style="width: 16px; text-align: center;"></i>
+                    <span style="font-weight: 500;">Back to Home</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <div style="flex: 1; min-width: 0;">
+        {% block admin_content %}
+        {% endblock %}
+    </div>
+</div>
+
+{% endblock %}

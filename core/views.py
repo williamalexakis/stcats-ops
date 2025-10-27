@@ -5,10 +5,11 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages as flash_messages
 from django.contrib.auth.models import Group
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, date
 import secrets
 from .models import Message, InviteCode, Room, ScheduleEntry
 from django.core.paginator import Paginator
+from django.db.models import Sum
 
 User = get_user_model()
 
@@ -93,7 +94,59 @@ def chat(request):
     return render(request, "core/chat.html", context)
 
 @login_required
-def admin_panel(request):
+def admin_dashboard(request):
+
+    if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
+
+        flash_messages.error(request, "You don't have permission to access the admin panel.")
+
+        return redirect("home")
+
+    # Get statistics
+    all_users = User.objects.all().select_related().prefetch_related("groups")
+    total_users = all_users.count()
+    admin_count = 0
+    teacher_count = 0
+
+    for user in all_users:
+
+        if user.is_superuser or user.groups.filter(name="admin").exists():
+
+            admin_count += 1
+
+        elif user.groups.filter(name="teacher").exists():
+
+            teacher_count += 1
+
+    # Invite code stuff
+    active_invites = InviteCode.objects.filter(remaining_uses__gt=0).count()
+    total_invite_uses = InviteCode.objects.filter(remaining_uses__gt=0).aggregate(Sum('remaining_uses'))['remaining_uses__sum'] or 0
+
+    # Schedule stuff
+    total_schedule_entries = ScheduleEntry.objects.count()
+    today = date.today()
+    upcoming_entries = ScheduleEntry.objects.filter(date__gte=today).count()
+
+    # Message stuff
+    total_messages = Message.objects.count()
+    announcement_count = Message.objects.filter(is_announcement=True).count()
+
+    context = {
+        "total_users": total_users,
+        "admin_count": admin_count,
+        "teacher_count": teacher_count,
+        "active_invites": active_invites,
+        "total_invite_uses": total_invite_uses,
+        "total_schedule_entries": total_schedule_entries,
+        "upcoming_entries": upcoming_entries,
+        "total_messages": total_messages,
+        "announcement_count": announcement_count
+    }
+
+    return render(request, "core/admin_dashboard.html", context)
+
+@login_required
+def admin_invites(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -122,7 +175,7 @@ def admin_panel(request):
 
         flash_messages.success(request, f"Invite code created: {code}")
 
-        return redirect("admin_panel")
+        return redirect("admin_invites")
 
     # Get all invite codes
     invite_codes = InviteCode.objects.all().order_by("-creation_date")
@@ -150,7 +203,7 @@ def delete_invite_code(request, code_id):
 
         flash_messages.error(request, "Invite code not found.")
 
-    return redirect("admin_panel")
+    return redirect("admin_invites")
 
 
 @login_required
