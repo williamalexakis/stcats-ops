@@ -404,7 +404,31 @@ def scheduler(request):
     ScheduleEntry.objects.cleanup_past_entries()
 
     # Get all the schedule entries
-    entries_list = ScheduleEntry.objects.all().select_related('teacher', 'created_by')
+    entries_list = ScheduleEntry.objects.all().select_related('teacher', 'created_by', 'classroom', 'subject', 'course')
+
+    # Apply filters
+    teacher_filter = request.GET.get('teacher')
+    classroom_filter = request.GET.get('classroom')
+    subject_filter = request.GET.get('subject')
+    course_filter = request.GET.get('course')
+
+    has_filters = any([teacher_filter, classroom_filter, subject_filter, course_filter])
+
+    if teacher_filter:
+
+        entries_list = entries_list.filter(teacher_id=teacher_filter)
+
+    if classroom_filter:
+
+        entries_list = entries_list.filter(classroom_id=classroom_filter)
+
+    if subject_filter:
+
+        entries_list = entries_list.filter(subject_id=subject_filter)
+
+    if course_filter:
+
+        entries_list = entries_list.filter(course_id=course_filter)
 
     # We allow up to 10 entries per page
     paginator = Paginator(entries_list, 10)
@@ -415,9 +439,24 @@ def scheduler(request):
 
         entry.is_active = entry.is_active_now()
 
+    # Get filter options
+    teachers = User.objects.all().order_by('username')
+    classrooms = Classroom.objects.all().order_by('name')
+    subjects = Subject.objects.all().order_by('name')
+    courses = Course.objects.all().order_by('name')
+
     context = {
         'entries': entries,
-        'is_admin': request.user.is_superuser or request.user.groups.filter(name='admin').exists()
+        'is_admin': request.user.is_superuser or request.user.groups.filter(name='admin').exists(),
+        'teachers': teachers,
+        'classrooms': classrooms,
+        'subjects': subjects,
+        'courses': courses,
+        'teacher_filter': teacher_filter,
+        'classroom_filter': classroom_filter,
+        'subject_filter': subject_filter,
+        'course_filter': course_filter,
+        'has_filters': has_filters,
     }
 
     return render(request, "core/scheduler.html", context)
