@@ -41,21 +41,21 @@
             </div>
 
             <div>
-                <label for="room" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
-                    <i class="fa-solid fa-door-open"></i> Room
+                <label for="classroom" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fa-solid fa-door-open"></i> Classroom
                 </label>
 
                 <select
-                    id="room"
-                    name="room"
+                    id="classroom"
+                    name="classroom"
                     required
                     style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
                 >
-                    <option value="">Select room...</option>
+                    <option value="">Select classroom...</option>
 
-                    {% for value, label in room_choices %}
+                    {% for classroom in classrooms %}
 
-                        <option value="{{ value }}">{{ label }}</option>
+                        <option value="{{ classroom.id }}">{{ classroom.display_name }}</option>
 
                     {% endfor %}
 
@@ -77,9 +77,9 @@
                 >
                     <option value="">Select subject...</option>
 
-                    {% for value, label in subject_choices %}
+                    {% for subject in subjects %}
 
-                        <option value="{{ value }}">{{ label }}</option>
+                        <option value="{{ subject.id }}">{{ subject.display_name }}</option>
 
                     {% endfor %}
 
@@ -99,9 +99,9 @@
                 >
                     <option value="">Select course...</option>
 
-                    {% for value, label in course_choices %}
+                    {% for course in courses %}
 
-                        <option value="{{ value }}">{{ label }}</option>
+                        <option value="{{ course.id }}">{{ course.display_name }}</option>
 
                     {% endfor %}
 

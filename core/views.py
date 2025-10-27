@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 from datetime import timedelta, date
 import secrets
-from .models import Message, InviteCode, Room, ScheduleEntry
+from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course
 from django.core.paginator import Paginator
 from django.db.models import Sum
 
@@ -98,7 +98,7 @@ def admin_dashboard(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to access the admin panel.")
+        flash_messages.error(request, "You don't have permission to access this page.")
 
         return redirect("home")
 
@@ -150,7 +150,7 @@ def admin_invites(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to access the admin panel.")
+        flash_messages.error(request, "You don't have permission to access this page.")
 
         return redirect("home")
 
@@ -205,7 +205,6 @@ def delete_invite_code(request, code_id):
 
     return redirect("admin_invites")
 
-
 @login_required
 def promote_user(request, user_id):
 
@@ -241,7 +240,6 @@ def promote_user(request, user_id):
 
     return redirect('members')
 
-
 @login_required
 def edit_message(request, message_id):
 
@@ -252,7 +250,7 @@ def edit_message(request, message_id):
         # Only allow editing your own messages
         if message.author != request.user:
 
-            flash_messages.error(request, "You can only edit your own messages.")
+            flash_messages.error(request, "You don't have permission to perform this action.")
 
             return redirect('chat')
 
@@ -293,33 +291,42 @@ def edit_message(request, message_id):
 @login_required
 def delete_message(request, message_id):
     try:
-        message = Message.objects.get(id=message_id)
 
-        # Check permissions
+        message = Message.objects.get(id=message_id)
         can_delete = False
 
         # User can delete their own messages
         if message.author == request.user:
+
             can_delete = True
-        # Admins can delete any message except superuser messages
+
+        # Admins can delete any message
         elif (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
+
             if not message.author.is_superuser:
+
                 can_delete = True
+
             else:
+
                 flash_messages.error(request, "Cannot delete superuser messages.")
+
                 return redirect('chat')
 
         if can_delete:
+
             message.delete()
             flash_messages.success(request, "Message deleted.")
+
         else:
-            flash_messages.error(request, "You don't have permission to delete this message.")
+
+            flash_messages.error(request, "You don't have permission to perform this action.")
 
     except Message.DoesNotExist:
+
         flash_messages.error(request, "Message not found.")
 
     return redirect('chat')
-
 
 @login_required
 def demote_user(request, user_id):
@@ -337,6 +344,7 @@ def demote_user(request, user_id):
         if user.is_superuser:
 
             flash_messages.error(request, "Cannot modify superuser accounts.")
+
             return redirect("members")
 
         teacher_group = Group.objects.get(name="teacher")
@@ -420,16 +428,16 @@ def create_schedule_entry(request):
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
 
-        flash_messages.error(request, "You don't have permission to create schedule entries.")
+        flash_messages.error(request, "You don't have permission to perform this action.")
 
         return redirect('scheduler')
 
     if request.method == 'POST':
 
         teacher_id = request.POST.get('teacher')
-        room = request.POST.get('room')
-        subject = request.POST.get('subject')
-        course = request.POST.get('course')
+        classroom_id = request.POST.get('classroom')
+        subject_id = request.POST.get('subject')
+        course_id = request.POST.get('course')
         date = request.POST.get('date')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
@@ -437,10 +445,13 @@ def create_schedule_entry(request):
         try:
 
             teacher = User.objects.get(id=teacher_id)
+            classroom = Classroom.objects.get(id=classroom_id)
+            subject = Subject.objects.get(id=subject_id)
+            course = Course.objects.get(id=course_id)
 
             ScheduleEntry.objects.create(
                 teacher=teacher,
-                room=room,
+                classroom=classroom,
                 subject=subject,
                 course=course,
                 date=date,
@@ -456,22 +467,28 @@ def create_schedule_entry(request):
 
             flash_messages.error(request, "Selected teacher not found.")
 
+        except (Classroom.DoesNotExist, Subject.DoesNotExist, Course.DoesNotExist):
+
+            flash_messages.error(request, "Selected item not found.")
+
         except Exception as error:
 
             flash_messages.error(request, f"Error creating entry: {str(error)}")
 
-    # Get all users for the teacher selection
+    # Get all data for the form
     teachers = User.objects.all().order_by('username')
+    classrooms = Classroom.objects.all().order_by('name')
+    subjects = Subject.objects.all().order_by('name')
+    courses = Course.objects.all().order_by('name')
 
     context = {
         'teachers': teachers,
-        'room_choices': ScheduleEntry.ROOM_CHOICES,
-        'subject_choices': ScheduleEntry.SUBJECT_CHOICES,
-        'course_choices': ScheduleEntry.COURSE_CHOICES,
+        'classrooms': classrooms,
+        'subjects': subjects,
+        'courses': courses,
     }
 
     return render(request, "core/create_schedule_entry.html", context)
-
 
 @login_required
 def edit_schedule_entry(request, entry_id):
@@ -479,7 +496,7 @@ def edit_schedule_entry(request, entry_id):
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
 
-        flash_messages.error(request, "You don't have permission to edit schedule entries.")
+        flash_messages.error(request, "You don't have permission to perform this action.")
 
         return redirect('scheduler')
 
@@ -490,9 +507,9 @@ def edit_schedule_entry(request, entry_id):
         if request.method == 'POST':
 
             teacher_id = request.POST.get('teacher')
-            entry.room = request.POST.get('room')
-            entry.subject = request.POST.get('subject')
-            entry.course = request.POST.get('course')
+            classroom_id = request.POST.get('classroom')
+            subject_id = request.POST.get('subject')
+            course_id = request.POST.get('course')
             entry.date = request.POST.get('date')
             entry.start_time = request.POST.get('start_time')
             entry.end_time = request.POST.get('end_time')
@@ -500,6 +517,9 @@ def edit_schedule_entry(request, entry_id):
             try:
 
                 entry.teacher = User.objects.get(id=teacher_id)
+                entry.classroom = Classroom.objects.get(id=classroom_id)
+                entry.subject = Subject.objects.get(id=subject_id)
+                entry.course = Course.objects.get(id=course_id)
 
                 entry.save()
                 flash_messages.success(request, "Schedule entry successfully updated.")
@@ -510,15 +530,22 @@ def edit_schedule_entry(request, entry_id):
 
                 flash_messages.error(request, "Selected teacher not found.")
 
-        # Get all users for the teacher selection
+            except (Classroom.DoesNotExist, Subject.DoesNotExist, Course.DoesNotExist):
+
+                flash_messages.error(request, "Selected item not found.")
+
+        # Get all data for the form
         teachers = User.objects.all().order_by('username')
+        classrooms = Classroom.objects.all().order_by('name')
+        subjects = Subject.objects.all().order_by('name')
+        courses = Course.objects.all().order_by('name')
 
         context = {
             'entry' : entry,
             'teachers' : teachers,
-            'room_choices' : ScheduleEntry.ROOM_CHOICES,
-            'subject_choices' : ScheduleEntry.SUBJECT_CHOICES,
-            'course_choices' : ScheduleEntry.COURSE_CHOICES,
+            'classrooms': classrooms,
+            'subjects': subjects,
+            'courses': courses,
         }
 
         return render(request, "core/edit_schedule_entry.html", context)
@@ -529,14 +556,13 @@ def edit_schedule_entry(request, entry_id):
 
         return redirect('scheduler')
 
-
 @login_required
 def delete_schedule_entry(request, entry_id):
 
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to delete schedule entries.")
+        flash_messages.error(request, "You don't have permission to perform this action.")
 
         return redirect("scheduler")
 

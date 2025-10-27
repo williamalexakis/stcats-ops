@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import InviteCode, Room, RoomMembership, Message, AuditLog, ScheduleEntry
+from .models import InviteCode, Room, RoomMembership, Message, AuditLog, ScheduleEntry, Classroom, Subject, Course
 from .middleware import log_admin_action
 
 class AuditedModelAdmin(admin.ModelAdmin):
@@ -96,8 +96,8 @@ class MessageAdmin(AuditedModelAdmin):
 
 class ScheduleEntryAdmin(AuditedModelAdmin):
 
-    list_display = ("date", "start_time", "end_time", "teacher", "room", "subject", "course", "created_by")
-    list_filter = ("date", "room", "subject", "course")
+    list_display = ("date", "start_time", "end_time", "teacher", "classroom", "subject", "course", "created_by")
+    list_filter = ("date", "classroom", "subject", "course")
     search_fields = ("teacher__username", "subject", "course")
     readonly_fields = ("created_by", "creation_date")
 
@@ -146,3 +146,6 @@ admin.site.register(RoomMembership, RoomMembershipAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ScheduleEntry, ScheduleEntryAdmin)
 admin.site.register(AuditLog, AuditLogAdmin)
+admin.site.register(Classroom)
+admin.site.register(Subject)
+admin.site.register(Course)

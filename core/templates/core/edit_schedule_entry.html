@@ -41,21 +41,21 @@
             </div>
 
             <div>
-                <label for="room" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
-                    <i class="fa-solid fa-door-open"></i> Room
+                <label for="classroom" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fa-solid fa-door-open"></i> Classroom
                 </label>
 
                 <select
-                    id="room"
-                    name="room"
+                    id="classroom"
+                    name="classroom"
                     required
                     style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
                 >
-                    <option value="">Select room...</option>
+                    <option value="">Select classroom...</option>
 
-                    {% for value, label in room_choices %}
+                    {% for classroom in classrooms %}
 
-                        <option value="{{ value }}" {% if value == entry.room %}selected{% endif %}>{{ label }}</option>
+                        <option value="{{ classroom.id }}" {% if classroom.id == entry.classroom.id %}selected{% endif %}>{{ classroom.display_name }}</option>
 
                     {% endfor %}
                 </select>
@@ -76,9 +76,9 @@
                 >
                     <option value="">Select subject...</option>
 
-                    {% for value, label in subject_choices %}
+                    {% for subject in subjects %}
 
-                        <option value="{{ value }}" {% if value == entry.subject %}selected{% endif %}>{{ label }}</option>
+                        <option value="{{ subject.id }}" {% if subject.id == entry.subject.id %}selected{% endif %}>{{ subject.display_name }}</option>
 
                     {% endfor %}
                 </select>
@@ -97,9 +97,9 @@
                 >
                     <option value="">Select course...</option>
 
-                    {% for value, label in course_choices %}
+                    {% for course in courses %}
 
-                        <option value="{{ value }}" {% if value == entry.course %}selected{% endif %}>{{ label }}</option>
+                        <option value="{{ course.id }}" {% if course.id == entry.course.id %}selected{% endif %}>{{ course.display_name }}</option>
 
                     {% endfor %}
                 </select>

@@ -9,6 +9,10 @@ from core.views import (
 )
 from core.views_auth import signup, logout_view
 from core.views_announce import announcement_list
+from core.views_scheduler_config import (
+    admin_scheduler_config, add_classroom, delete_classroom,
+    add_subject, delete_subject, add_course, delete_course
+)
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -23,7 +27,7 @@ urlpatterns = [
     path("announcements/", announcement_list, name="announcements"),
     path("members/", members, name="members"),
     path("panel/", admin_dashboard, name="admin_dashboard"),
-    path("panel/", admin_dashboard, name="admin_panel"),  # Admin invites, changing this is too annoying
+    path("panel/", admin_dashboard, name="admin_panel"),  # Admin invites -- changing this is too annoying
     path("panel/invites/", admin_invites, name="admin_invites"),
     path("panel/invite/<int:code_id>/delete/", delete_invite_code, name="delete_invite_code"),
     path("members/<int:user_id>/promote/", promote_user, name="promote_user"),
@@ -33,5 +37,12 @@ urlpatterns = [
     path("scheduler/create/", create_schedule_entry, name="create_schedule_entry"),
     path("scheduler/<int:entry_id>/edit/", edit_schedule_entry, name="edit_schedule_entry"),
     path("scheduler/<int:entry_id>/delete/", delete_schedule_entry, name="delete_schedule_entry"),
+    path("panel/scheduler-config/", admin_scheduler_config, name="admin_scheduler_config"),
+    path("panel/scheduler-config/classroom/add/", add_classroom, name="add_classroom"),
+    path("panel/scheduler-config/classroom/<int:classroom_id>/delete/", delete_classroom, name="delete_classroom"),
+    path("panel/scheduler-config/subject/add/", add_subject, name="add_subject"),
+    path("panel/scheduler-config/subject/<int:subject_id>/delete/", delete_subject, name="delete_subject"),
+    path("panel/scheduler-config/course/add/", add_course, name="add_course"),
+    path("panel/scheduler-config/course/<int:course_id>/delete/", delete_course, name="delete_course"),
     path("healthcheck/", healthcheck, name="healthcheck")
 ]

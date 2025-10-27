@@ -32,6 +32,14 @@
                     <span style="font-weight: 500;">Invite Codes</span>
                 </a>
 
+                <a href="{% url 'admin_scheduler_config' %}"
+                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary);"
+                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
+                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
+                    <i class="fa-solid fa-calendar-days" style="width: 16px; text-align: center;"></i>
+                    <span style="font-weight: 500;">Schedule Config</span>
+                </a>
+
                 <div style="height: 1px; background: var(--border-color); margin: 8px 0;"></div>
 
                 <a href="{% url 'home' %}"

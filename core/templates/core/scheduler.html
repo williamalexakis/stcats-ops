@@ -90,19 +90,19 @@
 
                         <td style="padding: 16px; color: var(--text-primary);">
                             <span style="background: var(--error-bg); color: var(--error-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
-                                {{ entry.room }}
+                                {{ entry.classroom.name }}
                             </span>
                         </td>
 
                         <td style="padding: 16px; color: var(--text-primary);">
                             <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
-                                {{ entry.subject }}
+                                {{ entry.subject.display_name }}
                             </span>
                         </td>
 
                         <td style="padding: 16px; color: var(--text-primary);">
                             <span style="background: var(--info-bg); color: var(--info-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
-                                {{ entry.course }}
+                                {{ entry.course.display_name }}
                             </span>
                         </td>
 
@@ -205,7 +205,7 @@
 
     <div class="card" style="text-align: center; padding: 64px 24px;">
         <i class="fa-solid fa-calendar-xmark" style="font-size: 64px; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 16px;"></i>
-        <p style="color: var(--text-secondary); margin: 0; font-size: 16px;">No schedule entries available.</p>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 16px;">No entries available.</p>
 
         {% if is_admin %}
 

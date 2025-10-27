@@ -1,0 +1,179 @@
+{% extends "core/admin_base.html" %}
+
+{% block title %}Scheduler Configuration - Admin Panel{% endblock %}
+
+{% block admin_content %}
+
+<div style="margin-bottom: 24px;">
+    <h2 style="margin: 0 0 8px 0;">Scheduler Configuration</h2>
+</div>
+
+<div style="display: grid; gap: 20px;">
+
+    <div class="card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-door-open" style="color: var(--error-text); font-size: 18px;"></i>
+
+                <h3 style="margin: 0;">Classrooms</h3>
+
+                <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{ classrooms|length }}</span>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'add_classroom' %}" style="margin-bottom: 16px;">
+
+            {% csrf_token %}
+
+            <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; align-items: end;">
+                <input type="text" name="name" placeholder="Code (e.g., CS1)" required style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px;" />
+                <input type="text" name="display_name" placeholder="Display Name (e.g., CS Lab 1)" required style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px;" />
+                <button type="submit" style="background: var(--button-bg); color: var(--button-text); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap;">
+                    <i class="fa-solid fa-plus"></i> Add
+                </button>
+            </div>
+        </form>
+
+        {% if classrooms %}
+
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+
+                {% for classroom in classrooms %}
+
+                    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border-color);">
+                        <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">{{ classroom.name }}</span>
+                        <span style="font-size: 13px; color: var(--text-primary);">{{ classroom.display_name }}</span>
+
+                        <a href="{% url 'delete_classroom' classroom.id %}"
+                            onclick="return confirm('Delete {{ course.name }}?');"
+                           style="background: var(--error-bg); color: var(--error-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                           onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
+                           onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p style="color: var(--text-secondary); margin: 0; font-size: 13px; font-style: italic;">No classrooms yet.</p>
+
+        {% endif %}
+
+    </div>
+
+    <div class="card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-book" style="color: var(--success-text); font-size: 18px;"></i>
+
+                <h3 style="margin: 0;">Subjects</h3>
+
+                <span style="background: var(--success-bg); color: var(--success-text); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{ subjects|length }}</span>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'add_subject' %}" style="margin-bottom: 16px;">
+
+            {% csrf_token %}
+
+            <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; align-items: end;">
+                <input type="text" name="name" placeholder="Code (e.g., CS)" required style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px;" />
+                <input type="text" name="display_name" placeholder="Display Name (e.g., Computer Science)" required style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px;" />
+                <button type="submit" style="background: var(--button-bg); color: var(--button-text); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap;">
+                    <i class="fa-solid fa-plus"></i> Add
+                </button>
+            </div>
+        </form>
+
+        {% if subjects %}
+
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+
+                {% for subject in subjects %}
+
+                    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border-color);">
+                        <span style="background: var(--success-bg); color: var(--success-text); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">{{ subject.name }}</span>
+                        <span style="font-size: 13px; color: var(--text-primary);">{{ subject.display_name }}</span>
+
+                        <a href="{% url 'delete_subject' subject.id %}"
+                            onclick="return confirm('Delete {{ course.name }}?');"
+                           style="background: var(--error-bg); color: var(--error-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                           onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
+                           onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p style="color: var(--text-secondary); margin: 0; font-size: 13px; font-style: italic;">No subjects yet.</p>
+
+        {% endif %}
+
+    </div>
+
+    <div class="card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-graduation-cap" style="color: var(--info-text); font-size: 18px;"></i>
+
+                <h3 style="margin: 0;">Courses</h3>
+
+                <span style="background: var(--info-bg); color: var(--info-text); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{ courses|length }}</span>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'add_course' %}" style="margin-bottom: 16px;">
+
+            {% csrf_token %}
+
+            <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; align-items: end;">
+                <input type="text" name="name" placeholder="Code (e.g., GCSE)" required style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px;" />
+                <input type="text" name="display_name" placeholder="Display Name (e.g., GCSE)" required style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px;" />
+                <button type="submit" style="background: var(--button-bg); color: var(--button-text); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap;">
+                    <i class="fa-solid fa-plus"></i> Add
+                </button>
+            </div>
+        </form>
+
+        {% if courses %}
+
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+
+                {% for course in courses %}
+
+                    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border-color);">
+                        <span style="background: var(--info-bg); color: var(--info-text); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">{{ course.name }}</span>
+                        <span style="font-size: 13px; color: var(--text-primary);">{{ course.display_name }}</span>
+
+                        <a href="{% url 'delete_course' course.id %}"
+                            onclick="return confirm('Delete {{ course.name }}?');"
+                           style="background: var(--error-bg); color: var(--error-text); padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                           onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
+                           onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p style="color: var(--text-secondary); margin: 0; font-size: 13px; font-style: italic;">No courses yet.</p>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

@@ -91,6 +91,63 @@ class Message(models.Model):
         preview = self.body[:50]
         return f"{self.author.username}: {preview}..." if len(self.body) > 50 else f"{self.author.username}: {preview}"
 
+class Classroom(models.Model):
+
+    name = models.CharField(max_length=100, unique=True)
+    display_name = models.CharField(max_length=100)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="classrooms_created"
+    )
+    creation_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+
+        ordering = ["name"]
+
+    def __str__(self):
+
+        return self.display_name
+
+class Subject(models.Model):
+
+    name = models.CharField(max_length=100, unique=True)
+    display_name = models.CharField(max_length=100)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="subjects_created"
+    )
+    creation_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+
+        ordering = ["name"]
+
+    def __str__(self):
+
+        return self.display_name
+
+class Course(models.Model):
+
+    name = models.CharField(max_length=100, unique=True)
+    display_name = models.CharField(max_length=100)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="courses_created"
+    )
+    creation_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+
+        ordering = ["name"]
+
+    def __str__(self):
+
+        return self.display_name
+
 class ScheduleEntryManager(models.Manager):
 
     def cleanup_past_entries(self):
@@ -110,34 +167,26 @@ class ScheduleEntryManager(models.Manager):
 
 class ScheduleEntry(models.Model):
 
-    ROOM_CHOICES = [
-        ("CS1", "CS Lab 1"),
-        ("CS2", "CS Lab 2"),
-        ("CS3", "CS Lab 3"),
-        ("FABLAB", "Fablab")
-    ]
-
-    SUBJECT_CHOICES = [
-        ("CS", "Computer Science"),
-        ("DT", "Design Technology")
-    ]
-
-    COURSE_CHOICES = [
-        ("GCSE", "GCSE"),
-        ("IB", "IB"),
-        ("Year 7", "Year 7"),
-        ("Year 8", "Year 8"),
-        ("Year 9", "Year 9")
-    ]
-
     teacher = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="schedule_entries"
     )
-    room = models.CharField(max_length=50, choices=ROOM_CHOICES)
-    subject = models.CharField(max_length=100, choices=SUBJECT_CHOICES)
-    course = models.CharField(max_length=50, choices=COURSE_CHOICES)
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.PROTECT,
+        related_name="schedule_entries"
+    )
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.PROTECT,
+        related_name="schedule_entries"
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.PROTECT,
+        related_name="schedule_entries"
+    )
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -156,7 +205,12 @@ class ScheduleEntry(models.Model):
 
     def __str__(self):
 
-        return f"{self.subject} - {self.teacher.username} - {self.date} {self.start_time}"
+        return f"{self.subject.display_name} - {self.teacher.username} - {self.date} {self.start_time}"
+
+    @property
+    def room(self):
+
+        return self.classroom.name if self.classroom else None
 
     def is_active_now(self):
 
