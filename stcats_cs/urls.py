@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from core.views import (
     home, healthcheck, members, chat,
-    admin_dashboard, admin_invites, delete_invite_code,
+    admin_dashboard, admin_invites, admin_audit_logs, delete_invite_code,
     promote_user, demote_user, remove_user,
     edit_message, delete_message,
     scheduler, create_schedule_entry, edit_schedule_entry, delete_schedule_entry
@@ -44,5 +44,6 @@ urlpatterns = [
     path("panel/scheduler-config/subject/<int:subject_id>/delete/", delete_subject, name="delete_subject"),
     path("panel/scheduler-config/course/add/", add_course, name="add_course"),
     path("panel/scheduler-config/course/<int:course_id>/delete/", delete_course, name="delete_course"),
+    path("panel/audit-logs/", admin_audit_logs, name="admin_audit_logs"),
     path("healthcheck/", healthcheck, name="healthcheck")
 ]

@@ -1,0 +1,252 @@
+{% extends "core/admin_base.html" %}
+
+{% block title %}Audit Logs - CS Dept Platform{% endblock %}
+
+{% block admin_content %}
+
+<div style="margin-bottom: 24px;">
+    <center>
+        <h1 style="margin: 0 0 8px 0;">Audit Logs</h1>
+    </center>
+</div>
+
+<div class="card" style="padding: 16px; margin-bottom: 16px;">
+    <form method="get" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: end;">
+        <div style="flex: 1; min-width: 150px;">
+            <label for="actor" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); font-size: 13px;">
+                <i class="fa-solid fa-user"></i> User
+            </label>
+
+            <select
+                id="actor"
+                name="actor"
+                style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; cursor: pointer;"
+                onchange="this.form.submit()">
+                <option value="">All Users</option>
+
+                {% for actor in actors %}
+
+                    <option value="{{ actor.id }}" {% if actor_filter == actor.id|stringformat:"s" %}selected{% endif %}>{{ actor.username }}</option>
+
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+            <label for="action" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); font-size: 13px;">
+                <i class="fa-solid fa-bolt"></i> Action
+            </label>
+
+            <select
+                id="action"
+                name="action"
+                style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; cursor: pointer;"
+                onchange="this.form.submit()">
+                <option value="">All Actions</option>
+                {% for action in actions %}
+                    <option value="{{ action }}" {% if action_filter == action %}selected{% endif %}>{{ action }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+            <label for="date" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); font-size: 13px;">
+                <i class="fa-solid fa-calendar"></i> Date
+            </label>
+
+            <input
+                type="date"
+                id="date"
+                name="date"
+                value="{{ date_filter }}"
+                style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; cursor: pointer;"
+                onchange="this.form.submit()" />
+        </div>
+
+        {% if has_filters %}
+
+            <div style="display: flex; align-items: end;">
+                <a href="{% url 'admin_audit_logs' %}" style="background: var(--bg-tertiary); color: var(--text-primary); padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)';">
+                    <i class="fa-solid fa-xmark"></i>
+
+                    Clear Filters
+
+                </a>
+            </div>
+
+        {% endif %}
+
+    </form>
+</div>
+
+{% if logs %}
+
+    <div class="card" style="padding: 0; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color); background: var(--bg-secondary);">
+                    <th style="text-align: left; padding: 12px 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Timestamp</th>
+                    <th style="text-align: left; padding: 12px 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">User</th>
+                    <th style="text-align: left; padding: 12px 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Action</th>
+                    <th style="text-align: left; padding: 12px 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Target</th>
+                    <th style="text-align: left; padding: 12px 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">IP Address</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for log in logs %}
+
+                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-secondary)';" onmouseout="this.style.background='transparent';">
+                        <td style="padding: 12px 16px; color: var(--text-secondary); white-space: nowrap; font-size: 13px;">
+                            <i class="fa-solid fa-clock" style="color: var(--text-tertiary); margin-right: 6px;"></i>
+
+                            {{ log.creation_date|date:"d/m/Y H:i:s" }}
+                        </td>
+
+                        <td style="padding: 12px 16px;">
+
+                            {% if log.actor %}
+
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 28px; height: 28px; border: 1px solid var(--border-color); border-radius: 50%; background: {% if log.actor.is_superuser or log.actor.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if log.actor.is_superuser or log.actor.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; flex-shrink: 0;">
+                                        {{ log.actor.username|first|upper }}
+                                    </div>
+
+                                    <span style="font-size: 13px; color: var(--text-primary); font-weight: 500;">{{ log.actor.username }}</span>
+                                </div>
+
+                            {% else %}
+
+                                <span style="font-size: 13px; color: var(--text-tertiary); font-style: italic;">System</span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td style="padding: 12px 16px;">
+                            <span style="background: {% if 'delete' in log.action %}var(--error-bg){% elif 'add' in log.action or 'create' in log.action %}var(--success-bg){% elif 'change' in log.action or 'edit' in log.action %}var(--warning-bg){% else %}var(--info-bg){% endif %}; color: {% if 'delete' in log.action %}var(--error-text){% elif 'add' in log.action or 'create' in log.action %}var(--success-text){% elif 'change' in log.action or 'edit' in log.action %}var(--warning-text){% else %}var(--info-text){% endif %}; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap;">
+                                {{ log.get_action_display }}
+                            </span>
+                        </td>
+
+                        <td style="padding: 12px 16px; color: var(--text-primary); font-size: 13px;">
+
+                            {% if log.get_object_repr %}
+
+                                <div style="font-weight: 500;">{{ log.get_target_display }}</div>
+
+                                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">{{ log.get_object_repr|truncatechars:50 }}</div>
+
+                            {% else %}
+
+                                <span style="font-family: monospace; font-size: 12px; color: var(--text-secondary);">{{ log.get_target_display|truncatechars:60 }}</span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td style="padding: 12px 16px;">
+
+                            {% if log.ip %}
+
+                                <code style="background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--text-primary);">{{ log.ip }}</code>
+
+                            {% else %}
+
+                                <span style="color: var(--text-tertiary); font-size: 12px;">N/A</span>
+
+                            {% endif %}
+
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+    {% if logs.has_other_pages %}
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; flex-wrap: wrap;">
+
+            {% if logs.has_previous %}
+
+                <a href="?page=1{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                    <i class="fa-solid fa-angles-left"></i>
+                </a>
+
+                <a href="?page={{ logs.previous_page_number }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                    <i class="fa-solid fa-angle-left"></i>
+                </a>
+
+            {% endif %}
+
+            {% for num in logs.paginator.page_range %}
+
+                {% if logs.number == num %}
+
+                    <span style="background: var(--button-bg); color: var(--button-text); padding: 8px 14px; border-radius: 6px; font-weight: 600; border: 1px solid var(--button-bg);">
+                        {{ num }}
+                    </span>
+
+                {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
+
+                    <a href="?page={{ num }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 14px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                        {{ num }}
+                    </a>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% if logs.has_next %}
+
+                <a href="?page={{ logs.next_page_number }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                    <i class="fa-solid fa-angle-right"></i>
+                </a>
+
+                <a href="?page={{ logs.paginator.num_pages }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                    <i class="fa-solid fa-angles-right"></i>
+                </a>
+
+            {% endif %}
+
+        </div>
+
+        <div style="text-align: center; margin-top: 16px;">
+            <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
+                Page {{ logs.number }} of {{ logs.paginator.num_pages }} • {{ logs.paginator.count }} total log{{ logs.paginator.count|pluralize }}
+            </p>
+        </div>
+
+    {% endif %}
+
+{% else %}
+
+    <div class="card" style="text-align: center; padding: 64px 24px;">
+        <i class="fa-solid fa-clipboard-list" style="font-size: 64px; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 16px;"></i>
+
+        {% if has_filters %}
+
+            <p style="color: var(--text-secondary); margin: 0 0 16px 0; font-size: 16px;">No logs match your filters.</p>
+            <a href="{% url 'admin_audit_logs' %}" style="background: var(--button-bg); color: var(--button-text); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease;" onmouseover="this.style.background='var(--button-hover)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--button-bg)'; this.style.transform='translateY(0)';">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+
+                Clear Filters
+
+            </a>
+
+        {% else %}
+
+            <p style="color: var(--text-secondary); margin: 0; font-size: 16px;">No audit logs available.</p>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}
+
+{% endblock %}

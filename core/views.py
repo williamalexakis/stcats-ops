@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 from datetime import timedelta, date
 import secrets
-from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course
+from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course, AuditLog
 from django.core.paginator import Paginator
 from django.db.models import Sum
 
@@ -182,6 +182,57 @@ def admin_invites(request):
     context = {"invite_codes" : invite_codes}
 
     return render(request, "core/admin_panel.html", context)
+
+
+@login_required
+def admin_audit_logs(request):
+
+    if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
+
+        flash_messages.error(request, "You don't have permission to access this page.")
+
+        return redirect("home")
+
+    # Get all audit logs
+    logs_list = AuditLog.objects.all().select_related('actor')
+
+    # Apply filters
+    actor_filter = request.GET.get('actor')
+    action_filter = request.GET.get('action')
+    date_filter = request.GET.get('date')
+
+    has_filters = any([actor_filter, action_filter, date_filter])
+
+    if actor_filter:
+
+        logs_list = logs_list.filter(actor_id=actor_filter)
+
+    if action_filter:
+
+        logs_list = logs_list.filter(action=action_filter)
+
+    if date_filter:
+        logs_list = logs_list.filter(creation_date__date=date_filter)
+
+    # We let up to 10 logs per page
+    paginator = Paginator(logs_list, 10)
+    page_number = request.GET.get('page', 1)
+    logs = paginator.get_page(page_number)
+
+    # Get unique actors and actions for filters
+    actors = User.objects.filter(auditlog__isnull=False).distinct().order_by('username')
+    actions = AuditLog.objects.values_list('action', flat=True).distinct().order_by('action')
+    context = {
+        'logs': logs,
+        'actors': actors,
+        'actions': actions,
+        'actor_filter': actor_filter,
+        'action_filter': action_filter,
+        'date_filter': date_filter,
+        'has_filters': has_filters,
+    }
+
+    return render(request, "core/admin_audit_logs.html", context)
 
 @login_required
 def delete_invite_code(request, code_id):
@@ -411,8 +462,8 @@ def scheduler(request):
     classroom_filter = request.GET.get('classroom')
     subject_filter = request.GET.get('subject')
     course_filter = request.GET.get('course')
-
-    has_filters = any([teacher_filter, classroom_filter, subject_filter, course_filter])
+    date_filter = request.GET.get('date')
+    has_filters = any([teacher_filter, classroom_filter, subject_filter, course_filter, date_filter])
 
     if teacher_filter:
 
@@ -429,6 +480,10 @@ def scheduler(request):
     if course_filter:
 
         entries_list = entries_list.filter(course_id=course_filter)
+
+    if date_filter:
+
+        entries_list = entries_list.filter(date=date_filter)
 
     # We allow up to 10 entries per page
     paginator = Paginator(entries_list, 10)
@@ -456,6 +511,7 @@ def scheduler(request):
         'classroom_filter': classroom_filter,
         'subject_filter': subject_filter,
         'course_filter': course_filter,
+        'date_filter': date_filter,
         'has_filters': has_filters,
     }
 

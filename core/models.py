@@ -243,3 +243,64 @@ class AuditLog(models.Model):
     user_agent = models.TextField(blank=True)
     extra = models.JSONField(default=dict, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+
+        ordering = ["-creation_date"]
+        verbose_name = "Audit Log"
+        verbose_name_plural = "Audit Logs"
+
+    def __str__(self):
+
+        actor_name = self.actor.username if self.actor else "System"
+
+        return f"{actor_name} - {self.action} - {self.creation_date.strftime('%Y-%m-%d %H:%M')}"
+
+    def get_action_display(self):
+
+        action_map = {
+            "admin.add": "Created",
+            "admin.change": "Modified",
+            "admin.delete": "Deleted",
+            "http.post": "Submitted Form",
+            "admin.action": "Admin Action",
+        }
+
+        return action_map.get(self.action, self.action.replace("_", " ").title())
+
+    def get_target_display(self):
+
+        if not self.target:
+            return "N/A"
+
+        # If target is a model reference
+        if ":" in self.target:
+
+            parts = self.target.split(":")
+
+            if len(parts) == 2:
+
+                model_path = parts[0]
+                obj_id = parts[1]
+
+                # Get only the model name
+                if "." in model_path:
+
+                    model_name = model_path.split(".")[-1]
+
+                    return f"{model_name.title()} #{obj_id}"
+
+        # If it's a URL path
+        if self.target.startswith("/"):
+
+            return self.target
+
+        return self.target
+
+    def get_object_repr(self):
+
+        if self.extra and "object" in self.extra:
+
+            return self.extra["object"]
+
+        return None
