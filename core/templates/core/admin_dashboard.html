@@ -131,6 +131,19 @@
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        {% if request.user.is_superuser %}
+
+            <a href="/admin/"
+            style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;"
+            onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';"
+            onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                <i class="fa-solid fa-ticket" style="font-size: 35px; color: var(--link-color);"></i>
+
+                <span style="font-weight: 500; color: var(--text-primary);">Access Backend</span>
+            </a>
+
+        {% endif %}
+
         <a href="{% url 'admin_invites' %}"
            style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;"
            onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';"
@@ -155,7 +168,7 @@
            onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
             <i class="fa-solid fa-clipboard-list" style="font-size: 35px; color: var(--link-color);"></i>
 
-            <span style="font-weight: 500; color: var(--text-primary);">Configure Schedule</span>
+            <span style="font-weight: 500; color: var(--text-primary);">View Audit Logs</span>
         </a>
     </div>
 </div>
