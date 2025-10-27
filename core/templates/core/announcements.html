@@ -18,40 +18,57 @@
         <div style="display: flex; align-items: start; gap: 12px;">
 
             {% if message.is_pinned %}
+
                 <i class="fa-solid fa-thumbtack" style="flex-shrink: 0; margin-top: 2px; color: var(--link-color); font-size: 18px;"></i>
+
             {% else %}
+
                 <i class="fa-solid fa-bullhorn" style="flex-shrink: 0; margin-top: 2px; color: var(--link-color); font-size: 18px;"></i>
+
             {% endif %}
 
             <div style="flex: 1;">
+
                 {% if message.is_pinned %}
+
                     <div style="display: inline-block; background: var(--link-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+
                         Pinned
+
                     </div>
+
                 {% endif %}
 
                 <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                     <span style="display: flex; align-items: center; gap: 4px;">
                         <i class="fa-solid fa-user"></i>
+
                         <strong style="color: var(--text-primary);">{{ message.author.username }}</strong>
                     </span>
 
                     <span style="display: flex; align-items: center; gap: 4px;">
-                        <i class="fa-solid fa-door-open"></i>
+                        <i class="fa-solid fa-comment-dots"></i>
+
                         {{ message.room.name }}
                     </span>
 
                     <span style="display: flex; align-items: center; gap: 4px;">
                         <i class="fa-solid fa-clock"></i>
+
                         {{ message.creation_date|date:"d/m/Y H:i" }}
                     </span>
 
                     {% if message.edit_date %}
+
                         <span style="display: flex; align-items: center; gap: 4px; color: var(--text-tertiary);">
                             <i class="fa-solid fa-pen"></i>
+
                             Edited
+
                         </span>
+
                     {% endif %}
+
                 </div>
 
                 <div style="color: var(--text-primary); line-height: 1.6; font-size: 15px;">

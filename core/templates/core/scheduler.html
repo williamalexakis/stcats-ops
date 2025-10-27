@@ -80,7 +80,7 @@
 
                         <td style="padding: 16px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 32px; height: 32px; border-radius: 50%; background: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">
+                                <div style="width: 32px; height: 32px; border: 1px solid var(--border-color); border-radius: 50%; background: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">
                                     {{ entry.teacher.username|first|upper }}
                                 </div>
 
@@ -89,19 +89,19 @@
                         </td>
 
                         <td style="padding: 16px; color: var(--text-primary);">
-                            <span style="background: var(--error-bg); color: var(--error-text); padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; font-weight: 500;">
+                            <span style="background: var(--error-bg); color: var(--error-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
                                 {{ entry.room }}
                             </span>
                         </td>
 
                         <td style="padding: 16px; color: var(--text-primary);">
-                            <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; font-weight: 500;">
+                            <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
                                 {{ entry.subject }}
                             </span>
                         </td>
 
                         <td style="padding: 16px; color: var(--text-primary);">
-                            <span style="background: var(--info-bg); color: var(--info-text); padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; font-weight: 500;">
+                            <span style="background: var(--info-bg); color: var(--info-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
                                 {{ entry.course }}
                             </span>
                         </td>

@@ -19,7 +19,7 @@
 
         <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                <div style="width: 48px; height: 48px; border-radius: 50%; background: {% if user.is_superuser or user.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if user.is_superuser or user.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px;">
+                <div style="width: 48px; height: 48px; border: 1px solid var(--border-color); border-radius: 50%; background: {% if user.is_superuser or user.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if user.is_superuser or user.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px;">
                     {{ user.username|first|upper }}
                 </div>
 
@@ -27,16 +27,27 @@
                     <div style="font-size: 14px; color: var(--text-secondary);">Logged in as</div>
                     <div style="font-weight: 600; font-size: 18px; color: var(--text-primary);">{{ user.username }}</div>
                     <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+
                         {% if user.is_superuser %}
+
                             <i class="fa-solid fa-crown" style="color: var(--crown);"></i>
+
                             Superuser
+
                         {% elif user.groups.all.0.name == 'admin' %}
+
                             <i class="fa-solid fa-user-shield" style="color: var(--error-text);"></i>
+
                             Admin
+
                         {% else %}
+
                             <i class="fa-solid fa-chalkboard-user" style="color: var(--link-color);"></i>
+
                             Teacher
+
                         {% endif %}
+
                     </div>
                 </div>
             </div>
@@ -61,11 +72,22 @@
                 <span style="font-weight: 500; color: var(--text-primary);">Members</span>
             </a>
 
-            <!--<a href="/admin/" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <i class="fa-solid fa-gears" style="font-size: 35px; color: var(--link-color);"></i>
+            <a href="{% url 'scheduler' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                <i class="fa-solid fa-calendar-days" style=" font-size: 35px; color: var(--link-color);"></i>
 
-                <span style="font-weight: 500; color: var(--text-primary);">Admin</span>
-            </a>-->
+                <span style="font-weight: 500; color: var(--text-primary);">Schedule</span>
+            </a>
+
+            {% if request.user.groups.all.0.name == 'admin' or request.user.is_superuser %}
+
+                <a href="{% url 'admin_panel' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                    <i class="fa-solid fa-gears" style="font-size: 35px; color: var(--link-color);"></i>
+
+                    <span style="font-weight: 500; color: var(--text-primary);">Admin Panel</span>
+                </a>
+
+            {% endif %}
+
         </div>
 
     {% else %}

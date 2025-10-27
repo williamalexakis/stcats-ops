@@ -35,8 +35,6 @@
                 required
                 style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px;"
             />
-
-            <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">How many times this code can be used</small>
         </div>
 
         <div style="margin-bottom: 20px;">
@@ -54,8 +52,6 @@
                 min="1"
                 style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px;"
             />
-
-            <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">Leave blank for codes that never expire</small>
         </div>
 
         <button type="submit" style="background: var(--button-bg); color: var(--button-text); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
@@ -73,10 +69,13 @@
 
         <h3 style="margin: 0;">Active Invite Codes</h3>
 
-        <span style="background: var(--info-bg); color: var(--info-text); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{ invite_codes|length }}</span>
+        <div style="width: 25px; height: 25px; border-radius: 50%; background: var(--info-bg); color: var(--info-text); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">
+            {{ invite_codes|length }}
+        </div>
     </div>
 
     {% if invite_codes %}
+
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
@@ -100,13 +99,19 @@
                             </td>
 
                             <td style="padding: 12px 8px; color: var(--text-secondary);">
-                                {{ code.creator.username }}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 32px; height: 32px; border: 1px solid var(--border-color); border-radius: 50%; background: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">
+                                        {{ code.creator.username|first|upper }}
+                                    </div>
+
+                                    {{ code.creator.username }}
+                                </div>
                             </td>
 
                             <td style="padding: 12px 8px; text-align: center;">
-                                <span style="background: {% if code.remaining_uses > 0 %}var(--success-bg){% else %}var(--error-bg){% endif %}; color: {% if code.remaining_uses > 0 %}var(--success-text){% else %}var(--error-text){% endif %}; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                <div style="width: 25px; height: 25px; border-radius: 50%; margin-left: 40px; background: var(--success-bg); color: var(--success-text); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0;">
                                     {{ code.remaining_uses }}
-                                </span>
+                                </div>
                             </td>
 
                             <td style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">
