@@ -6,10 +6,11 @@ from django.contrib import messages as flash_messages
 from django.contrib.auth.models import Group
 from django.utils import timezone
 from datetime import timedelta, date
-import secrets
 from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course, AuditLog
 from django.core.paginator import Paginator
 from django.db.models import Sum
+import secrets
+import csv
 
 User = get_user_model()
 
@@ -673,3 +674,59 @@ def delete_schedule_entry(request, entry_id):
         flash_messages.error(request, "Schedule entry not found.")
 
     return redirect('scheduler')
+
+@login_required
+def export_schedule_csv(request):
+
+    def valid(val):
+
+        return val and val != "None"
+
+    teacher_filter = request.GET.get('teacher')
+    classroom_filter = request.GET.get('classroom')
+    subject_filter = request.GET.get('subject')
+    course_filter = request.GET.get('course')
+    date_filter = request.GET.get('date')
+    qs = ScheduleEntry.objects.all().select_related(
+        'teacher', 'classroom', 'subject', 'course'
+    )
+
+    if valid(teacher_filter):
+
+        qs = qs.filter(teacher_id=teacher_filter)
+
+    if valid(classroom_filter):
+
+        qs = qs.filter(classroom_id=classroom_filter)
+
+    if valid(subject_filter):
+
+        qs = qs.filter(subject_id=subject_filter)
+
+    if valid(course_filter):
+
+        qs = qs.filter(course_id=course_filter)
+
+    if valid(date_filter):
+
+        qs = qs.filter(date=date_filter)
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename=\"schedule.csv\"'
+
+    writer = csv.writer(response)
+    writer.writerow(["Date", "Start Time", "End Time", "Teacher", "Classroom", "Subject", "Course"])
+
+    for e in qs:
+
+        writer.writerow([
+            e.date.strftime("%Y-%m-%d"),
+            e.start_time.strftime("%H:%M"),
+            e.end_time.strftime("%H:%M"),
+            e.teacher.username,
+            getattr(e.classroom, "display_name", getattr(e.classroom, "name", "")),
+            getattr(e.subject, "display_name", getattr(e.subject, "name", "")),
+            getattr(e.course, "display_name", getattr(e.course, "name", "")),
+        ])
+
+    return response

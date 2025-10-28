@@ -123,18 +123,54 @@
                     onchange="this.form.submit()" />
             </div>
 
-            {% if has_filters %}
-                <div style="display: flex; align-items: end;">
-                    <a href="{% url 'scheduler' %}" style="color: var(--text-primary); padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)';">
-                        <i class="fa-solid fa-xmark"></i>
+            <div style="display: flex; align-items: end; gap: 8px;">
 
-                        Clear Filters
+                {% if has_filters %}
 
-                    </a>
-                </div>
+                <a href="{% url 'scheduler' %}"
+                   style="color: var(--text-primary);
+                          padding: 8px 16px;
+                          border-radius: 6px;
+                          text-decoration: none;
+                          font-size: 13px;
+                          font-weight: 500;
+                          display: inline-flex;
+                          align-items: center;
+                          gap: 6px;
+                          border: 2px solid var(--border-color);
+                          transition: all 0.2s ease;"
+                   onmouseover="this.style.borderColor='var(--link-color)';"
+                   onmouseout="this.style.borderColor='var(--border-color)';">
+                    <i class="fa-solid fa-xmark"></i>
 
-            {% endif %}
+                    Clear Filters
 
+                </a>
+
+                {% endif %}
+
+                <a id="export-csv-btn"
+                   href="{% url 'export_schedule_csv' %}"
+                   style="color: var(--success-text);
+                          padding: 8px 16px;
+                          border-radius: 6px;
+                          text-decoration: none;
+                          font-size: 13px;
+                          font-weight: 500;
+                          display: inline-flex;
+                          align-items: center;
+                          gap: 6px;
+                          border: 2px solid var(--success-border);
+                          background: var(--success-bg);
+                          transition: all 0.2s ease;"
+                   onmouseover="this.style.borderColor='var(--success-border)'; this.style.background='var(--success-border)'; this.style.color='white';"
+                   onmouseout="this.style.borderColor='var(--success-border)'; this.style.background='var(--success-bg)'; this.style.color='var(--success-text)';">
+                    <i class="fa-solid fa-file-csv"></i>
+
+                    Export CSV
+
+                </a>
+            </div>
         </form>
     </div>
 </div>
@@ -366,5 +402,15 @@
     }
 }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("export-csv-btn");
+    const params = new URLSearchParams(window.location.search);
+    if ([...params].length) {
+        btn.href += "?" + params.toString();
+    }
+});
+</script>
 
 {% endblock %}

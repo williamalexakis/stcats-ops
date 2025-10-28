@@ -2,10 +2,13 @@ from django.contrib import admin
 from django.urls import path
 from core.views import (
     home, healthcheck, members, chat,
-    admin_dashboard, admin_invites, admin_audit_logs, delete_invite_code,
-    promote_user, demote_user, remove_user,
-    edit_message, delete_message,
-    scheduler, create_schedule_entry, edit_schedule_entry, delete_schedule_entry
+    admin_dashboard, admin_invites,
+    admin_audit_logs, delete_invite_code,
+    promote_user, demote_user,
+    remove_user, edit_message,
+    delete_message, scheduler,
+    create_schedule_entry, edit_schedule_entry,
+    delete_schedule_entry, export_schedule_csv
 )
 from core.views_auth import signup, logout_view
 from core.views_announce import announcement_list
@@ -37,6 +40,7 @@ urlpatterns = [
     path("scheduler/create/", create_schedule_entry, name="create_schedule_entry"),
     path("scheduler/<int:entry_id>/edit/", edit_schedule_entry, name="edit_schedule_entry"),
     path("scheduler/<int:entry_id>/delete/", delete_schedule_entry, name="delete_schedule_entry"),
+    path("schedule/export/", export_schedule_csv, name="export_schedule_csv"),
     path("panel/scheduler-config/", admin_scheduler_config, name="admin_scheduler_config"),
     path("panel/scheduler-config/classroom/add/", add_classroom, name="add_classroom"),
     path("panel/scheduler-config/classroom/<int:classroom_id>/delete/", delete_classroom, name="delete_classroom"),
