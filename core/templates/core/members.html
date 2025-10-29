@@ -4,14 +4,16 @@
 
 {% block content %}
 
-<div style="margin-bottom: 24px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
     <div style="display: flex; align-items: center; gap: 20px;">
         <h1 style="margin: 0 0 8px 0;">Members</h1>
 
-        <td style="padding: 12px 8px; text-align: center;">
-            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--success-bg); color: var(--success-text); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; flex-shrink: 0;">
-                {{ total_count }}
-            </div>
+        <td style="padding: 16px; color: var(--text-primary);">
+            <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 17px; font-weight: 500;">
+
+                {{ total_count }} total
+
+            </span>
         </td>
     </div>
 </div>

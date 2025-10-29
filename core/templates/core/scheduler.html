@@ -6,8 +6,18 @@
 
 <div style="margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <h1 style="margin: 0 0 8px 0;">Schedule</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h1 style="margin: 0 0 8px 0;">Schedule</h1>
+
+                <td style="padding: 16px; color: var(--text-primary);">
+                    <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 17px; font-weight: 500;">
+
+                        {{ entry_num }} entries
+
+                    </span>
+                </td>
+            </div>
         </div>
 
         {% if is_admin %}

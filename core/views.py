@@ -513,19 +513,23 @@ def scheduler(request):
     subjects = Subject.objects.all().order_by('name')
     courses = Course.objects.all().order_by('name')
 
+    # Num of entries for the title badge thing
+    entry_num = len(entries)
+
     context = {
-        'entries': entries,
-        'is_admin': request.user.is_superuser or request.user.groups.filter(name='admin').exists(),
-        'teachers': teachers,
-        'classrooms': classrooms,
-        'subjects': subjects,
-        'courses': courses,
-        'teacher_filter': teacher_filter,
-        'classroom_filter': classroom_filter,
-        'subject_filter': subject_filter,
-        'course_filter': course_filter,
-        'date_filter': date_filter,
-        'has_filters': has_filters,
+        'entries' : entries,
+        'entry_num' : entry_num,
+        'is_admin' : request.user.is_superuser or request.user.groups.filter(name='admin').exists(),
+        'teachers' : teachers,
+        'classrooms' : classrooms,
+        'subjects' : subjects,
+        'courses' : courses,
+        'teacher_filter' : teacher_filter,
+        'classroom_filter' : classroom_filter,
+        'subject_filter' : subject_filter,
+        'course_filter' : course_filter,
+        'date_filter' : date_filter,
+        'has_filters' : has_filters,
     }
 
     return render(request, "core/scheduler.html", context)
