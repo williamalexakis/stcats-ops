@@ -430,6 +430,13 @@
 
                     </a>
 
+                    <a href="{% url 'code_editor' %}">
+                        <i class="fa-solid fa-code"></i>
+
+                        Code Editor
+
+                    </a>
+
                     {% if user.groups.all.0.name == 'admin' or user.is_superuser %}
 
                         <a href="{% url 'admin_panel' %}">

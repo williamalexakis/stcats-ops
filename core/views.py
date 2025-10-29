@@ -14,6 +14,18 @@ import csv
 
 User = get_user_model()
 
+
+@login_required
+def code_editor(request):
+
+    default_example = f"print(\"Hello, {request.user.get_username()}!\")\n"
+
+    context = {
+        "initial_code" : default_example
+    }
+
+    return render(request, "core/code_editor.html", context)
+
 def home(request):
 
     return render(request, "core/home.html")
