@@ -51,6 +51,9 @@ def members(request):
 
             teachers.append(user)
 
+    admins = sorted(admins, key=lambda user: (0 if user.is_superuser else 1, user.username.lower()))
+    teachers = sorted(teachers, key=lambda user: user.username.lower())
+
     context = {
         "admins" : admins,
         "teachers" : teachers,

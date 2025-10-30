@@ -74,7 +74,7 @@ def delete_classroom(request, classroom_id):
         classroom = Classroom.objects.get(id=classroom_id)
 
         classroom.delete()
-        flash_messages.success(request, f"Classroom '{classroom.display_name}' deleted successfully.")
+        flash_messages.success(request, f"Classroom '{classroom.display_name}' successfully deleted.")
 
     except Classroom.DoesNotExist:
 
@@ -135,7 +135,7 @@ def delete_subject(request, subject_id):
         subject = Subject.objects.get(id=subject_id)
 
         subject.delete()
-        flash_messages.success(request, f"Subject '{subject.display_name}' deleted successfully.")
+        flash_messages.success(request, f"Subject '{subject.display_name}' successfully deleted.")
 
     except Subject.DoesNotExist:
 
@@ -196,7 +196,7 @@ def delete_course(request, course_id):
         course = Course.objects.get(id=course_id)
 
         course.delete()
-        flash_messages.success(request, f"Course '{course.display_name}' successfully added.")
+        flash_messages.success(request, f"Course '{course.display_name}' successfully deleted.")
 
     except Course.DoesNotExist:
 
