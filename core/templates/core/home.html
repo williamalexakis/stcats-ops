@@ -5,56 +5,91 @@
 
 {% block content %}
 
-<div class="card home-card">
-    <div class="home-card__icon">
-        <i class="fa-solid fa-computer"></i>
-    </div>
+<div class="home-wrapper">
+    <section class="card home-hero">
+        <div class="home-hero__grid">
+            <div class="home-hero__intro">
+                <div class="home-card__icon home-hero__icon">
+                    <i class="fa-solid fa-computer"></i>
+                </div>
 
-    <h1 class="home-card__title">CS Department Platform</h1>
+                <div>
+                    <h1 class="home-card__title home-hero__title">CS Department Platform</h1>
+                    <p class="home-card__description home-hero__description">
+                        Internal management and communications for the St. Catherine's computer science department.
+                    </p>
+                </div>
+            </div>
 
-    <p class="home-card__description">
-        Internal management and communications for the St. Catherine's computer science department.
-    </p>
+            {% if user.is_authenticated %}
+
+            <div class="home-user">
+                <div class="home-user__profile">
+                    <div class="home-user__avatar {% if user.is_superuser %}home-user__avatar--superuser{% elif user|is_admin %}home-user__avatar--admin{% else %}home-user__avatar--teacher{% endif %}">
+                        {{ user.username|first|upper }}
+                    </div>
+
+                    <div class="text-left">
+                        <div class="home-user__label">Logged in as</div>
+                        <div class="home-user__name">{{ user.username }}</div>
+                        <div class="home-user__role">
+
+                            {% if user.is_superuser %}
+
+                                <i class="fa-solid fa-crown icon-superuser"></i>
+
+                                Superuser
+
+                            {% elif user|is_admin %}
+
+                                <i class="fa-solid fa-user-shield icon-admin"></i>
+
+                                Admin
+
+                            {% else %}
+
+                                <i class="fa-solid fa-chalkboard-user icon-teacher"></i>
+
+                                Teacher
+
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {% else %}
+
+            <div class="home-auth-actions">
+                <a href="{% url 'login' %}" class="btn button-icon">
+                    <i class="fa-solid fa-arrow-right-to-bracket button-icon__icon"></i>
+
+                    Login
+
+                </a>
+
+                <a href="{% url 'signup' %}" class="btn btn-secondary button-icon">
+                    <i class="fa-solid fa-user-plus button-icon__icon"></i>
+
+                    Sign Up
+
+                </a>
+            </div>
+
+            {% endif %}
+        </div>
+    </section>
 
     {% if user.is_authenticated %}
 
-        <div class="home-user">
-            <div class="home-user__profile">
-                <div class="home-user__avatar {% if user.is_superuser %}home-user__avatar--superuser{% elif user|is_admin %}home-user__avatar--admin{% else %}home-user__avatar--teacher{% endif %}">
-                    {{ user.username|first|upper }}
-                </div>
-
-                <div class="text-left">
-                    <div class="home-user__label">Logged in as</div>
-                    <div class="home-user__name">{{ user.username }}</div>
-                    <div class="home-user__role">
-
-                        {% if user.is_superuser %}
-
-                            <i class="fa-solid fa-crown icon-superuser"></i>
-
-                            Superuser
-
-                        {% elif user|is_admin %}
-
-                            <i class="fa-solid fa-user-shield icon-admin"></i>
-
-                            Admin
-
-                        {% else %}
-
-                            <i class="fa-solid fa-chalkboard-user icon-teacher"></i>
-
-                            Teacher
-
-                        {% endif %}
-
-                    </div>
-                </div>
-            </div>
+    <section class="card home-quick-links-card">
+        <div class="home-quick-links__header">
+            <h2 class="home-quick-links__title">Quick Links</h2>
         </div>
 
-        <div class="home-features">
+        <div class="home-quick-links__grid home-features home-features--grid">
             <a href="{% url 'announcements' %}" class="home-feature-link">
                 <i class="fa-solid fa-bullhorn home-feature-link__icon"></i>
 
@@ -96,27 +131,118 @@
             {% endif %}
 
         </div>
+        </section>
 
-    {% else %}
+        <div class="home-panels-grid">
+            <section class="card home-panel home-panel--announcements">
+                <div class="home-section-header home-section-header--compact">
+                    <h2 class="home-section-header__title">Recent Announcements</h2>
 
-        <div class="home-auth-actions">
-            <a href="{% url 'login' %}" class="btn button-icon">
-                <i class="fa-solid fa-arrow-right-to-bracket button-icon__icon"></i>
+                    <a class="home-section-header__link" href="{% url 'announcements' %}">
+                        View all
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
 
-                Login
+                {% if announcements %}
 
-            </a>
+                    <ul class="home-panel-list">
+                        {% for announcement in announcements %}
 
-            <a href="{% url 'signup' %}" class="btn btn-secondary button-icon">
-                <i class="fa-solid fa-user-plus button-icon__icon"></i>
+                            <li class="home-panel-item home-panel-item--announcement">
+                                <div class="home-panel-item__icon home-panel-item__icon--announcement">
+                                    {% if announcement.is_pinned %}
+                                        <i class="fa-solid fa-thumbtack"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-bullhorn"></i>
+                                    {% endif %}
+                                </div>
 
-                Sign Up
+                                <div class="home-panel-item__content">
+                                    <div class="home-panel-item__header">
+                                        <strong>{{ announcement.author.username }}</strong>
+                                        <span class="home-panel-item__meta">{{ announcement.creation_date|date:"M j, Y" }}</span>
+                                    </div>
 
-            </a>
+                                    <div class="home-panel-item__badges">
+                                        <span class="home-panel-chip home-panel-chip--primary">
+                                            {% if announcement.is_pinned %}
+                                                Pinned
+                                            {% else %}
+                                                Announcement
+                                            {% endif %}
+                                        </span>
+                                        <span class="home-panel-chip home-panel-chip--accent">{{ announcement.room.name }}</span>
+                                        <span class="home-panel-chip home-panel-chip--time">{{ announcement.creation_date|date:"H:i" }}</span>
+                                    </div>
+
+                                    <p class="home-panel-item__excerpt">{{ announcement.body|truncatechars:140 }}</p>
+                                </div>
+                            </li>
+
+                        {% endfor %}
+                    </ul>
+
+                {% else %}
+
+                    <div class="home-panel-empty">
+                        <i class="fa-solid fa-bell-slash"></i>
+                        <p>No announcements available.</p>
+                    </div>
+
+                {% endif %}
+            </section>
+
+            <section class="card home-panel home-panel--schedule">
+                <div class="home-section-header home-section-header--compact">
+                    <h2 class="home-section-header__title">Your Schedule</h2>
+
+                    <a class="home-section-header__link" href="{% url 'scheduler' %}">
+                        Open schedule
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+
+                {% if upcoming_entries %}
+
+                    <ul class="home-panel-list">
+                        {% for entry in upcoming_entries %}
+
+                            <li class="home-panel-item home-panel-item--schedule">
+                                <div class="home-panel-item__icon home-panel-item__icon--schedule">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+
+                                <div class="home-panel-item__content">
+                                    <div class="home-panel-item__header">
+                                        <strong>{{ entry.course.display_name }}</strong>
+                                        <span class="home-panel-item__meta">{{ entry.date|date:"D, M j" }}</span>
+                                    </div>
+
+                                    <div class="home-panel-item__badges">
+                                        <span class="home-panel-chip home-panel-chip--time">{{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}</span>
+                                        <span class="home-panel-chip home-panel-chip--success">{{ entry.subject.display_name }}</span>
+                                        <span class="home-panel-chip home-panel-chip--accent">{{ entry.classroom.display_name }}</span>
+                                        <span class="home-panel-chip home-panel-chip--info">{{ entry.teacher.get_full_name|default:entry.teacher.username }}</span>
+                                    </div>
+                                </div>
+                            </li>
+
+                        {% endfor %}
+                    </ul>
+
+                {% else %}
+
+                    <div class="home-panel-empty">
+                        <i class="fa-solid fa-face-smile"></i>
+                        <p>No upcoming sessions. Enjoy the free time!</p>
+                    </div>
+
+                {% endif %}
+            </section>
         </div>
 
     {% endif %}
-
 </div>
 
 {% endblock %}

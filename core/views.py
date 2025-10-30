@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from datetime import timedelta, date
 from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course, AuditLog
 from django.core.paginator import Paginator
-from django.db.models import Sum
+from django.db.models import Sum, Q
 import secrets
 import csv
 
@@ -55,7 +55,30 @@ def code_editor(request):
 
 def home(request):
 
-    return render(request, "core/home.html")
+    context = {}
+
+    if request.user.is_authenticated:
+
+        now = timezone.localtime()
+        today = now.date()
+        current_time = now.time()
+
+        announcements = Message.objects.filter(
+            is_announcement=True
+        ).select_related("author", "room").order_by("-is_pinned", "-creation_date")[:5]
+
+        upcoming_entries = ScheduleEntry.objects.filter(
+            teacher=request.user
+        ).filter(
+            Q(date__gt=today) | Q(date=today, end_time__gte=current_time)
+        ).select_related("classroom", "subject", "course").order_by("date", "start_time")[:5]
+
+        context.update({
+            "announcements": announcements,
+            "upcoming_entries": upcoming_entries,
+        })
+
+    return render(request, "core/home.html", context)
 
 def healthcheck(request):
 
