@@ -10,7 +10,7 @@ def admin_scheduler_config(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to access this page.")
+        flash_messages.error(request, "You do not have permission to access this page.")
 
         return redirect("home")
 
@@ -32,7 +32,7 @@ def add_classroom(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("home")
 
@@ -66,7 +66,7 @@ def delete_classroom(request, classroom_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("home")
 
@@ -93,7 +93,7 @@ def add_subject(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("home")
 
@@ -127,7 +127,7 @@ def delete_subject(request, subject_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("home")
 
@@ -154,7 +154,7 @@ def add_course(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("home")
 
@@ -188,7 +188,7 @@ def delete_course(request, course_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("home")
 

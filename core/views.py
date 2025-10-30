@@ -124,7 +124,7 @@ def admin_dashboard(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to access this page.")
+        flash_messages.error(request, "You do not have permission to access this page.")
 
         return redirect("home")
 
@@ -176,7 +176,7 @@ def admin_invites(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to access this page.")
+        flash_messages.error(request, "You do not have permission to access this page.")
 
         return redirect("home")
 
@@ -199,7 +199,7 @@ def admin_invites(request):
             expiration_date=expiration_date
         )
 
-        flash_messages.success(request, f"Invite code created: {code}")
+        flash_messages.success(request, f"Invite code created. Code: {code}")
 
         return redirect("admin_invites")
 
@@ -215,7 +215,7 @@ def admin_audit_logs(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to access this page.")
+        flash_messages.error(request, "You do not have permission to access this page.")
 
         return redirect("home")
 
@@ -266,7 +266,7 @@ def delete_invite_code(request, code_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("home")
 
@@ -289,7 +289,7 @@ def promote_user(request, user_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("members")
 
@@ -330,7 +330,7 @@ def edit_message(request, message_id):
         # Only allow editing your own messages
         if message.author != request.user:
 
-            flash_messages.error(request, "You don't have permission to perform this action.")
+            flash_messages.error(request, "You do not have permission to perform this action.")
 
             return redirect('chat')
 
@@ -407,7 +407,7 @@ def delete_message(request, message_id):
 
         else:
 
-            flash_messages.error(request, "You don't have permission to perform this action.")
+            flash_messages.error(request, "You do not have permission to perform this action.")
 
     except Message.DoesNotExist:
 
@@ -421,7 +421,7 @@ def demote_user(request, user_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("members")
 
@@ -462,7 +462,7 @@ def demote_user(request, user_id):
 def remove_user(request, user_id):
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("members")
 
@@ -571,7 +571,7 @@ def create_schedule_entry(request):
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect('scheduler')
 
@@ -639,7 +639,7 @@ def edit_schedule_entry(request, entry_id):
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect('scheduler')
 
@@ -706,7 +706,7 @@ def delete_schedule_entry(request, entry_id):
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You don't have permission to perform this action.")
+        flash_messages.error(request, "You do not have permission to perform this action.")
 
         return redirect("scheduler")
 
