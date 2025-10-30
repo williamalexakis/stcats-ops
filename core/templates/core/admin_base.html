@@ -2,78 +2,66 @@
 
 {% block content %}
 
-<div style="display: flex; gap: 24px; min-height: calc(100vh - 200px);">
+<div class="admin-layout">
 
-    <aside style="width: 250px; flex-shrink: 0;">
-        <div class="card" style="position: sticky; top: 90px; padding: 16px;">
-            <div style="margin-bottom: 20px; padding-bottom: 9px; border-bottom: 2px solid var(--border-color);">
-                <h3 style="margin: 0 0 4px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-gears" style="color: var(--link-color);"></i>
+    <aside class="admin-sidebar">
+        <div class="card admin-sidebar__card">
+            <div class="admin-sidebar__section">
+                <h3 class="admin-sidebar__title">
+                    <i class="fa-solid fa-gears icon-teacher"></i>
 
                     Admin Options
 
                 </h2>
             </div>
 
-            <nav style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+            <nav class="admin-sidebar__nav">
                 <a href="{% url 'admin_dashboard' %}"
-                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary)"
-                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
-                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
-                    <i class="fa-solid fa-house" style="width: 16px; text-align: center;"></i>
-                    <span style="font-weight: 500;">Dashboard</span>
+                   class="admin-sidebar__link">
+                    <i class="fa-solid fa-house admin-sidebar__icon"></i>
+                    <span class="admin-sidebar__label">Dashboard</span>
                 </a>
 
                 {% if request.user.is_superuser %}
 
                     <a href="/admin/"
-                    style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary);"
-                    onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
-                    onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
-                        <i class="fa-solid fa-server" style="width: 16px; text-align: center;"></i>
-                        <span style="font-weight: 500;">Backend Interface</span>
+                    class="admin-sidebar__link">
+                        <i class="fa-solid fa-server admin-sidebar__icon"></i>
+                        <span class="admin-sidebar__label">Backend Interface</span>
                     </a>
 
                 {% endif %}
 
                 <a href="{% url 'admin_invites' %}"
-                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary);"
-                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
-                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
-                    <i class="fa-solid fa-ticket" style="width: 16px; text-align: center;"></i>
-                    <span style="font-weight: 500;">Invite Codes</span>
+                   class="admin-sidebar__link">
+                    <i class="fa-solid fa-ticket admin-sidebar__icon"></i>
+                    <span class="admin-sidebar__label">Invite Codes</span>
                 </a>
 
                 <a href="{% url 'admin_scheduler_config' %}"
-                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary);"
-                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
-                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
-                    <i class="fa-solid fa-calendar-days" style="width: 16px; text-align: center;"></i>
-                    <span style="font-weight: 500;">Schedule Config</span>
+                   class="admin-sidebar__link">
+                    <i class="fa-solid fa-calendar-days admin-sidebar__icon"></i>
+                    <span class="admin-sidebar__label">Schedule Config</span>
                 </a>
 
                 <a href="{% url 'admin_audit_logs' %}"
-                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary);"
-                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
-                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
-                    <i class="fa-solid fa-clipboard-list" style="width: 16px; text-align: center;"></i>
-                    <span style="font-weight: 500;">Audit Logs</span>
+                   class="admin-sidebar__link">
+                    <i class="fa-solid fa-clipboard-list admin-sidebar__icon"></i>
+                    <span class="admin-sidebar__label">Audit Logs</span>
                 </a>
 
-                <div style="height: 1px; background: var(--border-color); margin: 8px 0;"></div>
+                <div class="divider"></div>
 
                 <a href="{% url 'home' %}"
-                   style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: 8px; text-decoration: none; transition: all 0.2s ease; color: var(--text-primary);"
-                   onmouseover="this.style.background='transparent'; this.style.borderColor='var(--link-color)';"
-                   onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border-color)';">
-                    <i class="fa-solid fa-arrow-left" style="width: 16px; text-align: center;"></i>
-                    <span style="font-weight: 500;">Back to Home</span>
+                   class="admin-sidebar__link">
+                    <i class="fa-solid fa-arrow-left admin-sidebar__icon"></i>
+                    <span class="admin-sidebar__label">Back to Home</span>
                 </a>
             </nav>
         </div>
     </aside>
 
-    <div style="flex: 1; min-width: 0;">
+    <div class="admin-content">
         {% block admin_content %}
         {% endblock %}
     </div>

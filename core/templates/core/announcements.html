@@ -4,12 +4,12 @@
 
 {% block content %}
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <h1 style="margin: 0 0 8px 0;">Announcements</h1>
+<div class="page-header">
+    <div class="page-header__group">
+        <h1 class="page-header__title">Announcements</h1>
 
-        <td style="padding: 16px; color: var(--text-primary);">
-            <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 17px; font-weight: 500;">
+        <td class="count-badge-wrapper">
+            <span class="count-badge">
 
                 {{ total }} total
 
@@ -22,24 +22,24 @@
 
     {% for message in announcements %}
 
-    <div class="card" style="margin-bottom: 16px; {% if message.is_pinned %}border: 2px solid var(--link-color); background: var(--info-bg);{% endif %}">
-        <div style="display: flex; align-items: start; gap: 12px;">
+    <div class="card announcement-card {% if message.is_pinned %}announcement-card--pinned{% endif %}">
+        <div class="announcement-card__content">
 
             {% if message.is_pinned %}
 
-                <i class="fa-solid fa-thumbtack" style="flex-shrink: 0; margin-top: 2px; color: var(--link-color); font-size: 18px;"></i>
+                <i class="fa-solid fa-thumbtack announcement-card__icon"></i>
 
             {% else %}
 
-                <i class="fa-solid fa-bullhorn" style="flex-shrink: 0; margin-top: 2px; color: var(--link-color); font-size: 18px;"></i>
+                <i class="fa-solid fa-bullhorn announcement-card__icon"></i>
 
             {% endif %}
 
-            <div style="flex: 1;">
+            <div class="announcement-card__body">
 
                 {% if message.is_pinned %}
 
-                    <div style="display: inline-block; background: var(--link-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+                    <div class="announcement-card__pin-badge">
 
                         Pinned
 
@@ -47,20 +47,20 @@
 
                 {% endif %}
 
-                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                    <span style="display: flex; align-items: center; gap: 4px;">
+                <div class="announcement-card__meta">
+                    <span class="announcement-card__meta-item">
                         <i class="fa-solid fa-user"></i>
 
-                        <strong style="color: var(--text-primary);">{{ message.author.username }}</strong>
+                        <strong class="text-primary">{{ message.author.username }}</strong>
                     </span>
 
-                    <span style="display: flex; align-items: center; gap: 4px;">
+                    <span class="announcement-card__meta-item">
                         <i class="fa-solid fa-comment-dots"></i>
 
                         {{ message.room.name }}
                     </span>
 
-                    <span style="display: flex; align-items: center; gap: 4px;">
+                    <span class="announcement-card__meta-item">
                         <i class="fa-solid fa-clock"></i>
 
                         {{ message.creation_date|date:"d/m/Y H:i" }}
@@ -68,7 +68,7 @@
 
                     {% if message.edit_date %}
 
-                        <span style="display: flex; align-items: center; gap: 4px; color: var(--text-tertiary);">
+                        <span class="announcement-card__meta-item announcement-card__meta-item--muted">
                             <i class="fa-solid fa-pen"></i>
 
                             Edited
@@ -79,7 +79,7 @@
 
                 </div>
 
-                <div style="color: var(--text-primary); line-height: 1.6; font-size: 15px;">
+                <div class="announcement-card__text">
                     {{ message.body|linebreaksbr }}
                 </div>
             </div>
@@ -90,10 +90,10 @@
 
 {% else %}
 
-    <div class="card" style="text-align: center; padding: 48px 24px;">
-        <i class="fa-solid fa-bullhorn" style="font-size: 48px; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 16px;"></i>
+    <div class="card empty-state">
+        <i class="fa-solid fa-bullhorn empty-state__icon"></i>
 
-        <p style="color: var(--text-secondary); margin: 0;">No announcements available.</p>
+        <p class="empty-state__text">No announcements available.</p>
     </div>
 
 {% endif %}

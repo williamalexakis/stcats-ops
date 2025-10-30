@@ -4,11 +4,11 @@
 
 {% block content %}
 
-<div class="card" style="max-width: 450px; margin: 60px auto;">
-    <div style="text-align: center; margin-bottom: 32px;">
-        <i class="fa-solid fa-arrow-right-to-bracket" style="color: var(--link-color); font-size: 60px; margin-bottom: 30px; margin-top: 30px;"></i>
+<div class="card auth-card">
+    <div class="auth-card__header">
+        <i class="fa-solid fa-arrow-right-to-bracket auth-card__icon"></i>
 
-        <h2 style="margin: 0; font-size: 28px;">Login</h2>
+        <h2 class="auth-card__title">Login</h2>
     </div>
 
     <form method="post">
@@ -16,20 +16,20 @@
         {% csrf_token %}
         {{ form.as_p }}
 
-        <button type="submit" style="width: 100%; margin-top: 8px; padding: 12px;">
-            <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 6px;"></i>
+        <button type="submit" class="auth-card__submit">
+            <i class="fa-solid fa-arrow-right-to-bracket auth-card__submit-icon"></i>
 
             Login
 
         </button>
     </form>
 
-    <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color);">
-        <p style="color: var(--text-secondary); margin: 0;">
+    <div class="auth-card__footer">
+        <p class="auth-card__footer-text">
 
             Don't have an account?
 
-            <a href="{% url 'signup' %}" style="font-weight: 500;">Signup here</a>
+            <a href="{% url 'signup' %}" class="auth-card__footer-link">Signup here</a>
         </p>
     </div>
 </div>

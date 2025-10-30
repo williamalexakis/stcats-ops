@@ -4,22 +4,22 @@
 
 {% block content %}
 
-<div style="margin-bottom: 24px;">
-    <a href="{% url 'scheduler' %}" style="color: var(--link-color); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin-bottom: 12px;">
+<div class="page-subheader">
+    <a href="{% url 'scheduler' %}" class="back-link">
         <i class="fa-solid fa-arrow-left"></i> Back to Scheduler
     </a>
 
-    <h2 style="margin: 8px 0 0 0;">Edit Schedule Entry</h2>
+    <h2 class="page-subheader__title">Edit Schedule Entry</h2>
 </div>
 
 <div class="card">
-    <form method="post" style="display: grid; gap: 20px; max-width: 700px;">
+    <form method="post" class="form-grid">
 
         {% csrf_token %}
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-grid-two">
             <div>
-                <label for="teacher" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                <label for="teacher" class="field-label">
                     <i class="fa-solid fa-chalkboard-user"></i> Teacher
                 </label>
 
@@ -27,7 +27,7 @@
                     id="teacher"
                     name="teacher"
                     required
-                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                    class="select-control"
                 >
                     <option value="">Select teacher...</option>
 
@@ -41,7 +41,7 @@
             </div>
 
             <div>
-                <label for="classroom" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                <label for="classroom" class="field-label">
                     <i class="fa-solid fa-door-open"></i> Classroom
                 </label>
 
@@ -49,7 +49,7 @@
                     id="classroom"
                     name="classroom"
                     required
-                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                    class="select-control"
                 >
                     <option value="">Select classroom...</option>
 
@@ -62,9 +62,9 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-grid-two">
             <div>
-                <label for="subject" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                <label for="subject" class="field-label">
                     <i class="fa-solid fa-book"></i> Subject
                 </label>
 
@@ -72,7 +72,7 @@
                     id="subject"
                     name="subject"
                     required
-                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                    class="select-control"
                 >
                     <option value="">Select subject...</option>
 
@@ -85,7 +85,7 @@
             </div>
 
             <div>
-                <label for="course" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                <label for="course" class="field-label">
                     <i class="fa-solid fa-graduation-cap"></i> Course
                 </label>
 
@@ -93,7 +93,7 @@
                     id="course"
                     name="course"
                     required
-                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                    class="select-control"
                 >
                     <option value="">Select course...</option>
 
@@ -107,7 +107,7 @@
         </div>
 
         <div>
-            <label for="date" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+            <label for="date" class="field-label">
                 <i class="fa-solid fa-calendar-days"></i> Date
             </label>
 
@@ -117,13 +117,13 @@
                 name="date"
                 value="{{ entry.date|date:'Y-m-d' }}"
                 required
-                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                class="select-control"
             />
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-grid-two">
             <div>
-                <label for="start_time" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                <label for="start_time" class="field-label">
                     <i class="fa-solid fa-clock"></i> Start Time
                 </label>
 
@@ -133,12 +133,12 @@
                     name="start_time"
                     value="{{ entry.start_time|time:'H:i' }}"
                     required
-                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                    class="select-control"
                 />
             </div>
 
             <div>
-                <label for="end_time" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+                <label for="end_time" class="field-label">
                     <i class="fa-solid fa-clock"></i> End Time
                 </label>
 
@@ -148,20 +148,20 @@
                     name="end_time"
                     value="{{ entry.end_time|time:'H:i' }}"
                     required
-                    style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer;"
+                    class="select-control"
                 />
             </div>
         </div>
 
-        <div style="display: flex; gap: 12px; padding-top: 8px;">
-            <button type="submit" style="background: var(--button-bg); color: var(--button-text); border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+        <div class="action-buttons">
+            <button type="submit" class="chat-submit">
                 <i class="fa-solid fa-check"></i>
 
                 Save Changes
 
             </button>
 
-            <a href="{% url 'scheduler' %}" style="background: var(--bg-tertiary); color: var(--text-primary); padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border-color);">
+            <a href="{% url 'scheduler' %}" class="btn-outline">
                 <i class="fa-solid fa-xmark"></i>
 
                 Cancel

@@ -1,5 +1,5 @@
+{% load static %}
 <!doctype html>
-
 <html lang="en" data-theme="light">
 
 <head>
@@ -8,384 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="icon" href="data:," />
-
-    <style>
-        :root[data-theme="light"] {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f0f4f8;
-            --bg-tertiary: #e1e8f0;
-            --text-primary: #1a202c;
-            --text-secondary: #4a5568;
-            --text-tertiary: #718096;
-            --border-color: #cbd5e0;
-            --border-hover: #a0aec0;
-            --card-bg: #ffffff;
-            --card-border: #e2e8f0;
-            --header-bg: #1e3a8a;
-            --header-text: #ffffff;
-            --nav-hover: rgba(255, 255, 255, 0.2);
-            --link-color: #2563eb;
-            --link-hover: #1d4ed8;
-            --button-bg: #3b82f6;
-            --button-hover: #2563eb;
-            --button-text: #ffffff;
-            --success-bg: #d1fae5;
-            --success-border: #34d399;
-            --success-text: #065f46;
-            --error-bg: #fee2e2;
-            --error-border: #f87171;
-            --error-text: #991b1b;
-            --info-bg: #dbeafe;
-            --info-border: #60a5fa;
-            --info-text: #1e40af;
-            --warning-bg: #fef3c7;
-            --warning-border: #fbbf24;
-            --warning-text: #92400e;
-            --shadow: rgba(15, 23, 42, 0.1);
-            --shadow-hover: rgba(15, 23, 42, 0.15);
-            --crown: #f59e0b;
-        }
-
-        :root[data-theme="dark"] {
-            --bg-primary: #0a0f1e;
-            --bg-secondary: #111827;
-            --bg-tertiary: #1f2937;
-            --text-primary: #f9fafb;
-            --text-secondary: #d1d5db;
-            --text-tertiary: #9ca3af;
-            --border-color: #374151;
-            --border-hover: #4b5563;
-            --card-bg: #1f2937;
-            --card-border: #374151;
-            --header-bg: #030712;
-            --header-text: #f9fafb;
-            --nav-hover: rgba(255, 255, 255, 0.15);
-            --link-color: #60a5fa;
-            --link-hover: #93c5fd;
-            --button-bg: #3b82f6;
-            --button-hover: #60a5fa;
-            --button-text: #ffffff;
-            --success-bg: #022c22;
-            --success-border: #10b981;
-            --success-text: #6ee7b7;
-            --error-bg: #450a0a;
-            --error-border: #ef4444;
-            --error-text: #fca5a5;
-            --info-bg: #1e3a8a;
-            --info-border: #3b82f6;
-            --info-text: #93c5fd;
-            --warning-bg: #422006;
-            --warning-border: #f59e0b;
-            --warning-text: #fde68a;
-            --shadow: rgba(0, 0, 0, 0.3);
-            --shadow-hover: rgba(0, 0, 0, 0.4);
-            --crown: #fbbf24;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            transition: background-color 0.3s ease, color 0.3s ease;
-            line-height: 1.6;
-        }
-
-        header {
-            background: var(--header-bg);
-            color: var(--header-text);
-            padding: 0;
-            box-shadow: 0 2px 8px var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logo {
-            font-weight: 600;
-            font-size: 18px;
-            color: var(--header-text);
-            text-decoration: none;
-        }
-
-        nav {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        nav a {
-            color: var(--header-text);
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            transition: background-color 0.2s ease;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        nav a:hover {
-            background: var(--nav-hover);
-            color: var(--header-text);
-        }
-
-        .theme-toggle {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 12px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            box-shadow: 0 4px 12px var(--shadow-hover);
-            z-index: 1000;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px var(--shadow-hover);
-        }
-
-        .theme-toggle:active {
-            transform: scale(0.95);
-        }
-
-        .theme-icon-light,
-        .theme-icon-dark {
-            transition: all 0.3s ease;
-            position: absolute;
-        }
-
-        .theme-icon-light {
-            opacity: 1;
-            transform: rotate(0deg) scale(1);
-        }
-
-        .theme-icon-dark {
-            opacity: 0;
-            transform: rotate(180deg) scale(0.5);
-        }
-
-        [data-theme="dark"] .theme-icon-light {
-            opacity: 0;
-            transform: rotate(-180deg) scale(0.5);
-        }
-
-        [data-theme="dark"] .theme-icon-dark {
-            opacity: 1;
-            transform: rotate(0deg) scale(1);
-        }
-
-        main {
-            max-width: 1400px;
-            margin: 24px auto;
-            padding: 0 20px;
-        }
-
-        a {
-            color: var(--link-color);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        a:hover {
-            color: var(--link-hover);
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px var(--shadow);
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            box-shadow: 0 6px 12px var(--shadow-hover);
-            transform: translateY(-2px);
-        }
-
-        .flash {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin: 16px 0;
-            border-left: 4px solid;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .flash.info {
-            background: var(--info-bg);
-            border-color: var(--info-border);
-            color: var(--info-text);
-        }
-
-        .flash.success {
-            background: var(--success-bg);
-            border-color: var(--success-border);
-            color: var(--success-text);
-        }
-
-        .flash.error {
-            background: var(--error-bg);
-            border-color: var(--error-border);
-            color: var(--error-text);
-        }
-
-        button, input[type="submit"], .btn {
-            background: var(--button-bg);
-            color: var(--button-text);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        button:hover, input[type="submit"]:hover, .btn:hover {
-            background: var(--button-hover);
-            color: var(--button-text);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        input[type="text"],
-        input[type="password"],
-        input[type="email"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 14px;
-            transition: border-color 0.2s ease;
-        }
-
-        input:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--button-bg);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--text-primary);
-            margin-top: 0;
-        }
-
-        .icon {
-            width: 16px;
-            height: 16px;
-            display: inline-block;
-            vertical-align: middle;
-        }
-
-        .icon-lg {
-            width: 20px;
-            height: 20px;
-        }
-
-        form p {
-            margin: 16px 0;
-        }
-
-        form label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .helptext {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-        .errorlist {
-            list-style: none;
-            padding: 0;
-            margin: 8px 0 0 0;
-        }
-
-        .errorlist li {
-            color: var(--error-text);
-            font-size: 14px;
-            background: var(--error-bg);
-            padding: 6px 10px;
-            border-radius: 4px;
-            margin-top: 4px;
-        }
-
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            nav {
-                width: 100%;
-            }
-
-            main {
-                padding: 0 16px;
-            }
-
-            .card {
-                padding: 16px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
 
     {% block head %}{% endblock %}
 </head>
@@ -514,23 +137,22 @@
 
     </main>
 
-    <!-- Fixed Theme Toggle -->
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
         <span class="theme-icon-light">☀️</span>
         <span class="theme-icon-dark">🌙</span>
     </button>
 
-    <footer style="max-width: 1400px; margin: 40px auto 0; padding: 20px 20px 100px 20px; text-align: center; border-top: 1px solid var(--border-color);">
-        <div style="color: var(--text-tertiary); font-size: 13px;">
-            <p style="margin: 0 0 8px 0;">
-                Made by <span style="color: var(--text-secondary); font-weight: 500;">William Alexakis</span>
+    <footer class="site-footer">
+        <div class="site-footer__inner">
+            <p class="site-footer__intro">
+                Made by <span class="site-footer__author">William Alexakis</span>
             </p>
 
-            <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+            <div class="site-footer__contacts">
 
                 School contact:
 
-                <a href="mailto:william.alexakis@stcatherines.gr" style="color: var(--text-tertiary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s ease;" onmouseover="this.style.color='var(--link-color)';" onmouseout="this.style.color='var(--text-tertiary)';">
+                <a href="mailto:william.alexakis@stcatherines.gr" class="site-footer__link">
                     <i class="fa-solid fa-envelope"></i>
 
                     william.alexakis@stcatherines.gr
@@ -539,7 +161,7 @@
 
                 Personal contact:
 
-                <a href="mailto:w.alexakis@icloud.com" style="color: var(--text-tertiary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s ease;" onmouseover="this.style.color='var(--link-color)';" onmouseout="this.style.color='var(--text-tertiary)';">
+                <a href="mailto:w.alexakis@icloud.com" class="site-footer__link">
                     <i class="fa-solid fa-envelope"></i>
 
                     w.alexakis@icloud.com

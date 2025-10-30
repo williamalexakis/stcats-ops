@@ -2,300 +2,35 @@
 
 {% block title %}Code Editor - CS Dept Platform{% endblock %}
 
-{% block head %}
-
-<style>
-
-    .editor-page {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .editor-header {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 16px;
-        align-items: flex-end;
-    }
-
-    .editor-header h1 {
-        margin: 0;
-        font-size: 28px;
-    }
-
-    .editor-header p {
-        margin: 4px 0 0 0;
-        color: var(--text-secondary);
-        font-size: 14px;
-        max-width: 540px;
-    }
-
-    .editor-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .btn-icon {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-icon i {
-        font-size: 14px;
-    }
-
-    .btn-run {
-        background: var(--button-bg);
-        color: var(--button-text);
-        border-color: var(--button-bg);
-        border-radius: 8px;
-        padding: 10px 20px;
-        border: 1px solid var(--button-bg);
-        box-shadow: 0 3px 8px rgba(59, 130, 246, 0.25);
-    }
-
-    .btn-run:hover {
-        background: var(--button-hover);
-        border-color: var(--button-hover);
-        box-shadow: 0 6px 14px rgba(59, 130, 246, 0.35);
-    }
-
-    .btn-stop {
-        background: var(--error-bg);
-        color: var(--error-text);
-        border-color: var(--error-border);
-        border-radius: 8px;
-        padding: 10px 20px;
-        border: 1px solid var(--error-border);
-        box-shadow: 0 3px 8px rgba(248, 113, 113, 0.25);
-    }
-
-    .btn-stop:hover {
-        background: var(--error-border);
-        color: #ffffff;
-        box-shadow: 0 6px 14px rgba(248, 113, 113, 0.35);
-    }
-
-    .editor-actions button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        box-shadow: none;
-        transform: none !important;
-    }
-
-    .editor-panels {
-        display: grid;
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-        gap: 20px;
-        min-height: 520px;
-    }
-
-    .editor-pane,
-    .output-pane {
-        display: flex;
-        flex-direction: column;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        background: var(--bg-primary);
-        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.02);
-        overflow: hidden;
-        min-height: 480px;
-    }
-
-    .output-pane {
-        background: var(--bg-secondary);
-    }
-
-    .editor-pane {
-        position: relative;
-    }
-
-    #code-editor {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-    }
-
-    .output-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 16px;
-        background: var(--bg-primary);
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .output-header span {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: 999px;
-        padding: 6px 12px;
-        font-size: 12px;
-        font-weight: 600;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-    }
-
-    .status-idle {
-        background: var(--bg-secondary);
-        color: var(--text-secondary);
-    }
-
-    .status-idle .status-dot {
-        background: var(--text-tertiary);
-    }
-
-    .status-loading {
-        background: var(--info-bg);
-        color: var(--info-text);
-    }
-
-    .status-loading .status-dot {
-        background: var(--info-text);
-    }
-
-    .status-running {
-        background: var(--button-bg);
-        color: var(--button-text);
-    }
-
-    .status-running .status-dot {
-        background: var(--button-text);
-    }
-
-    .status-success {
-        background: var(--success-bg);
-        color: var(--success-text);
-    }
-
-    .status-success .status-dot {
-        background: var(--success-text);
-    }
-
-    .status-error,
-    .status-stopped {
-        background: var(--error-bg);
-        color: var(--error-text);
-    }
-
-    .status-error .status-dot,
-    .status-stopped .status-dot {
-        background: var(--error-text);
-    }
-
-    .output-area {
-        flex: 1;
-        padding: 16px;
-        overflow: auto;
-        font-family: "Fira Code", "JetBrains Mono", "Courier New", monospace;
-        font-size: 14px;
-        line-height: 1.5;
-        color: var(--text-primary);
-        background: var(--bg-secondary);
-    }
-
-    .output-area .output-line {
-        margin: 0 0 6px 0;
-        white-space: pre-wrap;
-        word-break: break-word;
-    }
-
-    .output-area .output-line:last-child {
-        margin-bottom: 0;
-    }
-
-    .output-line.output-error {
-        color: var(--error-text);
-    }
-
-    .output-line.output-stderr {
-        color: var(--warning-text);
-    }
-
-    .output-line.output-info {
-        color: var(--info-text);
-    }
-
-    .monaco-editor,
-    .monaco-editor-background,
-    .monaco-editor .margin {
-        background: transparent !important;
-    }
-
-    .editor-footer {
-        font-size: 12px;
-        color: var(--text-tertiary);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        justify-content: space-between;
-    }
-
-    @media (max-width: 1024px) {
-        .editor-panels {
-            grid-template-columns: 1fr;
-        }
-
-        .editor-pane,
-        .output-pane {
-            min-height: 320px;
-        }
-    }
-</style>
-
-{% endblock %}
-
 {% block content %}
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <h1 style="margin: 0 0 8px 0;">Code Editor</h1>
+<div class="page-header">
+    <div class="page-header__group">
+        <h1 class="page-header__title">Code Editor</h1>
 
-        <td style="padding: 16px; color: var(--text-primary);">
-            <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 17px; font-weight: 500;">
-                <i class="fa-brands fa-python" style="margin-right: 6px;"></i>
+        <div class="count-badge-wrapper">
+            <span class="count-badge">
+                <i class="fa-brands fa-python icon-leading"></i>
 
                 Python
 
             </span>
-        </td>
+        </div>
     </div>
 </div>
 
 <div class="card editor-page">
     <div class="editor-header">
-
         <div class="editor-actions">
-            <button id="run-button" class="btn btn-icon btn-run" type="button" title="Run code">
-                <i class="fa-solid fa-play"></i>
+            <button id="run-button" class="btn-run button-icon" type="button" title="Run code">
+                <i class="fa-solid fa-play button-icon__icon"></i>
 
                 Run
 
             </button>
 
-            <button id="stop-button" class="btn btn-icon btn-stop" type="button" title="Stop execution" disabled>
-                <i class="fa-solid fa-stop"></i>
+            <button id="stop-button" class="btn-stop button-icon" type="button" title="Stop execution" disabled>
+                <i class="fa-solid fa-stop button-icon__icon"></i>
 
                 Stop
 
@@ -304,21 +39,8 @@
             <button id="import-button"
                     type="button"
                     title="Import .py file"
-                    style="color: var(--info-text);
-                           padding: 8px 16px;
-                           border-radius: 6px;
-                           text-decoration: none;
-                           font-size: 15px;
-                           font-weight: 500;
-                           display: inline-flex;
-                           align-items: center;
-                           gap: 6px;
-                           border: 2px solid var(--info-border);
-                           background: var(--info-bg);
-                           transition: all 0.2s ease;"
-                    onmouseover="this.style.borderColor='var(--info-border)'; this.style.background='var(--info-border)'; this.style.color='white';"
-                    onmouseout="this.style.borderColor='var(--info-border)'; this.style.background='var(--info-bg)'; this.style.color='var(--info-text)';">
-                <i class="fa-solid fa-file-arrow-up"></i>
+                    class="btn-outline-info button-icon">
+                <i class="fa-solid fa-file-arrow-up button-icon__icon"></i>
 
                 Import
 
@@ -327,46 +49,31 @@
             <button id="export-button"
                     type="button"
                     title="Download code as file"
-                    style="color: var(--success-text);
-                           padding: 8px 16px;
-                           border-radius: 6px;
-                           text-decoration: none;
-                           font-size: 15px;
-                           font-weight: 500;
-                           display: inline-flex;
-                           align-items: center;
-                           gap: 6px;
-                           border: 2px solid var(--success-border);
-                           background: var(--success-bg);
-                           transition: all 0.2s ease;"
-                    onmouseover="this.style.borderColor='var(--success-border)'; this.style.background='var(--success-border)'; this.style.color='white';"
-                    onmouseout="this.style.borderColor='var(--success-border)'; this.style.background='var(--success-bg)'; this.style.color='var(--success-text)';">
-                <i class="fa-solid fa-file-arrow-down"></i>
+                    class="btn-outline-success button-icon">
+                <i class="fa-solid fa-file-arrow-down button-icon__icon"></i>
 
                 Export
 
             </button>
 
-            <div style="font-size: 12px; margin-left: 20px;">
-                <span>
-                    <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i>
+            <div class="editor-hint button-icon">
+                <i class="fa-solid fa-circle-info button-icon__icon"></i>
 
-                    Import supports UTF-8 Python files up to 200 KB.
+                Import supports UTF-8 Python files up to 200 KB.
 
-                </span>
             </div>
         </div>
     </div>
 
     <div class="editor-panels">
         <div class="editor-pane">
-            <div id="code-editor" aria-label="Python code editor"></div>
+            <div id="code-editor" class="code-editor-instance" aria-label="Python code editor"></div>
         </div>
 
         <div class="output-pane">
             <div class="output-header">
-                <span>
-                    <i class="fa-solid fa-terminal"></i>
+                <span class="button-icon">
+                    <i class="fa-solid fa-terminal button-icon__icon"></i>
 
                     Output
 
@@ -385,7 +92,7 @@
     </div>
 </div>
 
-<input type="file" id="file-input" accept=".py,.txt" style="display:none;">
+<input type="file" id="file-input" accept=".py,.txt" class="hidden-input">
 
 {% endblock %}
 

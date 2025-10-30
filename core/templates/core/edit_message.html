@@ -4,21 +4,21 @@
 
 {% block content %}
 
-<div style="margin-bottom: 24px;">
-    <a href="{% url 'chat' %}" style="color: var(--link-color); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin-bottom: 12px;">
+<div class="page-subheader">
+    <a href="{% url 'chat' %}" class="back-link">
         <i class="fa-solid fa-arrow-left"></i> Back to Chat
     </a>
 
-    <h2 style="margin: 8px 0 0 0;">Edit Message</h2>
+    <h2 class="page-subheader__title">Edit Message</h2>
 </div>
 
 <div class="card">
-    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+    <form method="post" class="form-vertical">
 
         {% csrf_token %}
 
         <div>
-            <label for="body" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">
+            <label for="body" class="field-label">
 
                 Message
 
@@ -29,50 +29,50 @@
                 name="body"
                 rows="6"
                 required
-                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; font-family: inherit; resize: vertical;"
+                class="textarea-input"
             >{{ message.body }}</textarea>
         </div>
 
-        <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+        <div class="form-options">
+            <label class="form-option">
                 <input
                     type="checkbox"
                     id="is_announcement"
                     name="is_announcement"
                     {% if message.is_announcement %}checked{% endif %}
-                    style="width: 18px; height: 18px; cursor: pointer;"
+                    class="form-option__checkbox"
                     onchange="document.getElementById('pinned-option').style.display = this.checked ? 'flex' : 'none'; if (!this.checked) document.getElementById('is_pinned').checked = false;"
                 />
 
-                <span style="color: var(--text-primary); font-weight: 500;">
-                    <i class="fa-solid fa-bullhorn" style="color: var(--link-color);"></i> Mark as Announcement
+                <span class="form-option__label">
+                    <i class="fa-solid fa-bullhorn icon-teacher"></i> Mark as Announcement
                 </span>
             </label>
 
-            <label id="pinned-option" style="{% if message.is_announcement %}display: flex;{% else %}display: none;{% endif %} align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+            <label id="pinned-option" class="form-option {% if not message.is_announcement %}form-option--hidden{% endif %}">
                 <input
                     type="checkbox"
                     id="is_pinned"
                     name="is_pinned"
                     {% if message.is_pinned %}checked{% endif %}
-                    style="width: 18px; height: 18px; cursor: pointer;"
+                    class="form-option__checkbox"
                 />
 
-                <span style="color: var(--text-primary); font-weight: 500;">
-                    <i class="fa-solid fa-thumbtack" style="color: var(--success-text);"></i> Pin Announcement
+                <span class="form-option__label">
+                    <i class="fa-solid fa-thumbtack icon-success"></i> Pin Announcement
                 </span>
             </label>
         </div>
 
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <button type="submit" style="background: var(--button-bg); color: var(--button-text); border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+        <div class="action-buttons">
+            <button type="submit" class="chat-submit">
                 <i class="fa-solid fa-check"></i>
 
                 Save Changes
 
             </button>
 
-            <a href="{% url 'chat' %}" style="background: var(--bg-tertiary); color: var(--text-primary); width: 150px; height: 43px; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500; display: inline-flex; justify-content: center; align-items: center; gap: 8px; border: 1px solid var(--border-color);">
+            <a href="{% url 'chat' %}" class="btn-outline">
                 <i class="fa-solid fa-xmark"></i>
 
                 Cancel

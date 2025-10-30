@@ -4,45 +4,45 @@
 
 {% block content %}
 
-<div class="card" style="text-align: center; padding: 48px 24px; max-width: 700px; margin: 0 auto;">
-    <div style="font-size: 100px; margin: 0 auto 24px; color: var(--link-color);">
+<div class="card home-card">
+    <div class="home-card__icon">
         <i class="fa-solid fa-computer"></i>
     </div>
 
-    <h1 style="margin: 0 0 12px 0; font-size: 36px;">CS Department Platform</h1>
+    <h1 class="home-card__title">CS Department Platform</h1>
 
-    <p style="color: var(--text-secondary); margin: 0 0 32px 0; font-size: 18px;">
+    <p class="home-card__description">
         Internal management and communications for the St. Catherine's computer science department.
     </p>
 
     {% if user.is_authenticated %}
 
-        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                <div style="width: 48px; height: 48px; border: 1px solid var(--border-color); border-radius: 50%; background: {% if user.is_superuser or user.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if user.is_superuser or user.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px;">
+        <div class="home-user">
+            <div class="home-user__profile">
+                <div class="home-user__avatar {% if user.is_superuser %}home-user__avatar--superuser{% elif user.groups.all.0.name == 'admin' %}home-user__avatar--admin{% else %}home-user__avatar--teacher{% endif %}">
                     {{ user.username|first|upper }}
                 </div>
 
-                <div style="text-align: left;">
-                    <div style="font-size: 14px; color: var(--text-secondary);">Logged in as</div>
-                    <div style="font-weight: 600; font-size: 18px; color: var(--text-primary);">{{ user.username }}</div>
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                <div class="text-left">
+                    <div class="home-user__label">Logged in as</div>
+                    <div class="home-user__name">{{ user.username }}</div>
+                    <div class="home-user__role">
 
                         {% if user.is_superuser %}
 
-                            <i class="fa-solid fa-crown" style="color: var(--crown);"></i>
+                            <i class="fa-solid fa-crown icon-superuser"></i>
 
                             Superuser
 
                         {% elif user.groups.all.0.name == 'admin' %}
 
-                            <i class="fa-solid fa-user-shield" style="color: var(--error-text);"></i>
+                            <i class="fa-solid fa-user-shield icon-admin"></i>
 
                             Admin
 
                         {% else %}
 
-                            <i class="fa-solid fa-chalkboard-user" style="color: var(--link-color);"></i>
+                            <i class="fa-solid fa-chalkboard-user icon-teacher"></i>
 
                             Teacher
 
@@ -53,43 +53,43 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 32px;">
-            <a href="{% url 'announcements' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <i class="fa-solid fa-bullhorn" style="font-size: 35px; color: var(--link-color);"></i>
+        <div class="home-features">
+            <a href="{% url 'announcements' %}" class="home-feature-link">
+                <i class="fa-solid fa-bullhorn home-feature-link__icon"></i>
 
-                <span style="font-weight: 500; color: var(--text-primary);">Announcements</span>
+                <span class="home-feature-link__label">Announcements</span>
             </a>
 
-            <a href="{% url 'chat' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <i class="fa-solid fa-comment-dots" style="font-size: 35px; color: var(--link-color);"></i>
+            <a href="{% url 'chat' %}" class="home-feature-link">
+                <i class="fa-solid fa-comment-dots home-feature-link__icon"></i>
 
-                <span style="font-weight: 500; color: var(--text-primary);">Chat</span>
+                <span class="home-feature-link__label">Chat</span>
             </a>
 
-            <a href="{% url 'members' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <i class="fa-solid fa-users" style=" font-size: 35px; color: var(--link-color);"></i>
+            <a href="{% url 'members' %}" class="home-feature-link">
+                <i class="fa-solid fa-users home-feature-link__icon"></i>
 
-                <span style="font-weight: 500; color: var(--text-primary);">Members</span>
+                <span class="home-feature-link__label">Members</span>
             </a>
 
-            <a href="{% url 'scheduler' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <i class="fa-solid fa-calendar-days" style=" font-size: 35px; color: var(--link-color);"></i>
+            <a href="{% url 'scheduler' %}" class="home-feature-link">
+                <i class="fa-solid fa-calendar-days home-feature-link__icon"></i>
 
-                <span style="font-weight: 500; color: var(--text-primary);">Schedule</span>
+                <span class="home-feature-link__label">Schedule</span>
             </a>
 
-            <a href="{% url 'code_editor' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <i class="fa-solid fa-code" style=" font-size: 35px; color: var(--link-color);"></i>
+            <a href="{% url 'code_editor' %}" class="home-feature-link">
+                <i class="fa-solid fa-code home-feature-link__icon"></i>
 
-                <span style="font-weight: 500; color: var(--text-primary);">Code Editor</span>
+                <span class="home-feature-link__label">Code Editor</span>
             </a>
 
             {% if request.user.groups.all.0.name == 'admin' or request.user.is_superuser %}
 
-                <a href="{% url 'admin_panel' %}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    <i class="fa-solid fa-gears" style="font-size: 35px; color: var(--link-color);"></i>
+                <a href="{% url 'admin_panel' %}" class="home-feature-link">
+                    <i class="fa-solid fa-gears home-feature-link__icon"></i>
 
-                    <span style="font-weight: 500; color: var(--text-primary);">Admin Dashboard</span>
+                    <span class="home-feature-link__label">Admin Dashboard</span>
                 </a>
 
             {% endif %}
@@ -98,16 +98,16 @@
 
     {% else %}
 
-        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-            <a href="{% url 'login' %}" class="btn" style="display: inline-flex; align-items: center; gap: 8px; color: var(--button-text);">
-                <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 6px;"></i>
+        <div class="home-auth-actions">
+            <a href="{% url 'login' %}" class="btn button-icon">
+                <i class="fa-solid fa-arrow-right-to-bracket button-icon__icon"></i>
 
                 Login
 
             </a>
 
-            <a href="{% url 'signup' %}" class="btn" style="display: inline-flex; align-items: center; gap: 8px; background: var(--card-bg); color: var(--text-primary); border: 2px solid var(--border-color);" onmouseover="this.style.background='var(--bg-tertiary)'; this.style.borderColor='var(--link-color)'; this.style.color='var(--text-primary)';" onmouseout="this.style.background='var(--card-bg)'; this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
-                <i class="fa-solid fa-user-plus" style="margin-right: 6px;"></i>
+            <a href="{% url 'signup' %}" class="btn btn-secondary button-icon">
+                <i class="fa-solid fa-user-plus button-icon__icon"></i>
 
                 Sign Up
 

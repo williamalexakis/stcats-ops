@@ -4,25 +4,23 @@
 
 {% block content %}
 
-<div style="margin-bottom: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <h1 style="margin: 0 0 8px 0;">Schedule</h1>
+<div class="page-subheader">
+    <div class="page-header">
+        <div class="page-header__group">
+            <h1 class="page-header__title">Schedule</h1>
 
-                <td style="padding: 16px; color: var(--text-primary);">
-                    <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 17px; font-weight: 500;">
+            <td class="count-badge-wrapper">
+                <span class="count-badge">
 
-                        {{ entry_num }} entries
+                    {{ entry_num }} entry{{ entry_num|pluralize }}
 
-                    </span>
-                </td>
-            </div>
+                </span>
+            </td>
         </div>
 
         {% if is_admin %}
 
-            <a href="{% url 'create_schedule_entry' %}" style="background: var(--button-bg); color: var(--button-text); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease;" onmouseover="this.style.background='var(--button-hover)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--button-bg)'; this.style.transform='translateY(0)';">
+            <a href="{% url 'create_schedule_entry' %}" class="btn button-icon">
                 <i class="fa-solid fa-plus"></i>
 
                 Add Entry
@@ -33,17 +31,17 @@
 
     </div>
 
-    <div class="card" style="padding: 16px; margin-bottom: 16px;">
-        <form method="get" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: end;">
-            <div style="flex: 1; min-width: 150px;">
-                <label for="teacher" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); font-size: 13px;">
+    <div class="card card--compact mb-16">
+        <form method="get" class="filter-form">
+            <div class="filter-form__field">
+                <label for="teacher" class="filter-label">
                     <i class="fa-solid fa-chalkboard-user"></i> Teacher
                 </label>
 
                 <select
                     id="teacher"
                     name="teacher"
-                    style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; cursor: pointer;"
+                    class="select-control-sm"
                     onchange="this.form.submit()">
                     <option value="">All Teachers</option>
 
@@ -56,15 +54,15 @@
                 </select>
             </div>
 
-            <div style="flex: 1; min-width: 150px;">
-                <label for="classroom" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); font-size: 13px;">
+            <div class="filter-form__field">
+                <label for="classroom" class="filter-label">
                     <i class="fa-solid fa-door-open"></i> Classroom
                 </label>
 
                 <select
                     id="classroom"
                     name="classroom"
-                    style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; cursor: pointer;"
+                    class="select-control-sm"
                     onchange="this.form.submit()">
                     <option value="">All Classrooms</option>
 
@@ -77,15 +75,15 @@
                 </select>
             </div>
 
-            <div style="flex: 1; min-width: 150px;">
-                <label for="subject" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); font-size: 13px;">
+            <div class="filter-form__field">
+                <label for="subject" class="filter-label">
                     <i class="fa-solid fa-book"></i> Subject
                 </label>
 
                 <select
                     id="subject"
                     name="subject"
-                    style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; cursor: pointer;"
+                    class="select-control-sm"
                     onchange="this.form.submit()">
                     <option value="">All Subjects</option>
 
@@ -98,15 +96,15 @@
                 </select>
             </div>
 
-            <div style="flex: 1; min-width: 150px;">
-                <label for="course" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); font-size: 13px;">
+            <div class="filter-form__field">
+                <label for="course" class="filter-label">
                     <i class="fa-solid fa-graduation-cap"></i> Course
                 </label>
 
                 <select
                     id="course"
                     name="course"
-                    style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; cursor: pointer;"
+                    class="select-control-sm"
                     onchange="this.form.submit()">
                     <option value="">All Courses</option>
 
@@ -119,8 +117,8 @@
                 </select>
             </div>
 
-            <div style="flex: 1; min-width: 150px;">
-                <label for="date" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary); font-size: 13px;">
+            <div class="filter-form__field">
+                <label for="date" class="filter-label">
                     <i class="fa-solid fa-calendar"></i> Date
                 </label>
 
@@ -129,28 +127,16 @@
                     id="date"
                     name="date"
                     value="{{ date_filter }}"
-                    style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; cursor: pointer;"
+                    class="select-control-sm"
                     onchange="this.form.submit()" />
             </div>
 
-            <div style="display: flex; align-items: end; gap: 8px;">
+            <div class="filter-actions">
 
                 {% if has_filters %}
 
                 <a href="{% url 'scheduler' %}"
-                   style="color: var(--text-primary);
-                          padding: 8px 16px;
-                          border-radius: 6px;
-                          text-decoration: none;
-                          font-size: 13px;
-                          font-weight: 500;
-                          display: inline-flex;
-                          align-items: center;
-                          gap: 6px;
-                          border: 2px solid var(--border-color);
-                          transition: all 0.2s ease;"
-                   onmouseover="this.style.borderColor='var(--link-color)';"
-                   onmouseout="this.style.borderColor='var(--border-color)';">
+                   class="btn-outline-sm">
                     <i class="fa-solid fa-xmark"></i>
 
                     Clear Filters
@@ -161,20 +147,7 @@
 
                 <a id="export-csv-btn"
                    href="{% url 'export_schedule_csv' %}"
-                   style="color: var(--success-text);
-                          padding: 8px 16px;
-                          border-radius: 6px;
-                          text-decoration: none;
-                          font-size: 13px;
-                          font-weight: 500;
-                          display: inline-flex;
-                          align-items: center;
-                          gap: 6px;
-                          border: 2px solid var(--success-border);
-                          background: var(--success-bg);
-                          transition: all 0.2s ease;"
-                   onmouseover="this.style.borderColor='var(--success-border)'; this.style.background='var(--success-border)'; this.style.color='white';"
-                   onmouseout="this.style.borderColor='var(--success-border)'; this.style.background='var(--success-bg)'; this.style.color='var(--success-text)';">
+                   class="btn-success">
                     <i class="fa-solid fa-file-csv"></i>
 
                     Export CSV
@@ -187,20 +160,20 @@
 
 {% if entries %}
 
-    <div class="card" style="padding: 0; overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse;">
+    <div class="card card--table">
+        <table class="table">
             <thead>
-                <tr style="border-bottom: 2px solid var(--border-color); background: var(--bg-secondary);">
-                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Date</th>
-                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Time</th>
-                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Teacher</th>
-                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Room</th>
-                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Subject</th>
-                    <th style="text-align: left; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Course</th>
+                <tr class="table__head-row">
+                    <th class="table__head-cell">Date</th>
+                    <th class="table__head-cell">Time</th>
+                    <th class="table__head-cell">Teacher</th>
+                    <th class="table__head-cell">Room</th>
+                    <th class="table__head-cell">Subject</th>
+                    <th class="table__head-cell">Course</th>
 
                     {% if is_admin %}
 
-                        <th style="text-align: center; padding: 16px; font-weight: 600; color: var(--text-primary); white-space: nowrap;">Actions</th>
+                        <th class="table__head-cell text-center">Actions</th>
 
                     {% endif %}
                 </tr>
@@ -210,18 +183,18 @@
 
                 {% for entry in entries %}
 
-                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease; {% if entry.is_active %}background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981;{% endif %}" onmouseover="this.style.background='{% if entry.is_active %}rgba(16, 185, 129, 0.15){% else %}var(--bg-secondary){% endif %}';" onmouseout="this.style.background='{% if entry.is_active %}rgba(16, 185, 129, 0.1){% else %}transparent{% endif %}';">
-                        <td style="padding: 16px; color: var(--text-primary); white-space: nowrap;">
-                            <i class="fa-solid fa-calendar-days" style="color: var(--link-color); margin-right: 6px;"></i>
+                    <tr class="table__row {% if entry.is_active %}table__row--active{% endif %}">
+                        <td class="table__cell">
+                            <i class="fa-solid fa-calendar-days icon-teacher icon-leading"></i>
 
                             {{ entry.date|date:"d/m/Y" }}
 
                         </td>
 
-                        <td style="padding: 16px; color: var(--text-primary); white-space: nowrap;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
+                        <td class="table__cell">
+                            <div class="time-cell">
                                 <span>
-                                    <i class="fa-solid fa-clock" style="color: var(--link-color); margin-right: 6px;"></i>
+                                    <i class="fa-solid fa-clock icon-teacher icon-leading"></i>
 
                                     {{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}
 
@@ -229,8 +202,8 @@
 
                                 {% if entry.is_active %}
 
-                                    <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px;">
-                                        <i class="fa-solid fa-circle" style="font-size: 6px; animation: pulse 2s infinite;"></i>
+                                    <span class="status-badge">
+                                        <i class="fa-solid fa-circle status-badge__dot"></i>
 
                                         Active
 
@@ -241,59 +214,49 @@
                             </div>
                         </td>
 
-                        <td style="padding: 16px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 32px; height: 32px; border: 1px solid var(--border-color); border-radius: 50%; background: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-bg){% else %}var(--info-bg){% endif %}; color: {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}var(--error-text){% else %}var(--info-text){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">
+                        <td class="table__cell">
+                            <div class="table-person">
+                                <div class="avatar {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}avatar--admin{% else %}avatar--default{% endif %}">
                                     {{ entry.teacher.username|first|upper }}
                                 </div>
 
-                                <span style="color: var(--text-primary); font-weight: 500;">{{ entry.teacher.username }}</span>
+                                <span class="font-medium">{{ entry.teacher.username }}</span>
                             </div>
                         </td>
 
-                        <td style="padding: 16px; color: var(--text-primary);">
-                            <span style="background: var(--error-bg); color: var(--error-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
+                        <td class="table__cell">
+                            <span class="pill pill--danger">
                                 {{ entry.classroom.name }}
                             </span>
                         </td>
 
-                        <td style="padding: 16px; color: var(--text-primary);">
-                            <span style="background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
+                        <td class="table__cell">
+                            <span class="pill pill--success">
                                 {{ entry.subject.display_name }}
                             </span>
                         </td>
 
-                        <td style="padding: 16px; color: var(--text-primary);">
-                            <span style="background: var(--info-bg); color: var(--info-text); padding: 4px 10px; border-radius: 6px; font-size: 15px; font-weight: 500;">
+                        <td class="table__cell">
+                            <span class="pill pill--info">
                                 {{ entry.course.display_name }}
                             </span>
                         </td>
 
                         {% if is_admin %}
 
-                            <td style="padding: 16px; text-align: center;">
-                                <div style="display: flex; gap: 8px; justify-content: center;">
+                            <td class="table__cell text-center">
+                                <div class="action-links">
                                     <a href="{% url 'edit_schedule_entry' entry.id %}"
-                                       style="background: var(--bg-tertiary); color: var(--text-secondary); padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; border: 1px solid var(--border-color);"
-                                       onmouseover="this.style.background='var(--info-bg)'; this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';"
-                                       onmouseout="this.style.background='var(--bg-tertiary)'; this.style.borderColor='var(--border-color)'; this.style.color='var(--text-secondary)';"
+                                       class="chat-action chat-action--muted"
                                        title="Edit entry">
                                         <i class="fa-solid fa-pen"></i>
-
-                                        Edit
-
                                     </a>
 
                                     <a href="{% url 'delete_schedule_entry' entry.id %}"
                                        onclick="return confirm('Delete this schedule entry?');"
-                                       style="background: var(--error-bg); color: var(--error-text); padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
-                                       onmouseover="this.style.background='var(--error-border)'; this.style.color='white';"
-                                       onmouseout="this.style.background='var(--error-bg)'; this.style.color='var(--error-text)';"
+                                       class="chat-action chat-action--danger"
                                        title="Delete entry">
                                         <i class="fa-solid fa-trash"></i>
-
-                                        Delete
-
                                     </a>
                                 </div>
                             </td>
@@ -310,15 +273,15 @@
 
     {% if entries.has_other_pages %}
 
-        <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; flex-wrap: wrap;">
+        <div class="pagination">
 
             {% if entries.has_previous %}
 
-                <a href="?page=1{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                <a href="?page=1{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" class="pagination__button">
                     <i class="fa-solid fa-angles-left"></i>
                 </a>
 
-                <a href="?page={{ entries.previous_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                <a href="?page={{ entries.previous_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" class="pagination__button">
                     <i class="fa-solid fa-angle-left"></i>
                 </a>
 
@@ -328,15 +291,13 @@
 
                 {% if entries.number == num %}
 
-                    <span style="background: var(--button-bg); color: var(--button-text); padding: 8px 14px; border-radius: 6px; font-weight: 600; border: 1px solid var(--button-bg);">
+                    <span class="pagination__button pagination__button--active">
                         {{ num }}
                     </span>
 
                 {% elif num > entries.number|add:'-3' and num < entries.number|add:'3' %}
 
-                    <a href="?page={{ num }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 14px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
-                        {{ num }}
-                    </a>
+                    <a href="?page={{ num }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" class="pagination__button">{{ num }}</a>
 
                 {% endif %}
 
@@ -344,11 +305,11 @@
 
             {% if entries.has_next %}
 
-                <a href="?page={{ entries.next_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                <a href="?page={{ entries.next_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" class="pagination__button">
                     <i class="fa-solid fa-angle-right"></i>
                 </a>
 
-                <a href="?page={{ entries.paginator.num_pages }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" style="background: var(--card-bg); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--link-color)'; this.style.color='var(--link-color)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
+                <a href="?page={{ entries.paginator.num_pages }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}" class="pagination__button">
                     <i class="fa-solid fa-angles-right"></i>
                 </a>
 
@@ -356,24 +317,22 @@
 
         </div>
 
-        <div style="text-align: center; margin-top: 16px;">
-            <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
-                Page {{ entries.number }} of {{ entries.paginator.num_pages }} • {{ entries.paginator.count }} total entries
-            </p>
-        </div>
-
     {% endif %}
+
+    <div class="pagination__summary">
+        Page {{ entries.number }} of {{ entries.paginator.num_pages }} • {{ entries.paginator.count }} total entries
+    </div>
 
 {% else %}
 
-    <div class="card" style="text-align: center; padding: 64px 24px;">
-        <i class="fa-solid fa-calendar-xmark" style="font-size: 64px; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 16px;"></i>
+    <div class="card empty-state empty-state--large">
+        <i class="fa-solid fa-calendar-xmark empty-state__icon"></i>
 
         {% if has_filters %}
 
-            <p style="color: var(--text-secondary); margin: 0 0 16px 0; font-size: 16px;">No entries match your filters.</p>
+            <p class="empty-state__text">No entries match your filters.</p>
 
-            <a href="{% url 'scheduler' %}" style="background: var(--button-bg); color: var(--button-text); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease;" onmouseover="this.style.background='var(--button-hover)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--button-bg)'; this.style.transform='translateY(0)';">
+            <a href="{% url 'scheduler' %}" class="btn button-icon">
                 <i class="fa-solid fa-filter-circle-xmark"></i>
 
                 Clear Filters
@@ -382,11 +341,11 @@
 
         {% else %}
 
-            <p style="color: var(--text-secondary); margin: 0; font-size: 16px;">No entries available.</p>
+            <p class="empty-state__text">No entries available.</p>
 
             {% if is_admin %}
 
-                <a href="{% url 'create_schedule_entry' %}" style="margin-top: 15px; background: var(--button-bg); color: var(--button-text); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease;" onmouseover="this.style.background='var(--button-hover)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--button-bg)'; this.style.transform='translateY(0)';">
+                <a href="{% url 'create_schedule_entry' %}" class="btn button-icon mt-16">
                     <i class="fa-solid fa-plus"></i>
 
                     Add Entry
@@ -401,17 +360,6 @@
 
 {% endif %}
 
-<style>
-@keyframes pulse {
-
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.3;
-    }
-}
-</style>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {

@@ -4,171 +4,161 @@
 
 {% block admin_content %}
 
-<div style="margin-bottom: 24px;">
-    <center>
-        <h1 style="margin: 0 0 8px 0;">Administration Dashboard</h1>
-    </center>
+<div class="section-header">
+    <h1 class="section-header__title">Administration Dashboard</h1>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px;">
+<div class="stats-grid">
 
-    <div class="card" style="padding: 20px; border-left: 4px solid var(--link-color);">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+    <div class="card stat-card stat-card--primary">
+        <div class="stat-card__header">
             <div>
-                <div style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px;">Total Users</div>
+                <div class="stat-card__title">Total Users</div>
 
-                <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ total_users }}</div>
+                <div class="stat-card__value">{{ total_users }}</div>
             </div>
 
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--info-bg); color: var(--info-text); display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-users" style="font-size: 24px;"></i>
+            <div class="stat-card__icon stat-card__icon--info">
+                <i class="fa-solid fa-users stat-card__icon-inner"></i>
             </div>
         </div>
 
-        <div style="font-size: 13px; color: var(--text-secondary);">
-            <i class="fa-solid fa-user-shield" style="color: var(--error-text);"></i>
+        <div class="stat-card__meta">
+            <i class="fa-solid fa-user-shield icon-admin"></i>
 
             {{ admin_count }} admin{{ admin_count|pluralize }} ·
 
-            <i class="fa-solid fa-chalkboard-user" style="color: var(--link-color);"></i>
+            <i class="fa-solid fa-chalkboard-user icon-teacher"></i>
 
             {{ teacher_count }} teacher{{ teacher_count|pluralize }}
         </div>
     </div>
 
-    <div class="card" style="padding: 20px; border-left: 4px solid var(--success-border);">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+    <div class="card stat-card stat-card--success">
+        <div class="stat-card__header">
             <div>
-                <div style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px;">Active Invites</div>
+                <div class="stat-card__title">Active Invites</div>
 
-                <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ active_invites }}</div>
+                <div class="stat-card__value">{{ active_invites }}</div>
             </div>
 
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--success-bg); color: var(--success-text); display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-ticket" style="font-size: 24px;"></i>
+            <div class="stat-card__icon stat-card__icon--success">
+                <i class="fa-solid fa-ticket stat-card__icon-inner"></i>
             </div>
         </div>
 
-        <div style="font-size: 13px; color: var(--text-secondary);">
+        <div class="stat-card__meta">
 
             {% if total_invite_uses > 0 %}
 
-                <i class="fa-solid fa-arrow-up" style="color: var(--success-text);"></i>
+                <i class="fa-solid fa-arrow-up icon-success"></i>
 
                 {{ total_invite_uses }} use{{ total_invite_uses|pluralize }} available
 
             {% else %}
 
-                <span style="color: var(--text-tertiary);">No uses available</span>
+                <span class="text-tertiary">No uses available</span>
 
             {% endif %}
 
         </div>
     </div>
 
-    <div class="card" style="padding: 20px; border-left: 4px solid var(--warning-border);">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+    <div class="card stat-card stat-card--warning">
+        <div class="stat-card__header">
             <div>
-                <div style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px;">Schedule Entries</div>
+                <div class="stat-card__title">Schedule Entries</div>
 
-                <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ total_schedule_entries }}</div>
+                <div class="stat-card__value">{{ total_schedule_entries }}</div>
             </div>
 
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--warning-bg); color: var(--warning-text); display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-calendar-days" style="font-size: 24px;"></i>
+            <div class="stat-card__icon stat-card__icon--warning">
+                <i class="fa-solid fa-calendar-days stat-card__icon-inner"></i>
             </div>
         </div>
-        <div style="font-size: 13px; color: var(--text-secondary);">
+        <div class="stat-card__meta">
 
             {% if upcoming_entries > 0 %}
 
-                <i class="fa-solid fa-clock" style="color: var(--warning-text);"></i>
+                <i class="fa-solid fa-clock icon-warning"></i>
 
                 {{ upcoming_entries }} upcoming
 
             {% else %}
 
-                <span style="color: var(--text-tertiary);">No upcoming entries</span>
+                <span class="text-tertiary">No upcoming entries</span>
 
             {% endif %}
         </div>
     </div>
 
-    <div class="card" style="padding: 20px; border-left: 4px solid var(--info-border);">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+    <div class="card stat-card stat-card--info">
+        <div class="stat-card__header">
             <div>
-                <div style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px;">Total Messages</div>
+                <div class="stat-card__title">Total Messages</div>
 
-                <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ total_messages }}</div>
+                <div class="stat-card__value">{{ total_messages }}</div>
             </div>
 
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--info-bg); color: var(--info-text); display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-comment-dots" style="font-size: 24px;"></i>
+            <div class="stat-card__icon stat-card__icon--info">
+                <i class="fa-solid fa-comment-dots stat-card__icon-inner"></i>
             </div>
         </div>
-        <div style="font-size: 13px; color: var(--text-secondary);">
+        <div class="stat-card__meta">
 
             {% if announcement_count > 0 %}
 
-                <i class="fa-solid fa-bullhorn" style="color: var(--info-text);"></i>
+                <i class="fa-solid fa-bullhorn icon-teacher"></i>
 
                 {{ announcement_count }} announcement{{ announcement_count|pluralize }}
 
             {% else %}
 
-                <span style="color: var(--text-tertiary);">No announcements</span>
+                <span class="text-tertiary">No announcements</span>
 
             {% endif %}
         </div>
     </div>
 </div>
 
-<div class="card" style="margin-bottom: 24px;">
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
-        <i class="fa-solid fa-bolt" style="color: var(--link-color); font-size: 20px;"></i>
+<div class="card quick-actions">
+    <div class="quick-actions__header">
+        <i class="fa-solid fa-bolt icon-teacher"></i>
 
-        <h3 style="margin: 0;">Quick Actions</h3>
+        <h3 class="quick-actions__title">Quick Actions</h3>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+    <div class="tile-grid">
         {% if request.user.is_superuser %}
 
             <a href="/admin/"
-            style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;"
-            onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';"
-            onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <i class="fa-solid fa-server" style="font-size: 35px; color: var(--link-color);"></i>
+               class="tile-link">
+                <i class="fa-solid fa-server tile-link__icon"></i>
 
-                <span style="font-weight: 500; color: var(--text-primary);">Access Backend</span>
+                <span class="tile-link__label">Access Backend</span>
             </a>
 
         {% endif %}
 
         <a href="{% url 'admin_invites' %}"
-           style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;"
-           onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';"
-           onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-            <i class="fa-solid fa-ticket" style="font-size: 35px; color: var(--link-color);"></i>
+           class="tile-link">
+            <i class="fa-solid fa-ticket tile-link__icon"></i>
 
-            <span style="font-weight: 500; color: var(--text-primary);">Manage Invites</span>
+            <span class="tile-link__label">Manage Invites</span>
         </a>
 
         <a href="{% url 'admin_scheduler_config' %}"
-           style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;"
-           onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';"
-           onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-            <i class="fa-solid fa-calendar-days" style="font-size: 35px; color: var(--link-color);"></i>
+           class="tile-link">
+            <i class="fa-solid fa-calendar-days tile-link__icon"></i>
 
-            <span style="font-weight: 500; color: var(--text-primary);">Configure Schedule</span>
+            <span class="tile-link__label">Configure Schedule</span>
         </a>
 
         <a href="{% url 'admin_audit_logs' %}"
-           style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--border-color); text-decoration: none; transition: all 0.2s ease;"
-           onmouseover="this.style.borderColor='var(--link-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-hover)';"
-           onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-            <i class="fa-solid fa-clipboard-list" style="font-size: 35px; color: var(--link-color);"></i>
+           class="tile-link">
+            <i class="fa-solid fa-clipboard-list tile-link__icon"></i>
 
-            <span style="font-weight: 500; color: var(--text-primary);">View Audit Logs</span>
+            <span class="tile-link__label">View Audit Logs</span>
         </a>
     </div>
 </div>
