@@ -1,4 +1,5 @@
 {% extends "core/admin_base.html" %}
+{% load core_extras %}
 
 {% block title %}Audit Logs - CS Dept Platform{% endblock %}
 
@@ -95,13 +96,16 @@
 
                     <tr class="table__row">
                         <td class="table__cell text-small text-secondary">
-                            {{ log.timestamp|date:"d/m/Y H:i" }}
+                            <span class="table-time">
+                                <i class="fa-solid fa-clock icon-teacher icon-leading"></i>
+                                {{ log.creation_date|date:"d/m/Y H:i" }}
+                            </span>
                         </td>
 
                         <td class="table__cell">
                             {% if log.actor %}
                                 <div class="table-person">
-                                    <div class="avatar {% if log.actor.is_superuser or log.actor.groups.all.0.name == 'admin' %}avatar--admin{% else %}avatar--default{% endif %}">
+                                    <div class="avatar {% if log.actor|is_admin %}avatar--admin{% else %}avatar--default{% endif %}">
                                         {{ log.actor.username|first|upper }}
                                     </div>
 

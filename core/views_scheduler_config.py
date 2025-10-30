@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages as flash_messages
 from django.db.models import ProtectedError
+from django.views.decorators.http import require_POST
 from .models import Classroom, Subject, Course
 
 @login_required
@@ -26,6 +27,7 @@ def admin_scheduler_config(request):
     return render(request, "core/admin_scheduler_config.html", context)
 
 @login_required
+@require_POST
 def add_classroom(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
@@ -34,33 +36,32 @@ def add_classroom(request):
 
         return redirect("home")
 
-    if request.method == "POST":
+    name = request.POST.get("name", "").strip()
+    display_name = request.POST.get("display_name", "").strip()
 
-        name = request.POST.get("name", "").strip()
-        display_name = request.POST.get("display_name", "").strip()
+    if name and display_name:
 
-        if name and display_name:
+        if Classroom.objects.filter(name=name).exists():
 
-            if Classroom.objects.filter(name=name).exists():
-
-                flash_messages.error(request, f"Classroom '{name}' already exists.")
-
-            else:
-
-                Classroom.objects.create(
-                    name=name,
-                    display_name=display_name,
-                    created_by=request.user
-                )
-                flash_messages.success(request, f"Classroom '{display_name}' successfully added.")
+            flash_messages.error(request, f"Classroom '{name}' already exists.")
 
         else:
 
-            flash_messages.error(request, "Both name and display name are required.")
+            Classroom.objects.create(
+                name=name,
+                display_name=display_name,
+                created_by=request.user
+            )
+            flash_messages.success(request, f"Classroom '{display_name}' successfully added.")
+
+    else:
+
+        flash_messages.error(request, "Both name and display name are required.")
 
     return redirect("admin_scheduler_config")
 
 @login_required
+@require_POST
 def delete_classroom(request, classroom_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
@@ -87,6 +88,7 @@ def delete_classroom(request, classroom_id):
     return redirect("admin_scheduler_config")
 
 @login_required
+@require_POST
 def add_subject(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
@@ -95,33 +97,32 @@ def add_subject(request):
 
         return redirect("home")
 
-    if request.method == "POST":
+    name = request.POST.get("name", "").strip()
+    display_name = request.POST.get("display_name", "").strip()
 
-        name = request.POST.get("name", "").strip()
-        display_name = request.POST.get("display_name", "").strip()
+    if name and display_name:
 
-        if name and display_name:
+        if Subject.objects.filter(name=name).exists():
 
-            if Subject.objects.filter(name=name).exists():
-
-                flash_messages.error(request, f"Subject '{name}' already exists.")
-
-            else:
-
-                Subject.objects.create(
-                    name=name,
-                    display_name=display_name,
-                    created_by=request.user
-                )
-                flash_messages.success(request, f"Subject '{display_name}' successfully added.")
+            flash_messages.error(request, f"Subject '{name}' already exists.")
 
         else:
 
-            flash_messages.error(request, "Both name and display name are required.")
+            Subject.objects.create(
+                name=name,
+                display_name=display_name,
+                created_by=request.user
+            )
+            flash_messages.success(request, f"Subject '{display_name}' successfully added.")
+
+    else:
+
+        flash_messages.error(request, "Both name and display name are required.")
 
     return redirect("admin_scheduler_config")
 
 @login_required
+@require_POST
 def delete_subject(request, subject_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
@@ -148,6 +149,7 @@ def delete_subject(request, subject_id):
     return redirect("admin_scheduler_config")
 
 @login_required
+@require_POST
 def add_course(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
@@ -156,33 +158,32 @@ def add_course(request):
 
         return redirect("home")
 
-    if request.method == "POST":
+    name = request.POST.get("name", "").strip()
+    display_name = request.POST.get("display_name", "").strip()
 
-        name = request.POST.get("name", "").strip()
-        display_name = request.POST.get("display_name", "").strip()
+    if name and display_name:
 
-        if name and display_name:
+        if Course.objects.filter(name=name).exists():
 
-            if Course.objects.filter(name=name).exists():
-
-                flash_messages.error(request, f"Course '{name}' already exists.")
-
-            else:
-
-                Course.objects.create(
-                    name=name,
-                    display_name=display_name,
-                    created_by=request.user
-                )
-                flash_messages.success(request, f"Course '{display_name}' successfully added.")
+            flash_messages.error(request, f"Course '{name}' already exists.")
 
         else:
 
-            flash_messages.error(request, "Both name and display name are required.")
+            Course.objects.create(
+                name=name,
+                display_name=display_name,
+                created_by=request.user
+            )
+            flash_messages.success(request, f"Course '{display_name}' successfully added.")
+
+    else:
+
+        flash_messages.error(request, "Both name and display name are required.")
 
     return redirect("admin_scheduler_config")
 
 @login_required
+@require_POST
 def delete_course(request, course_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):

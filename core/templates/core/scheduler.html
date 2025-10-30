@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load core_extras %}
 
 {% block title %}Schedule - CS Dept Platform{% endblock %}
 
@@ -216,7 +217,7 @@
 
                         <td class="table__cell">
                             <div class="table-person">
-                                <div class="avatar {% if entry.teacher.is_superuser or entry.teacher.groups.all.0.name == 'admin' %}avatar--admin{% else %}avatar--default{% endif %}">
+                                <div class="avatar {% if entry.teacher|is_admin %}avatar--admin{% else %}avatar--default{% endif %}">
                                     {{ entry.teacher.username|first|upper }}
                                 </div>
 
@@ -252,12 +253,17 @@
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
 
-                                    <a href="{% url 'delete_schedule_entry' entry.id %}"
-                                       onclick="return confirm('Delete this schedule entry?');"
-                                       class="chat-action chat-action--danger"
-                                       title="Delete entry">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
+                                    <form method="post"
+                                          action="{% url 'delete_schedule_entry' entry.id %}"
+                                          style="display:inline">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                onclick="return confirm('Delete this schedule entry?');"
+                                                class="chat-action chat-action--danger"
+                                                title="Delete entry">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
 
@@ -359,7 +365,6 @@
     </div>
 
 {% endif %}
-
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {

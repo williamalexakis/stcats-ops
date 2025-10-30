@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load core_extras %}
 
 {% block title %}Home - CS Dept Platform{% endblock %}
 
@@ -19,7 +20,7 @@
 
         <div class="home-user">
             <div class="home-user__profile">
-                <div class="home-user__avatar {% if user.is_superuser %}home-user__avatar--superuser{% elif user.groups.all.0.name == 'admin' %}home-user__avatar--admin{% else %}home-user__avatar--teacher{% endif %}">
+                <div class="home-user__avatar {% if user.is_superuser %}home-user__avatar--superuser{% elif user|is_admin %}home-user__avatar--admin{% else %}home-user__avatar--teacher{% endif %}">
                     {{ user.username|first|upper }}
                 </div>
 
@@ -34,7 +35,7 @@
 
                             Superuser
 
-                        {% elif user.groups.all.0.name == 'admin' %}
+                        {% elif user|is_admin %}
 
                             <i class="fa-solid fa-user-shield icon-admin"></i>
 
@@ -84,7 +85,7 @@
                 <span class="home-feature-link__label">Code Editor</span>
             </a>
 
-            {% if request.user.groups.all.0.name == 'admin' or request.user.is_superuser %}
+            {% if request.user|is_admin %}
 
                 <a href="{% url 'admin_panel' %}" class="home-feature-link">
                     <i class="fa-solid fa-gears home-feature-link__icon"></i>

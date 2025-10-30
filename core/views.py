@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages as flash_messages
 from django.contrib.auth.models import Group
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from datetime import timedelta, date
 from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course, AuditLog
 from django.core.paginator import Paginator
@@ -51,7 +52,9 @@ def members(request):
 
             teachers.append(user)
 
-    admins = sorted(admins, key=lambda user: (0 if user.is_superuser else 1, user.username.lower()))
+    admin_superusers = sorted((user for user in admins if user.is_superuser), key=lambda user: user.username.lower())
+    admin_staff = sorted((user for user in admins if not user.is_superuser), key=lambda user: user.username.lower())
+    admins = admin_superusers + admin_staff
     teachers = sorted(teachers, key=lambda user: user.username.lower())
 
     context = {
@@ -64,6 +67,8 @@ def members(request):
 
 @login_required
 def chat(request):
+
+    is_admin_user = request.user.is_superuser or request.user.groups.filter(name="admin").exists()
 
     # Get the room, or otherwise create a
     # default General room if none are available
@@ -81,6 +86,11 @@ def chat(request):
         body = request.POST.get("body", "").strip()
         is_announcement = request.POST.get("is_announcement") == "on"
         is_pinned = request.POST.get("is_pinned") == "on" if is_announcement else False
+
+        if not is_admin_user:
+
+            is_announcement = False
+            is_pinned = False
 
         if body:
 
@@ -251,6 +261,7 @@ def admin_audit_logs(request):
     return render(request, "core/admin_audit_logs.html", context)
 
 @login_required
+@require_POST
 def delete_invite_code(request, code_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
@@ -273,6 +284,7 @@ def delete_invite_code(request, code_id):
     return redirect("admin_invites")
 
 @login_required
+@require_POST
 def promote_user(request, user_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
@@ -313,6 +325,7 @@ def edit_message(request, message_id):
     try:
 
         message = Message.objects.get(id=message_id)
+        is_admin_user = request.user.is_superuser or request.user.groups.filter(name="admin").exists()
 
         # Only allow editing your own messages
         if message.author != request.user:
@@ -326,6 +339,11 @@ def edit_message(request, message_id):
             body = request.POST.get('body', '').strip()
             is_announcement = request.POST.get('is_announcement') == 'on'
             is_pinned = request.POST.get('is_pinned') == 'on' if is_announcement else False
+
+            if not is_admin_user:
+
+                is_announcement = False
+                is_pinned = False
 
             if body:
 
@@ -356,11 +374,13 @@ def edit_message(request, message_id):
         return redirect("chat")
 
 @login_required
+@require_POST
 def delete_message(request, message_id):
     try:
 
         message = Message.objects.get(id=message_id)
         can_delete = False
+        is_admin_user = request.user.is_superuser or request.user.groups.filter(name='admin').exists()
 
         # User can delete their own messages
         if message.author == request.user:
@@ -368,7 +388,7 @@ def delete_message(request, message_id):
             can_delete = True
 
         # Admins can delete any message
-        elif (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
+        elif is_admin_user:
 
             if not message.author.is_superuser:
 
@@ -396,6 +416,7 @@ def delete_message(request, message_id):
     return redirect('chat')
 
 @login_required
+@require_POST
 def demote_user(request, user_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
@@ -411,6 +432,12 @@ def demote_user(request, user_id):
         if user.is_superuser:
 
             flash_messages.error(request, "Cannot modify superuser accounts.")
+
+            return redirect("members")
+
+        if user == request.user:
+
+            flash_messages.error(request, "You cannot change your own administrative status.")
 
             return redirect("members")
 
@@ -431,6 +458,7 @@ def demote_user(request, user_id):
     return redirect("members")
 
 @login_required
+@require_POST
 def remove_user(request, user_id):
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -672,6 +700,7 @@ def edit_schedule_entry(request, entry_id):
         return redirect('scheduler')
 
 @login_required
+@require_POST
 def delete_schedule_entry(request, entry_id):
 
     # Check if user is admin or superuser

@@ -906,8 +906,19 @@ form label {
 .card-header {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     margin-bottom: 16px;
+}
+
+.member-section__heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.member-section__title {
+    margin: 0;
+    font-weight: 600;
 }
 
 .card-header__title {

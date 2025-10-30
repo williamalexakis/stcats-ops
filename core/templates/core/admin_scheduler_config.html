@@ -1,4 +1,5 @@
 {% extends "core/admin_base.html" %}
+{% load core_extras %}
 
 {% block title %}Schedule Configuration - CS Dept Platform{% endblock %}
 
@@ -44,11 +45,16 @@
                         <span class="tag tag--danger">{{ classroom.name }}</span>
                         <span class="chip__text">{{ classroom.display_name }}</span>
 
-                        <a href="{% url 'delete_classroom' classroom.id %}"
-                           onclick="return confirm('Delete {{ course.name }}?');"
-                           class="action-button action-button--danger">
-                            <i class="fa-solid fa-trash"></i>
-                        </a>
+                        <form method="post"
+                              action="{% url 'delete_classroom' classroom.id %}"
+                              style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    onclick="return confirm('Delete {{ classroom.display_name }}?');"
+                                    class="action-button action-button--danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
 
                 {% endfor %}
@@ -97,11 +103,16 @@
                         <span class="tag tag--success">{{ subject.name }}</span>
                         <span class="chip__text">{{ subject.display_name }}</span>
 
-                        <a href="{% url 'delete_subject' subject.id %}"
-                           onclick="return confirm('Delete {{ subject.name }}?');"
-                           class="action-button action-button--danger">
-                            <i class="fa-solid fa-trash"></i>
-                        </a>
+                        <form method="post"
+                              action="{% url 'delete_subject' subject.id %}"
+                              style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    onclick="return confirm('Delete {{ subject.name }}?');"
+                                    class="action-button action-button--danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
 
                 {% endfor %}
@@ -150,11 +161,16 @@
                         <span class="tag tag--info">{{ course.name }}</span>
                         <span class="chip__text">{{ course.display_name }}</span>
 
-                        <a href="{% url 'delete_course' course.id %}"
-                           onclick="return confirm('Delete {{ course.name }}?');"
-                           class="action-button action-button--danger">
-                            <i class="fa-solid fa-trash"></i>
-                        </a>
+                        <form method="post"
+                              action="{% url 'delete_course' course.id %}"
+                              style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    onclick="return confirm('Delete {{ course.name }}?');"
+                                    class="action-button action-button--danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
 
                 {% endfor %}

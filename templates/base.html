@@ -1,4 +1,4 @@
-{% load static %}
+{% load static core_extras %}
 <!doctype html>
 <html lang="en" data-theme="light">
 
@@ -60,7 +60,7 @@
 
                     </a>
 
-                    {% if user.groups.all.0.name == 'admin' or user.is_superuser %}
+                    {% if user|is_admin %}
 
                         <a href="{% url 'admin_panel' %}">
                             <i class="fa-solid fa-gears"></i>

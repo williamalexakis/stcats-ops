@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load core_extras %}
 
 {% block title %}Members - CS Dept Platform{% endblock %}
 
@@ -21,11 +22,14 @@
 {% if admins %}
 
     <div class="card card--spaced">
-        <div class="member-section__header">
-            <i class="fa-solid fa-shield-halved icon-admin"></i>
+        <div class="admin-config-card__header">
+            <div class="admin-config-card__heading">
+                <i class="fa-solid fa-shield-halved icon-admin"></i>
 
-            <h3>Administrators</h3>
-            <span class="tag tag--danger">{{ admins|length }}</span>
+                <h3>Administrators</h3>
+
+                <span class="tag tag--danger">{{ admins|length }}</span>
+            </div>
         </div>
 
         <div class="member-grid">
@@ -59,22 +63,32 @@
                         </div>
                     </div>
 
-                    {% if request.user.is_superuser or request.user.groups.all.0.name == 'admin' %}
+                    {% if request.user|is_admin %}
 
-                        {% if not user.is_superuser %}
+                        {% if not user.is_superuser and user != request.user %}
 
                             <div class="member-card__actions">
-                                <a href="{% url 'demote_user' user.id %}"
-                                   onclick="return confirm('Demote {{ user.username }} to teacher?');"
-                                   class="action-button action-button--info">
-                                    <i class="fa-solid fa-arrow-down"></i>
-                                </a>
+                                <form method="post"
+                                      action="{% url 'demote_user' user.id %}"
+                                      style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            onclick="return confirm('Demote {{ user.username }} to teacher?');"
+                                            class="action-button action-button--info">
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    </button>
+                                </form>
 
-                                <a href="{% url 'remove_user' user.id %}"
-                                   onclick="return confirm('Are you sure you want to remove {{ user.username }}?');"
-                                   class="action-button action-button--danger">
-                                    <i class="fa-solid fa-trash"></i>
-                                </a>
+                                <form method="post"
+                                      action="{% url 'remove_user' user.id %}"
+                                      style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            onclick="return confirm('Are you sure you want to remove {{ user.username }}?');"
+                                            class="action-button action-button--danger">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
 
                         {% endif %}
@@ -93,12 +107,14 @@
 {% if teachers %}
 
     <div class="card card--spaced">
-        <div class="member-section__header">
-            <i class="fa-solid fa-chalkboard icon-teacher"></i>
+        <div class="admin-config-card__header">
+            <div class="admin-config-card__heading">
+                <i class="fa-solid fa-chalkboard icon-teacher"></i>
 
-            <h3>Teachers</h3>
+                <h3>Teachers</h3>
 
-            <span class="tag tag--info">{{ teachers|length }}</span>
+                <span class="tag tag--danger">{{ teachers|length }}</span>
+            </div>
         </div>
 
         <div class="member-grid">
@@ -123,21 +139,33 @@
                         </div>
                     </div>
 
-                    {% if request.user.is_superuser or request.user.groups.all.0.name == 'admin' %}
+                    {% if request.user|is_admin %}
 
-                        <div class="member-card__actions">
-                            <a href="{% url 'promote_user' user.id %}"
-                               onclick="return confirm('Promote {{ user.username }} to admin?');"
-                               class="action-button action-button--success">
-                                <i class="fa-solid fa-arrow-up"></i>
-                            </a>
+                        {% if user != request.user %}
+                            <div class="member-card__actions">
+                                <form method="post"
+                                      action="{% url 'promote_user' user.id %}"
+                                      style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            onclick="return confirm('Promote {{ user.username }} to admin?');"
+                                            class="action-button action-button--success">
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    </button>
+                                </form>
 
-                            <a href="{% url 'remove_user' user.id %}"
-                               onclick="return confirm('Are you sure you want to remove {{ user.username }}?');"
-                               class="action-button action-button--danger">
-                                <i class="fa-solid fa-trash"></i>
-                            </a>
-                        </div>
+                                <form method="post"
+                                      action="{% url 'remove_user' user.id %}"
+                                      style="display:inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            onclick="return confirm('Are you sure you want to remove {{ user.username }}?');"
+                                            class="action-button action-button--danger">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
 
                     {% endif %}
 

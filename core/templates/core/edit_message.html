@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load core_extras %}
 
 {% block title %}Edit Message - CS Dept Platform{% endblock %}
 
@@ -33,36 +34,38 @@
             >{{ message.body }}</textarea>
         </div>
 
-        <div class="form-options">
-            <label class="form-option">
-                <input
-                    type="checkbox"
-                    id="is_announcement"
-                    name="is_announcement"
-                    {% if message.is_announcement %}checked{% endif %}
-                    class="form-option__checkbox"
-                    onchange="document.getElementById('pinned-option').style.display = this.checked ? 'flex' : 'none'; if (!this.checked) document.getElementById('is_pinned').checked = false;"
-                />
+        {% if request.user|is_admin %}
+            <div class="form-options">
+                <label class="form-option">
+                    <input
+                        type="checkbox"
+                        id="is_announcement"
+                        name="is_announcement"
+                        {% if message.is_announcement %}checked{% endif %}
+                        class="form-option__checkbox"
+                        onchange="document.getElementById('pinned-option').style.display = this.checked ? 'flex' : 'none'; if (!this.checked) document.getElementById('is_pinned').checked = false;"
+                    />
 
-                <span class="form-option__label">
-                    <i class="fa-solid fa-bullhorn icon-teacher"></i> Mark as Announcement
-                </span>
-            </label>
+                    <span class="form-option__label">
+                        <i class="fa-solid fa-bullhorn icon-teacher"></i> Mark as Announcement
+                    </span>
+                </label>
 
-            <label id="pinned-option" class="form-option {% if not message.is_announcement %}form-option--hidden{% endif %}">
-                <input
-                    type="checkbox"
-                    id="is_pinned"
-                    name="is_pinned"
-                    {% if message.is_pinned %}checked{% endif %}
-                    class="form-option__checkbox"
-                />
+                <label id="pinned-option" class="form-option {% if not message.is_announcement %}form-option--hidden{% endif %}">
+                    <input
+                        type="checkbox"
+                        id="is_pinned"
+                        name="is_pinned"
+                        {% if message.is_pinned %}checked{% endif %}
+                        class="form-option__checkbox"
+                    />
 
-                <span class="form-option__label">
-                    <i class="fa-solid fa-thumbtack icon-success"></i> Pin Announcement
-                </span>
-            </label>
-        </div>
+                    <span class="form-option__label">
+                        <i class="fa-solid fa-thumbtack icon-success"></i> Pin Announcement
+                    </span>
+                </label>
+            </div>
+        {% endif %}
 
         <div class="action-buttons">
             <button type="submit" class="chat-submit">
