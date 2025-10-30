@@ -17,135 +17,8 @@
     </div>
 </div>
 
-<div class="card chat-thread">
-
-    {% if chat_messages %}
-
-        <div class="chat-thread__messages">
-
-            {% for message in chat_messages %}
-
-                <div class="chat-message {% if message.is_announcement %}chat-message--announcement{% endif %}">
-
-                    <div class="chat-message__header">
-                        <div class="chat-message__author">
-
-                            <div class="chat-message__avatar {% if message.author|is_admin %}chat-message__avatar--admin{% else %}chat-message__avatar--default{% endif %}">
-                                {{ message.author.username|first|upper }}
-                            </div>
-
-                            <div class="chat-message__details">
-                                <div class="chat-message__identity">
-                                    <strong class="chat-message__name">{{ message.author.username }}</strong>
-
-                                    {% if message.author.is_superuser %}
-
-                                        <i class="fa-solid fa-crown icon-superuser chat-message__role-icon" title="Superuser"></i>
-
-                                    {% elif message.author|is_admin %}
-
-                                        <i class="fa-solid fa-user-shield icon-admin chat-message__role-icon" title="Admin"></i>
-
-                                    {% endif %}
-
-                                    {% if message.is_announcement %}
-
-                                        <span class="badge badge--primary">
-                                            <i class="fa-solid fa-bullhorn"></i> Announcement
-                                        </span>
-
-                                    {% endif %}
-
-                                    {% if message.is_pinned %}
-
-                                        <span class="badge badge--success">
-                                            <i class="fa-solid fa-thumbtack"></i> Pinned
-                                        </span>
-
-                                    {% endif %}
-                                </div>
-
-                                <div class="chat-message__timestamps">
-
-                                    {{ message.creation_date|date:"d/m/Y H:i" }}
-
-                                    {% if message.edit_date %}
-
-                                        <span class="chat-message__edited">
-                                            <i class="fa-solid fa-pen chat-message__edited-icon"></i> edited
-                                        </span>
-
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="chat-message__actions">
-
-                            {% if message.author == request.user %}
-
-                                <a href="{% url 'edit_message' message.id %}"
-                                   class="chat-action chat-action--muted"
-                                   title="Edit message">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-
-                                <form method="post"
-                                      action="{% url 'delete_message' message.id %}"
-                                      class="chat-action-form"
-                                      style="display:inline">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            onclick="return confirm('Delete this message?');"
-                                            class="chat-action chat-action--danger"
-                                            title="Delete message">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-
-                            {% elif request.user|is_admin %}
-
-                                {% if not message.author.is_superuser %}
-
-                                    <form method="post"
-                                          action="{% url 'delete_message' message.id %}"
-                                          class="chat-action-form"
-                                          style="display:inline">
-                                        {% csrf_token %}
-                                        <button type="submit"
-                                                onclick="return confirm('Delete this message?');"
-                                                class="chat-action chat-action--danger"
-                                                title="Delete message">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
-
-                                {% endif %}
-
-                            {% endif %}
-
-                        </div>
-                    </div>
-
-                    <div class="chat-message__content">
-                        {{ message.body|linebreaksbr }}
-                    </div>
-                </div>
-
-            {% endfor %}
-
-        </div>
-
-    {% else %}
-
-        <div class="chat-empty">
-            <i class="fa-solid fa-comment-dots chat-empty__icon"></i>
-
-            <p class="chat-empty__text">No messages available.</p>
-        </div>
-
-    {% endif %}
-
+<div id="chat-messages" data-partial-url="{% url 'chat' %}?partial=1">
+    {% include "core/partials/chat_messages.html" %}
 </div>
 
 <div class="card">
@@ -153,7 +26,12 @@
         <i class="fa-solid fa-paper-plane"></i> Send Message
     </h3>
 
-    <form method="post" class="form-vertical">
+    <form method="post"
+          class="form-vertical"
+          data-ajax="json"
+          data-ajax-refresh="{% url 'chat' %}?partial=1"
+          data-ajax-target="#chat-messages"
+          data-ajax-reset="true">
 
         {% csrf_token %}
 
@@ -209,16 +87,5 @@
         </div>
     </form>
 </div>
-
-<script>
-// Auto-scroll to bottom on page load
-window.addEventListener('DOMContentLoaded', function() {
-    var chatContainer = document.querySelector('.chat-thread');
-
-    if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-});
-</script>
 
 {% endblock %}

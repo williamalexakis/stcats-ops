@@ -1,0 +1,321 @@
+(function () {
+    const REQUEST_HEADER = { 'X-Requested-With': 'XMLHttpRequest' };
+    const FLASH_ICONS = {
+        success: '<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+        error: '<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+        info: '<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+        warning: '<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 19h14.14a2 2 0 001.74-3l-7.07-12a2 2 0 00-3.42 0l-7.07 12a2 2 0 001.74 3z"></path></svg>'
+    };
+
+    const flashContainer = document.getElementById('flash-container');
+
+    function createFlashIcon(level) {
+        const template = document.createElement('template');
+        template.innerHTML = (FLASH_ICONS[level] || FLASH_ICONS.info).trim();
+        return template.content.firstChild;
+    }
+
+    function showFlash(level, message) {
+        if (!flashContainer || !message) {
+            return;
+        }
+
+        const flash = document.createElement('div');
+        flash.className = `flash ${level || 'info'}`;
+        flash.appendChild(createFlashIcon(level));
+        const span = document.createElement('span');
+        span.textContent = message;
+        flash.appendChild(span);
+        flashContainer.appendChild(flash);
+
+        setTimeout(() => {
+            flash.classList.add('flash--fade');
+            setTimeout(() => flash.remove(), 600);
+        }, 6000);
+    }
+
+    function resolveTarget(selector, fallbackElement) {
+        if (selector) {
+            return document.querySelector(selector);
+        }
+        if (fallbackElement) {
+            const container = fallbackElement.closest('[data-partial-url]');
+            if (container && container.id) {
+                return container;
+            }
+        }
+        return null;
+    }
+
+    function buildPartialUrl(rawUrl, useLocationSearch = false) {
+        const url = rawUrl instanceof URL
+            ? new URL(rawUrl.href)
+            : new URL(rawUrl, window.location.origin);
+
+        if (useLocationSearch) {
+            url.search = window.location.search;
+        }
+
+        if (!url.searchParams.has('partial')) {
+            url.searchParams.set('partial', '1');
+        }
+
+        return url;
+    }
+
+    async function fetchHtml(url) {
+        const response = await fetch(url, {
+            credentials: 'same-origin',
+            headers: REQUEST_HEADER
+        });
+
+        if (!response.ok) {
+            throw new Error('Request failed');
+        }
+
+        return response.text();
+    }
+
+    function scrollChat(container) {
+        if (!container) {
+            return;
+        }
+        const thread = container.querySelector('.chat-thread');
+        if (thread) {
+            thread.scrollTop = thread.scrollHeight;
+        }
+    }
+
+    function updateSchedulerExport(scope) {
+        const btn = scope.querySelector ? scope.querySelector('#export-csv-btn') : document.getElementById('export-csv-btn');
+        if (!btn) {
+            return;
+        }
+
+        if (!btn.dataset.baseHref) {
+            btn.dataset.baseHref = btn.getAttribute('href');
+        }
+
+        const baseHref = btn.dataset.baseHref.split('?')[0];
+        const search = window.location.search;
+        btn.setAttribute('href', search ? `${baseHref}${search}` : baseHref);
+    }
+
+    function afterPartialUpdate(container) {
+        if (!container) {
+            return;
+        }
+
+        updateSchedulerExport(container);
+
+        if (container.id === 'chat-messages') {
+            scrollChat(container);
+        }
+    }
+
+    async function refreshPartial(urlOrKeyword, targetSelector, options = {}) {
+        const target = resolveTarget(targetSelector, options.sourceElement);
+        if (!target) {
+            return;
+        }
+
+        let url;
+        let useLocationSearch = options.useLocationSearch ?? false;
+
+        if (!urlOrKeyword || urlOrKeyword === 'current') {
+            url = new URL(window.location.pathname + window.location.search, window.location.origin);
+            useLocationSearch = true;
+        } else {
+            url = urlOrKeyword instanceof URL ? new URL(urlOrKeyword.href) : new URL(urlOrKeyword, window.location.origin);
+        }
+
+        const requestUrl = buildPartialUrl(url, useLocationSearch);
+
+        try {
+            const html = await fetchHtml(requestUrl);
+            target.innerHTML = html;
+            afterPartialUpdate(target);
+        } catch (error) {
+            showFlash('error', 'Failed to refresh content. Please try again.');
+        }
+    }
+
+    async function submitJsonForm(form, event) {
+        if (form.dataset.ajaxPending === 'true') {
+            return;
+        }
+
+        form.dataset.ajaxPending = 'true';
+
+        const action = form.getAttribute('action') || window.location.href;
+        const method = (form.getAttribute('method') || 'POST').toUpperCase();
+        const formData = new FormData(form);
+
+        if (event.submitter && event.submitter.name) {
+            formData.append(event.submitter.name, event.submitter.value);
+        }
+
+        let response;
+        try {
+            response = await fetch(action, {
+                method,
+                body: formData,
+                credentials: 'same-origin',
+                headers: REQUEST_HEADER
+            });
+        } catch (networkError) {
+            form.dataset.ajaxPending = 'false';
+            showFlash('error', 'Network error. Please try again.');
+            return;
+        }
+
+        let payload = {};
+        const contentType = response.headers.get('content-type') || '';
+
+        try {
+            if (contentType.includes('application/json')) {
+                payload = await response.json();
+            } else {
+                payload = { success: response.ok, message: await response.text() };
+            }
+        } catch (parseError) {
+            payload = { success: response.ok, message: '' };
+        }
+
+        const success = Boolean(payload.success && response.ok);
+        const level = payload.level || (success ? 'success' : 'error');
+
+        if (payload.message) {
+            showFlash(level, payload.message);
+        }
+
+        if (success) {
+            if (form.dataset.ajaxReset === 'true') {
+                form.reset();
+                const pinnedOption = form.querySelector('#pinned-option');
+                if (pinnedOption) {
+                    pinnedOption.style.display = 'none';
+                }
+                const focusTarget = form.querySelector('textarea, input[type="text"], input[type="number"]');
+                if (focusTarget) {
+                    focusTarget.focus();
+                }
+            }
+
+            const refreshUrl = form.dataset.ajaxRefresh;
+            const targetSelector = form.dataset.ajaxTarget;
+            await refreshPartial(refreshUrl, targetSelector, { sourceElement: form });
+        }
+
+        form.dataset.ajaxPending = 'false';
+    }
+
+    async function submitPartialForm(form, event) {
+        const action = form.getAttribute('action') || window.location.pathname;
+        const params = new URLSearchParams(new FormData(form));
+
+        if (event.submitter && event.submitter.name) {
+            params.append(event.submitter.name, event.submitter.value);
+        }
+
+        params.set('partial', '1');
+
+        const url = new URL(action, window.location.origin);
+        url.search = params.toString();
+
+        const targetSelector = form.dataset.ajaxTarget;
+        const target = resolveTarget(targetSelector, form);
+
+        if (!target) {
+            return;
+        }
+
+        try {
+            const html = await fetchHtml(url);
+            target.innerHTML = html;
+            afterPartialUpdate(target);
+        } catch (error) {
+            showFlash('error', 'Unable to load data. Please try again.');
+            return;
+        }
+
+        params.delete('partial');
+        const historyUrl = new URL(action, window.location.origin);
+        historyUrl.search = params.toString();
+        window.history.pushState({}, '', historyUrl.pathname + historyUrl.search);
+        updateSchedulerExport(document);
+    }
+
+    document.addEventListener('submit', (event) => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        const mode = form.dataset.ajax;
+        if (!mode) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (mode === 'partial') {
+            submitPartialForm(form, event);
+        } else {
+            submitJsonForm(form, event);
+        }
+    }, true);
+
+    document.addEventListener('click', (event) => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+
+        const link = event.target.closest('a[data-ajax-link]');
+        if (!link) {
+            return;
+        }
+
+        const targetSelector = link.dataset.ajaxTarget;
+        const target = resolveTarget(targetSelector, link);
+
+        if (!target) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const rawUrl = new URL(link.href, window.location.origin);
+        const requestUrl = buildPartialUrl(rawUrl, false);
+
+        fetchHtml(requestUrl)
+            .then((html) => {
+                target.innerHTML = html;
+                afterPartialUpdate(target);
+                window.history.pushState({}, '', rawUrl.pathname + rawUrl.search);
+            })
+            .catch(() => {
+                showFlash('error', 'Unable to load content. Please try again.');
+            });
+    });
+
+    window.addEventListener('popstate', () => {
+        document.querySelectorAll('[data-partial-url]').forEach((container) => {
+            const sourceUrl = container.dataset.partialUrl || 'current';
+            const followsLocation = container.dataset.partialFollowsLocation === 'true';
+            const refreshUrl = followsLocation ? window.location.href : sourceUrl;
+
+            refreshPartial(refreshUrl, `#${container.id}`, {
+                sourceElement: container,
+                useLocationSearch: followsLocation
+            });
+        });
+
+        updateSchedulerExport(document);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSchedulerExport(document);
+        scrollChat(document.getElementById('chat-messages'));
+    });
+})();

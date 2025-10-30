@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <script src="{% static 'js/ajax.js' %}" defer></script>
 
     {% block head %}{% endblock %}
 </head>
@@ -101,37 +102,39 @@
 
     <main>
 
-        {% if messages %}
+        <div id="flash-container">
+            {% if messages %}
 
-            {% for message in messages %}
+                {% for message in messages %}
 
-                <div class="flash {{ message.tags|default:'info' }}">
+                    <div class="flash {{ message.tags|default:'info' }}">
 
-                    {% if message.tags == 'success' %}
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                        {% if message.tags == 'success' %}
+                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
 
-                    {% elif message.tags == 'error' %}
+                        {% elif message.tags == 'error' %}
 
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
 
-                    {% else %}
+                        {% else %}
 
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
 
-                    {% endif %}
+                        {% endif %}
 
-                    <span>{{ message }}</span>
-                </div>
+                        <span>{{ message }}</span>
+                    </div>
 
-            {% endfor %}
+                {% endfor %}
 
-        {% endif %}
+            {% endif %}
+        </div>
 
         {% block content %}{% endblock %}
 

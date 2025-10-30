@@ -1,0 +1,248 @@
+{% load core_extras %}
+<div class="section-header">
+    <h1 class="section-header__title">Audit Logs</h1>
+</div>
+
+<div class="card card--compact">
+    <form method="get"
+          class="filter-form"
+          data-ajax="partial"
+          data-ajax-target="#admin-audit-content">
+        <div class="filter-form__field">
+            <label for="actor" class="filter-label">
+                <i class="fa-solid fa-user"></i> User
+            </label>
+
+            <select
+                id="actor"
+                name="actor"
+                class="select-control-sm"
+                onchange="this.form.requestSubmit()">
+                <option value="">All Users</option>
+
+                {% for actor in actors %}
+
+                    <option value="{{ actor.id }}" {% if actor_filter == actor.id|stringformat:"s" %}selected{% endif %}>{{ actor.username }}</option>
+
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <div class="filter-form__field">
+            <label for="action" class="filter-label">
+                <i class="fa-solid fa-bolt"></i> Action
+            </label>
+
+            <select
+                id="action"
+                name="action"
+                class="select-control-sm"
+                onchange="this.form.requestSubmit()">
+                <option value="">All Actions</option>
+                {% for action in actions %}
+                    <option value="{{ action }}" {% if action_filter == action %}selected{% endif %}>{{ action }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-form__field">
+            <label for="date" class="filter-label">
+                <i class="fa-solid fa-calendar"></i> Date
+            </label>
+
+            <input
+                type="date"
+                id="date"
+                name="date"
+                value="{{ date_filter }}"
+                class="select-control-sm"
+                onchange="this.form.requestSubmit()" />
+        </div>
+
+        <div class="filter-actions">
+            {% if has_filters %}
+                <a href="{% url 'admin_audit_logs' %}"
+                   class="btn-outline-sm"
+                   data-ajax-link="true"
+                   data-ajax-target="#admin-audit-content">
+                    <i class="fa-solid fa-xmark"></i>
+
+                    Clear Filters
+
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+{% if logs %}
+
+    <div class="card card--table">
+        <table class="table">
+            <thead>
+                <tr class="table__head-row">
+                    <th class="table__head-cell">Timestamp</th>
+                    <th class="table__head-cell">User</th>
+                    <th class="table__head-cell">Action</th>
+                    <th class="table__head-cell">Target</th>
+                    <th class="table__head-cell">IP Address</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for log in logs %}
+
+                    <tr class="table__row">
+                        <td class="table__cell text-small text-secondary">
+                            <span class="table-time">
+                                <i class="fa-solid fa-clock icon-teacher icon-leading"></i>
+                                {{ log.creation_date|date:"d/m/Y H:i" }}
+                            </span>
+                        </td>
+
+                        <td class="table__cell">
+                            {% if log.actor %}
+                                <div class="table-person">
+                                    <div class="avatar {% if log.actor|is_admin %}avatar--admin{% else %}avatar--default{% endif %}">
+                                        {{ log.actor.username|first|upper }}
+                                    </div>
+
+                                    <span class="font-medium">{{ log.actor.username }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-small text-tertiary italic">System</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="table__cell">
+                            {% if 'delete' in log.action %}
+                                <span class="tag tag--danger">{{ log.get_action_display }}</span>
+                            {% elif 'add' in log.action or 'create' in log.action %}
+                                <span class="tag tag--success">{{ log.get_action_display }}</span>
+                            {% elif 'change' in log.action or 'edit' in log.action %}
+                                <span class="tag tag--warning">{{ log.get_action_display }}</span>
+                            {% else %}
+                                <span class="tag tag--info">{{ log.get_action_display }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="table__cell table__cell--wrap text-small">
+                            {% if log.get_object_repr %}
+                                <div class="font-semibold">{{ log.get_target_display }}</div>
+                                <div class="text-small text-secondary mt-2">{{ log.get_object_repr|truncatechars:50 }}</div>
+                            {% else %}
+                                <span class="text-small text-secondary text-mono">{{ log.get_target_display|truncatechars:60 }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="table__cell">
+                            {% if log.ip %}
+                                <span class="code-chip">{{ log.ip }}</span>
+                            {% else %}
+                                <span class="text-small text-tertiary">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+    {% if logs.has_other_pages %}
+
+        <div class="pagination mt-16">
+
+            {% if logs.has_previous %}
+
+                <a href="?page=1{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="pagination__button"
+                   data-ajax-link="true"
+                   data-ajax-target="#admin-audit-content">
+                    <i class="fa-solid fa-angles-left"></i>
+                </a>
+
+                <a href="?page={{ logs.previous_page_number }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="pagination__button"
+                   data-ajax-link="true"
+                   data-ajax-target="#admin-audit-content">
+                    <i class="fa-solid fa-angle-left"></i>
+                </a>
+
+            {% endif %}
+
+            {% for num in logs.paginator.page_range %}
+
+                {% if logs.number == num %}
+
+                    <span class="pagination__button pagination__button--active">
+                        {{ num }}
+                    </span>
+
+                {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
+
+                    <a href="?page={{ num }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="pagination__button"
+                       data-ajax-link="true"
+                       data-ajax-target="#admin-audit-content">{{ num }}</a>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% if logs.has_next %}
+
+                <a href="?page={{ logs.next_page_number }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="pagination__button"
+                   data-ajax-link="true"
+                   data-ajax-target="#admin-audit-content">
+                    <i class="fa-solid fa-angle-right"></i>
+                </a>
+
+                <a href="?page={{ logs.paginator.num_pages }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="pagination__button"
+                   data-ajax-link="true"
+                   data-ajax-target="#admin-audit-content">
+                    <i class="fa-solid fa-angles-right"></i>
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+    <div class="pagination__summary">
+        Page {{ logs.number }} of {{ logs.paginator.num_pages }} • {{ logs.paginator.count }} total log{{ logs.paginator.count|pluralize }}
+    </div>
+
+{% else %}
+
+    <div class="card empty-state empty-state--large">
+        <i class="fa-solid fa-clipboard-list empty-state__icon"></i>
+
+        {% if has_filters %}
+
+            <p class="empty-state__text">No logs match your filters.</p>
+            <a href="{% url 'admin_audit_logs' %}"
+               class="btn button-icon"
+               data-ajax-link="true"
+               data-ajax-target="#admin-audit-content">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+
+                Clear Filters
+
+            </a>
+
+        {% else %}
+
+            <p class="empty-state__text">No audit logs available.</p>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}

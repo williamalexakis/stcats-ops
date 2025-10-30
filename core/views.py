@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
@@ -14,6 +14,32 @@ import secrets
 import csv
 
 User = get_user_model()
+
+FLASH_LEVEL_MAP = {
+    "success": flash_messages.success,
+    "error": flash_messages.error,
+    "warning": flash_messages.warning,
+    "info": flash_messages.info,
+}
+
+
+def ajax_or_redirect(request, success, message, redirect_name, level=None, status_code=None):
+
+    level = level or ("success" if success else "error")
+    status_code = status_code or (200 if success else 400)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+
+        return JsonResponse({
+            "success": success,
+            "message": message,
+            "level": level,
+        }, status=status_code)
+
+    flash_handler = FLASH_LEVEL_MAP.get(level, flash_messages.info)
+    flash_handler(request, message)
+
+    return redirect(redirect_name)
 
 
 @login_required
@@ -63,6 +89,10 @@ def members(request):
         "total_count" : all_users.count()
     }
 
+    if request.GET.get("partial") == "1":
+
+        return render(request, "core/partials/members_content.html", context)
+
     return render(request, "core/members.html", context)
 
 @login_required
@@ -101,13 +131,9 @@ def chat(request):
                 is_announcement=is_announcement,
                 is_pinned=is_pinned
             )
-            flash_messages.success(request, "Message sent.")
+            return ajax_or_redirect(request, True, "Message sent.", "chat")
 
-        else:
-
-            flash_messages.error(request, "Message cannot be empty.")
-
-        return redirect("chat")
+        return ajax_or_redirect(request, False, "Message cannot be empty.", "chat", status_code=400)
 
     # Get messages from the room, sorted chronologically
     chat_messages = Message.objects.filter(room=room).select_related("author").order_by("-creation_date")[:100]
@@ -116,6 +142,10 @@ def chat(request):
         "chat_messages": chat_messages,
         "room": room
     }
+
+    if request.GET.get("partial") == "1":
+
+        return render(request, "core/partials/chat_messages.html", context)
 
     return render(request, "core/chat.html", context)
 
@@ -176,21 +206,42 @@ def admin_invites(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to access this page.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to access this page.", "home", status_code=403)
 
     if request.method == "POST":
 
         # Generate an invite code
         code = secrets.token_urlsafe(16)
-        uses = int(request.POST.get("uses", 1))
+        try:
+
+            uses = int(request.POST.get("uses", 1))
+
+        except (TypeError, ValueError):
+
+            return ajax_or_redirect(request, False, "Number of uses must be a positive integer.", "admin_invites", status_code=400)
+
+        if uses < 1:
+
+            return ajax_or_redirect(request, False, "Number of uses must be at least 1.", "admin_invites", status_code=400)
+
         expiry_days = request.POST.get("expiry_days", "")
         expiration_date = None
 
         if expiry_days:
 
-            expiration_date = timezone.now() + timedelta(days=int(expiry_days))
+            try:
+
+                days = int(expiry_days)
+
+            except (TypeError, ValueError):
+
+                return ajax_or_redirect(request, False, "Expiration days must be a positive integer.", "admin_invites", status_code=400)
+
+            if days < 1:
+
+                return ajax_or_redirect(request, False, "Expiration days must be at least 1.", "admin_invites", status_code=400)
+
+            expiration_date = timezone.now() + timedelta(days=days)
 
         InviteCode.objects.create(
             code=code,
@@ -199,13 +250,15 @@ def admin_invites(request):
             expiration_date=expiration_date
         )
 
-        flash_messages.success(request, f"Invite code created. Code: {code}")
-
-        return redirect("admin_invites")
+        return ajax_or_redirect(request, True, f"Invite code created. Code: {code}", "admin_invites")
 
     # Get all invite codes
     invite_codes = InviteCode.objects.all().order_by("-creation_date")
     context = {"invite_codes" : invite_codes}
+
+    if request.GET.get("partial") == "1":
+
+        return render(request, "core/partials/admin_invites.html", context)
 
     return render(request, "core/admin_panel.html", context)
 
@@ -215,9 +268,7 @@ def admin_audit_logs(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to access this page.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to access this page.", "home", status_code=403)
 
     # Get all audit logs
     logs_list = AuditLog.objects.all().select_related('actor')
@@ -258,6 +309,10 @@ def admin_audit_logs(request):
         'has_filters': has_filters,
     }
 
+    if request.GET.get("partial") == "1":
+
+        return render(request, "core/partials/admin_audit_logs.html", context)
+
     return render(request, "core/admin_audit_logs.html", context)
 
 @login_required
@@ -266,22 +321,19 @@ def delete_invite_code(request, code_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
 
     try:
 
         invite_code = InviteCode.objects.get(id=code_id)
 
-        invite_code.delete()
-        flash_messages.success(request, "Invite code successfully deleted.")
-
     except InviteCode.DoesNotExist:
 
-        flash_messages.error(request, "Invite code not found.")
+        return ajax_or_redirect(request, False, "Invite code not found.", "admin_invites", status_code=404)
 
-    return redirect("admin_invites")
+    invite_code.delete()
+
+    return ajax_or_redirect(request, True, "Invite code successfully deleted.", "admin_invites")
 
 @login_required
 @require_POST
@@ -289,35 +341,32 @@ def promote_user(request, user_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("members")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "members", status_code=403)
 
     try:
 
         user = User.objects.get(id=user_id)
 
-        if user.is_superuser:
+    except User.DoesNotExist:
 
-            flash_messages.error(request, "Cannot modify superuser accounts.")
+        return ajax_or_redirect(request, False, "User not found.", "members", status_code=404)
 
-            return redirect("members")
+    if user.is_superuser:
+
+        return ajax_or_redirect(request, False, "Cannot modify superuser accounts.", "members", status_code=400)
+
+    try:
 
         admin_group = Group.objects.get(name="admin")
 
-        user.groups.clear()
-        user.groups.add(admin_group)
-        flash_messages.success(request, f"User '{user.username}' has been promoted to admin.")
-
-    except User.DoesNotExist:
-
-        flash_messages.error(request, "User not found.")
-
     except Group.DoesNotExist:
 
-        flash_messages.error(request, "Admin group not found.")
+        return ajax_or_redirect(request, False, "Admin group not found.", "members", status_code=500)
 
-    return redirect('members')
+    user.groups.clear()
+    user.groups.add(admin_group)
+
+    return ajax_or_redirect(request, True, f"User '{user.username}' has been promoted to admin.", "members")
 
 @login_required
 def edit_message(request, message_id):
@@ -376,44 +425,39 @@ def edit_message(request, message_id):
 @login_required
 @require_POST
 def delete_message(request, message_id):
+    is_admin_user = request.user.is_superuser or request.user.groups.filter(name='admin').exists()
+
     try:
 
         message = Message.objects.get(id=message_id)
-        can_delete = False
-        is_admin_user = request.user.is_superuser or request.user.groups.filter(name='admin').exists()
-
-        # User can delete their own messages
-        if message.author == request.user:
-
-            can_delete = True
-
-        # Admins can delete any message
-        elif is_admin_user:
-
-            if not message.author.is_superuser:
-
-                can_delete = True
-
-            else:
-
-                flash_messages.error(request, "Cannot delete superuser messages.")
-
-                return redirect('chat')
-
-        if can_delete:
-
-            message.delete()
-            flash_messages.success(request, "Message deleted.")
-
-        else:
-
-            flash_messages.error(request, "You do not have permission to perform this action.")
 
     except Message.DoesNotExist:
 
-        flash_messages.error(request, "Message not found.")
+        return ajax_or_redirect(request, False, "Message not found.", "chat", status_code=404)
 
-    return redirect('chat')
+    if message.author == request.user:
+
+        can_delete = True
+
+    elif is_admin_user:
+
+        if message.author.is_superuser:
+
+            return ajax_or_redirect(request, False, "Cannot delete superuser messages.", "chat", status_code=403)
+
+        can_delete = True
+
+    else:
+
+        can_delete = False
+
+    if not can_delete:
+
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "chat", status_code=403)
+
+    message.delete()
+
+    return ajax_or_redirect(request, True, "Message deleted.", "chat")
 
 @login_required
 @require_POST
@@ -421,76 +465,64 @@ def demote_user(request, user_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("members")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "members", status_code=403)
 
     try:
 
         user = User.objects.get(id=user_id)
 
-        if user.is_superuser:
+    except User.DoesNotExist:
 
-            flash_messages.error(request, "Cannot modify superuser accounts.")
+        return ajax_or_redirect(request, False, "User not found.", "members", status_code=404)
 
-            return redirect("members")
+    if user.is_superuser:
 
-        if user == request.user:
+        return ajax_or_redirect(request, False, "Cannot modify superuser accounts.", "members", status_code=400)
 
-            flash_messages.error(request, "You cannot change your own administrative status.")
+    if user == request.user:
 
-            return redirect("members")
+        return ajax_or_redirect(request, False, "You cannot change your own administrative status.", "members", status_code=400)
+
+    try:
 
         teacher_group = Group.objects.get(name="teacher")
 
-        user.groups.clear()
-        user.groups.add(teacher_group)
-        flash_messages.success(request, f"User '{user.username}' has been demoted to teacher.")
-
-    except User.DoesNotExist:
-
-        flash_messages.error(request, "User not found.")
-
     except Group.DoesNotExist:
 
-        flash_messages.error(request, "Teacher group not found.")
+        return ajax_or_redirect(request, False, "Teacher group not found.", "members", status_code=500)
 
-    return redirect("members")
+    user.groups.clear()
+    user.groups.add(teacher_group)
+
+    return ajax_or_redirect(request, True, f"User '{user.username}' has been demoted to teacher.", "members")
 
 @login_required
 @require_POST
 def remove_user(request, user_id):
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("members")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "members", status_code=403)
 
     try:
 
         user = User.objects.get(id=user_id)
 
-        if user.is_superuser:
-
-            flash_messages.error(request, "Cannot remove superuser accounts.")
-
-            return redirect("members")
-
-        if user == request.user:
-
-            flash_messages.error(request, "Cannot remove your own account.")
-
-            return redirect("members")
-
-        username = user.username
-        user.delete()
-        flash_messages.success(request, f"User '{username}' has been removed.")
-
     except User.DoesNotExist:
 
-        flash_messages.error(request, "User not found.")
+        return ajax_or_redirect(request, False, "User not found.", "members", status_code=404)
 
-    return redirect("members")
+    if user.is_superuser:
+
+        return ajax_or_redirect(request, False, "Cannot remove superuser accounts.", "members", status_code=400)
+
+    if user == request.user:
+
+        return ajax_or_redirect(request, False, "Cannot remove your own account.", "members", status_code=400)
+
+    username = user.username
+    user.delete()
+
+    return ajax_or_redirect(request, True, f"User '{username}' has been removed.", "members")
 
 @login_required
 def scheduler(request):
@@ -562,6 +594,10 @@ def scheduler(request):
         'date_filter' : date_filter,
         'has_filters' : has_filters,
     }
+
+    if request.GET.get("partial") == "1":
+
+        return render(request, "core/partials/scheduler_content.html", context)
 
     return render(request, "core/scheduler.html", context)
 
@@ -706,22 +742,19 @@ def delete_schedule_entry(request, entry_id):
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("scheduler")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "scheduler", status_code=403)
 
     try:
 
         entry = ScheduleEntry.objects.get(id=entry_id)
 
-        entry.delete()
-        flash_messages.success(request, "Schedule entry successfully deleted.")
-
     except ScheduleEntry.DoesNotExist:
 
-        flash_messages.error(request, "Schedule entry not found.")
+        return ajax_or_redirect(request, False, "Schedule entry not found.", "scheduler", status_code=404)
 
-    return redirect('scheduler')
+    entry.delete()
+
+    return ajax_or_redirect(request, True, "Schedule entry successfully deleted.", "scheduler")
 
 @login_required
 def export_schedule_csv(request):

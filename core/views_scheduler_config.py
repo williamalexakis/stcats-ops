@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages as flash_messages
@@ -5,14 +6,38 @@ from django.db.models import ProtectedError
 from django.views.decorators.http import require_POST
 from .models import Classroom, Subject, Course
 
+FLASH_LEVEL_MAP = {
+    "success": flash_messages.success,
+    "error": flash_messages.error,
+    "warning": flash_messages.warning,
+    "info": flash_messages.info,
+}
+
+
+def ajax_or_redirect(request, success, message, redirect_name, level=None, status_code=None):
+
+    level = level or ("success" if success else "error")
+    status_code = status_code or (200 if success else 400)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+
+        return JsonResponse({
+            "success": success,
+            "message": message,
+            "level": level,
+        }, status=status_code)
+
+    flash_handler = FLASH_LEVEL_MAP.get(level, flash_messages.info)
+    flash_handler(request, message)
+
+    return redirect(redirect_name)
+
 @login_required
 def admin_scheduler_config(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to access this page.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to access this page.", "home", status_code=403)
 
     classrooms = Classroom.objects.all().order_by("name")
     subjects = Subject.objects.all().order_by("name")
@@ -24,6 +49,10 @@ def admin_scheduler_config(request):
         "courses": courses,
     }
 
+    if request.GET.get("partial") == "1":
+
+        return render(request, "core/partials/admin_scheduler_config.html", context)
+
     return render(request, "core/admin_scheduler_config.html", context)
 
 @login_required
@@ -32,33 +61,26 @@ def add_classroom(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
 
     name = request.POST.get("name", "").strip()
     display_name = request.POST.get("display_name", "").strip()
 
-    if name and display_name:
+    if not name or not display_name:
 
-        if Classroom.objects.filter(name=name).exists():
+        return ajax_or_redirect(request, False, "Both name and display name are required.", "admin_scheduler_config", status_code=400)
 
-            flash_messages.error(request, f"Classroom '{name}' already exists.")
+    if Classroom.objects.filter(name=name).exists():
 
-        else:
+        return ajax_or_redirect(request, False, f"Classroom '{name}' already exists.", "admin_scheduler_config", status_code=400)
 
-            Classroom.objects.create(
-                name=name,
-                display_name=display_name,
-                created_by=request.user
-            )
-            flash_messages.success(request, f"Classroom '{display_name}' successfully added.")
+    Classroom.objects.create(
+        name=name,
+        display_name=display_name,
+        created_by=request.user
+    )
 
-    else:
-
-        flash_messages.error(request, "Both name and display name are required.")
-
-    return redirect("admin_scheduler_config")
+    return ajax_or_redirect(request, True, f"Classroom '{display_name}' successfully added.", "admin_scheduler_config")
 
 @login_required
 @require_POST
@@ -66,26 +88,25 @@ def delete_classroom(request, classroom_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
 
     try:
 
         classroom = Classroom.objects.get(id=classroom_id)
 
-        classroom.delete()
-        flash_messages.success(request, f"Classroom '{classroom.display_name}' successfully deleted.")
-
     except Classroom.DoesNotExist:
 
-        flash_messages.error(request, "Classroom not found.")
+        return ajax_or_redirect(request, False, "Classroom not found.", "admin_scheduler_config", status_code=404)
+
+    try:
+
+        classroom.delete()
 
     except ProtectedError:
 
-        flash_messages.error(request, f"Cannot delete '{classroom.display_name}' because it's being used in one or more existing entries.")
+        return ajax_or_redirect(request, False, f"Cannot delete '{classroom.display_name}' because it's being used in one or more existing entries.", "admin_scheduler_config", status_code=409)
 
-    return redirect("admin_scheduler_config")
+    return ajax_or_redirect(request, True, f"Classroom '{classroom.display_name}' successfully deleted.", "admin_scheduler_config")
 
 @login_required
 @require_POST
@@ -93,33 +114,26 @@ def add_subject(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
 
     name = request.POST.get("name", "").strip()
     display_name = request.POST.get("display_name", "").strip()
 
-    if name and display_name:
+    if not name or not display_name:
 
-        if Subject.objects.filter(name=name).exists():
+        return ajax_or_redirect(request, False, "Both name and display name are required.", "admin_scheduler_config", status_code=400)
 
-            flash_messages.error(request, f"Subject '{name}' already exists.")
+    if Subject.objects.filter(name=name).exists():
 
-        else:
+        return ajax_or_redirect(request, False, f"Subject '{name}' already exists.", "admin_scheduler_config", status_code=400)
 
-            Subject.objects.create(
-                name=name,
-                display_name=display_name,
-                created_by=request.user
-            )
-            flash_messages.success(request, f"Subject '{display_name}' successfully added.")
+    Subject.objects.create(
+        name=name,
+        display_name=display_name,
+        created_by=request.user
+    )
 
-    else:
-
-        flash_messages.error(request, "Both name and display name are required.")
-
-    return redirect("admin_scheduler_config")
+    return ajax_or_redirect(request, True, f"Subject '{display_name}' successfully added.", "admin_scheduler_config")
 
 @login_required
 @require_POST
@@ -127,26 +141,25 @@ def delete_subject(request, subject_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
 
     try:
 
         subject = Subject.objects.get(id=subject_id)
 
-        subject.delete()
-        flash_messages.success(request, f"Subject '{subject.display_name}' successfully deleted.")
-
     except Subject.DoesNotExist:
 
-        flash_messages.error(request, "Subject not found.")
+        return ajax_or_redirect(request, False, "Subject not found.", "admin_scheduler_config", status_code=404)
+
+    try:
+
+        subject.delete()
 
     except ProtectedError:
 
-        flash_messages.error(request, f"Cannot delete '{subject.display_name}' because it's being used in one or more existing entries.")
+        return ajax_or_redirect(request, False, f"Cannot delete '{subject.display_name}' because it's being used in one or more existing entries.", "admin_scheduler_config", status_code=409)
 
-    return redirect("admin_scheduler_config")
+    return ajax_or_redirect(request, True, f"Subject '{subject.display_name}' successfully deleted.", "admin_scheduler_config")
 
 @login_required
 @require_POST
@@ -154,33 +167,26 @@ def add_course(request):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
 
     name = request.POST.get("name", "").strip()
     display_name = request.POST.get("display_name", "").strip()
 
-    if name and display_name:
+    if not name or not display_name:
 
-        if Course.objects.filter(name=name).exists():
+        return ajax_or_redirect(request, False, "Both name and display name are required.", "admin_scheduler_config", status_code=400)
 
-            flash_messages.error(request, f"Course '{name}' already exists.")
+    if Course.objects.filter(name=name).exists():
 
-        else:
+        return ajax_or_redirect(request, False, f"Course '{name}' already exists.", "admin_scheduler_config", status_code=400)
 
-            Course.objects.create(
-                name=name,
-                display_name=display_name,
-                created_by=request.user
-            )
-            flash_messages.success(request, f"Course '{display_name}' successfully added.")
+    Course.objects.create(
+        name=name,
+        display_name=display_name,
+        created_by=request.user
+    )
 
-    else:
-
-        flash_messages.error(request, "Both name and display name are required.")
-
-    return redirect("admin_scheduler_config")
+    return ajax_or_redirect(request, True, f"Course '{display_name}' successfully added.", "admin_scheduler_config")
 
 @login_required
 @require_POST
@@ -188,23 +194,22 @@ def delete_course(request, course_id):
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
-        flash_messages.error(request, "You do not have permission to perform this action.")
-
-        return redirect("home")
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
 
     try:
 
         course = Course.objects.get(id=course_id)
 
-        course.delete()
-        flash_messages.success(request, f"Course '{course.display_name}' successfully deleted.")
-
     except Course.DoesNotExist:
 
-        flash_messages.error(request, "Course not found.")
+        return ajax_or_redirect(request, False, "Course not found.", "admin_scheduler_config", status_code=404)
+
+    try:
+
+        course.delete()
 
     except ProtectedError:
 
-        flash_messages.error(request, f"Cannot delete '{course.display_name}' because it's being used in one or more existing entries.")
+        return ajax_or_redirect(request, False, f"Cannot delete '{course.display_name}' because it's being used in one or more existing entries.", "admin_scheduler_config", status_code=409)
 
-    return redirect("admin_scheduler_config")
+    return ajax_or_redirect(request, True, f"Course '{course.display_name}' successfully deleted.", "admin_scheduler_config")
