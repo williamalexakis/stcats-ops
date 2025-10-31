@@ -22,8 +22,9 @@ FLASH_LEVEL_MAP = {
     "info": flash_messages.info,
 }
 
-
 def ajax_or_redirect(request, success, message, redirect_name, level=None, status_code=None):
+
+    """Return a JSON response for AJAX callers or redirect with flash messaging."""
 
     level = level or ("success" if success else "error")
     status_code = status_code or (200 if success else 400)
@@ -87,6 +88,8 @@ def healthcheck(request):
 @login_required
 def members(request):
 
+    """Group users by role for the members page."""
+
     all_users = User.objects.all().select_related().prefetch_related("groups")
     admins = []
     teachers = []
@@ -103,7 +106,7 @@ def members(request):
 
     admin_superusers = sorted((user for user in admins if user.is_superuser), key=lambda user: user.username.lower())
     admin_staff = sorted((user for user in admins if not user.is_superuser), key=lambda user: user.username.lower())
-    admins = admin_superusers + admin_staff
+    admins = admin_superusers + admin_staff  # Keep superusers ahead of staff admins in rendering
     teachers = sorted(teachers, key=lambda user: user.username.lower())
 
     context = {
@@ -120,6 +123,8 @@ def members(request):
 
 @login_required
 def chat(request):
+
+    """Handle chat interactions, create a default room, and restrict announcements to admins."""
 
     is_admin_user = request.user.is_superuser or request.user.groups.filter(name="admin").exists()
 
@@ -175,6 +180,8 @@ def chat(request):
 @login_required
 def admin_dashboard(request):
 
+    """Gather high-level statistics for the administrative dashboard view."""
+
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
         flash_messages.error(request, "You do not have permission to access this page.")
@@ -226,6 +233,8 @@ def admin_dashboard(request):
 
 @login_required
 def admin_invites(request):
+
+    """Generate invite codes for admins and render the existing code list."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -288,6 +297,8 @@ def admin_invites(request):
 
 @login_required
 def admin_audit_logs(request):
+
+    """Render the audit log list with filtering and pagination for admins."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -550,6 +561,8 @@ def remove_user(request, user_id):
 @login_required
 def scheduler(request):
 
+    """List schedule entries with filtering, pagination, and active entry flags."""
+
     # Cleanup any expired entries
     ScheduleEntry.objects.cleanup_past_entries()
 
@@ -591,7 +604,7 @@ def scheduler(request):
 
     for entry in entries:
 
-        entry.is_active = entry.is_active_now()
+        entry.is_active = entry.is_active_now()  # Flag active entries so templates can highlight them
 
     # Get filter options
     teachers = User.objects.all().order_by('username')
@@ -626,6 +639,8 @@ def scheduler(request):
 
 @login_required
 def create_schedule_entry(request):
+
+    """Create a schedule entry after validating admin permissions and selections."""
 
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
@@ -694,6 +709,8 @@ def create_schedule_entry(request):
 
 @login_required
 def edit_schedule_entry(request, entry_id):
+
+    """Update a schedule entry after validating admin permissions and selections."""
 
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
@@ -781,6 +798,8 @@ def delete_schedule_entry(request, entry_id):
 
 @login_required
 def export_schedule_csv(request):
+
+    """Export the filtered schedule entries as a CSV attachment."""
 
     def valid(val):
 

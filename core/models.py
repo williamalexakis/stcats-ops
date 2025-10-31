@@ -8,6 +8,8 @@ class InviteCodeManager(models.Manager):
 
     def cleanup_invalid(self):
 
+        """Delete expired invite codes and those without remaining uses."""
+
         now = timezone.now()
         deleted_count = self.filter(remaining_uses__lte=0).delete()[0]
         deleted_count += self.filter(expiration_date__lt=now).delete()[0]
@@ -151,6 +153,8 @@ class Course(models.Model):
 class ScheduleEntryManager(models.Manager):
 
     def cleanup_past_entries(self):
+
+        """Delete schedule entries that ended before now and return the number removed."""
 
         from django.utils import timezone
 

@@ -37,12 +37,14 @@ class SignupForm(UserCreationForm):
 
             raise forms.ValidationError("This invite code has no remaining uses.")
 
-        self._invite = invite
+        self._invite = invite  # Store the invite to adjust usage when saving
 
         return code
 
     @transaction.atomic
     def save(self, commit=True):
+
+        """Create a user, decrement invite usage, and assign the teacher group."""
 
         user = super().save(commit=commit)
         invite = getattr(self, "_invite", None)

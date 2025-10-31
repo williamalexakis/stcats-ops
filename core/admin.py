@@ -4,6 +4,8 @@ from .middleware import log_admin_action
 
 class AuditedModelAdmin(admin.ModelAdmin):
 
+    """Log admin create, update, and delete actions through the audit helper."""
+
     def save_model(self, request, obj, form, change):
 
         action = "change" if change else "add"

@@ -216,14 +216,13 @@
                                 <div class="home-panel-item__content">
                                     <div class="home-panel-item__header">
                                         <strong>{{ entry.course.display_name }}</strong>
-                                        <span class="home-panel-item__meta">{{ entry.date|date:"D, M j" }}</span>
+                                        <span class="home-panel-item__meta">{{ entry.date|date:"M j, Y" }}</span>
                                     </div>
 
                                     <div class="home-panel-item__badges">
                                         <span class="home-panel-chip home-panel-chip--time">{{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}</span>
                                         <span class="home-panel-chip home-panel-chip--success">{{ entry.subject.display_name }}</span>
                                         <span class="home-panel-chip home-panel-chip--accent">{{ entry.classroom.display_name }}</span>
-                                        <span class="home-panel-chip home-panel-chip--info">{{ entry.teacher.get_full_name|default:entry.teacher.username }}</span>
                                     </div>
                                 </div>
                             </li>

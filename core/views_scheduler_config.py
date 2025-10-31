@@ -16,6 +16,8 @@ FLASH_LEVEL_MAP = {
 
 def ajax_or_redirect(request, success, message, redirect_name, level=None, status_code=None):
 
+    """Return a JSON response for AJAX callers or redirect with flash messaging."""
+
     level = level or ("success" if success else "error")
     status_code = status_code or (200 if success else 400)
 

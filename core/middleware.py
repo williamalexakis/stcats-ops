@@ -4,6 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 
 class AuditMiddleware:
 
+    """Log POST requests and admin actions into the audit log."""
+
     def __init__(self, get_response):
 
         self.get_response = get_response
@@ -52,6 +54,8 @@ class AuditMiddleware:
 
 
 def log_admin_action(user, action, obj=None, obj_repr=None, extra_data=None):
+
+    """Record an admin action in the audit log with optional metadata."""
 
     try:
 
