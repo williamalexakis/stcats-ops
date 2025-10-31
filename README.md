@@ -22,7 +22,7 @@ An internal web platform that supports management and coordination for the St. C
 
 ### Setup
 
-Run the following commands:
+1. Run the following commands:
 ```sh
 git clone git@github.com:<org>/stcats-cs.git
 cd stcats-cs
@@ -31,7 +31,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file with the following configuration:
+2. Create a `.env` file with the following configuration:
 ```sh
 DEBUG=True                            # Set to False in production
 SECRET_KEY=change-me                  # Provide a unique secret in production
@@ -40,7 +40,7 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
 ```
 
-Run the following commands:
+3. Run the following commands:
 ```sh
 python manage.py migrate
 python manage.py seed_groups
@@ -48,7 +48,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Then visit <http://127.0.0.1:8000> and log in with your superuser credentials.
+4. Visit <http://127.0.0.1:8000> and log in with your superuser credentials.
 
 ## Management Commands
 
