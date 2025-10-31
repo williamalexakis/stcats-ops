@@ -33,9 +33,9 @@ An internal web platform that supports management and coordination for the St. C
 
 2. Create a `.env` file with the following configuration:
     ```sh
-    DEBUG=True                            # Set to False in production
-    SECRET_KEY=change-me                  # Provide a unique secret in production
-    DATABASE_URL=sqlite:///db.sqlite3     # Or e.g. postgres://user:pass@localhost:5432/stcats for PostgreSQL
+    DEBUG=True                         # Set to False in production
+    SECRET_KEY=change-me               # Provide a unique secret in production
+    DATABASE_URL=sqlite:///db.sqlite3  # Or e.g. postgres://user:pass@localhost:5432/stcats for PostgreSQL
     ALLOWED_HOSTS=127.0.0.1,localhost
     CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
     ```
