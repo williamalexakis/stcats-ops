@@ -1,9 +1,10 @@
-from django.http import JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages as flash_messages
 from django.db.models import ProtectedError
 from django.views.decorators.http import require_POST
+from typing import Optional
 from .models import Classroom, Subject, Course
 
 FLASH_LEVEL_MAP = {
@@ -13,8 +14,14 @@ FLASH_LEVEL_MAP = {
     "info": flash_messages.info,
 }
 
-
-def ajax_or_redirect(request, success, message, redirect_name, level=None, status_code=None):
+def ajax_or_redirect(
+    request: HttpRequest,
+    success: bool,
+    message: str,
+    redirect_name: str,
+    level: Optional[str] = None,
+    status_code: Optional[int] = None,
+) -> HttpResponse:
 
     """Return a JSON response for AJAX callers or redirect with flash messaging."""
 
@@ -35,7 +42,7 @@ def ajax_or_redirect(request, success, message, redirect_name, level=None, statu
     return redirect(redirect_name)
 
 @login_required
-def admin_scheduler_config(request):
+def admin_scheduler_config(request: HttpRequest) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -59,7 +66,7 @@ def admin_scheduler_config(request):
 
 @login_required
 @require_POST
-def add_classroom(request):
+def add_classroom(request: HttpRequest) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -86,7 +93,7 @@ def add_classroom(request):
 
 @login_required
 @require_POST
-def delete_classroom(request, classroom_id):
+def delete_classroom(request: HttpRequest, classroom_id: int) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -112,7 +119,7 @@ def delete_classroom(request, classroom_id):
 
 @login_required
 @require_POST
-def add_subject(request):
+def add_subject(request: HttpRequest) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -139,7 +146,7 @@ def add_subject(request):
 
 @login_required
 @require_POST
-def delete_subject(request, subject_id):
+def delete_subject(request: HttpRequest, subject_id: int) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -165,7 +172,7 @@ def delete_subject(request, subject_id):
 
 @login_required
 @require_POST
-def add_course(request):
+def add_course(request: HttpRequest) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -192,7 +199,7 @@ def add_course(request):
 
 @login_required
 @require_POST
-def delete_course(request, course_id):
+def delete_course(request: HttpRequest, course_id: int) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 

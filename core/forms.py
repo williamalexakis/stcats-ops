@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db import transaction
+from typing import Optional
 from .models import InviteCode
 
 User = get_user_model()
@@ -17,13 +18,13 @@ class SignupForm(UserCreationForm):
         model = User
         fields = ("username",)
 
-    def clean_invite_code(self):
+    def clean_invite_code(self) -> str:
 
         code = self.cleaned_data["invite_code"].strip()
 
         try:
 
-            invite = InviteCode.objects.get(code=code)
+            invite: InviteCode = InviteCode.objects.get(code=code)
 
         except InviteCode.DoesNotExist:
 
@@ -42,12 +43,12 @@ class SignupForm(UserCreationForm):
         return code
 
     @transaction.atomic
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> User:
 
         """Create a user, decrement invite usage, and assign the teacher group."""
 
-        user = super().save(commit=commit)
-        invite = getattr(self, "_invite", None)
+        user: User = super().save(commit=commit)
+        invite: Optional[InviteCode] = getattr(self, "_invite", None)
 
         if invite:
 

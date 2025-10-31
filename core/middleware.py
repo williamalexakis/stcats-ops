@@ -1,25 +1,26 @@
+from typing import Any, Callable, Dict, Optional
+from django.http import HttpRequest, HttpResponse
 from .models import AuditLog
 from django.contrib.contenttypes.models import ContentType
-
 
 class AuditMiddleware:
 
     """Log POST requests and admin actions into the audit log."""
 
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
 
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
 
-        response = self.get_response(request)
+        response: HttpResponse = self.get_response(request)
 
         try:
 
             if request.method == "POST":
 
                 # Get the actor
-                actor = None
+                actor: Optional[Any] = None
 
                 if hasattr(request, "user") and request.user.is_authenticated:
 
@@ -52,15 +53,20 @@ class AuditMiddleware:
 
         return response
 
-
-def log_admin_action(user, action, obj=None, obj_repr=None, extra_data=None):
+def log_admin_action(
+    user: Optional[Any],
+    action: str,
+    obj: Optional[Any] = None,
+    obj_repr: Optional[str] = None,
+    extra_data: Optional[Dict[str, Any]] = None,
+) -> None:
 
     """Record an admin action in the audit log with optional metadata."""
 
     try:
 
         target = ""
-        extra = extra_data or {}
+        extra: Dict[str, Any] = extra_data or {}
 
         if obj:
 

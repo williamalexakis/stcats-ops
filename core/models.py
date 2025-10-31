@@ -1,12 +1,13 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from typing import Optional
 
 User = settings.AUTH_USER_MODEL
 
 class InviteCodeManager(models.Manager):
 
-    def cleanup_invalid(self):
+    def cleanup_invalid(self) -> int:
 
         """Delete expired invite codes and those without remaining uses."""
 
@@ -29,7 +30,7 @@ class InviteCode(models.Model):
     remaining_uses = models.PositiveIntegerField(default=1)
     objects = InviteCodeManager()
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
 
         if self.expiration_date and self.expiration_date < timezone.now():
 
@@ -37,7 +38,7 @@ class InviteCode(models.Model):
 
         return self.remaining_uses > 0
 
-    def __str__(self):
+    def __str__(self) -> str:
 
         return f"{self.code} ({self.remaining_uses} use(s) left)"
 
@@ -88,7 +89,7 @@ class Message(models.Model):
 
         ordering = ["id"]
 
-    def __str__(self):
+    def __str__(self) -> str:
 
         preview = self.body[:50]
         return f"{self.author.username}: {preview}..." if len(self.body) > 50 else f"{self.author.username}: {preview}"
@@ -108,7 +109,7 @@ class Classroom(models.Model):
 
         ordering = ["name"]
 
-    def __str__(self):
+    def __str__(self) -> str:
 
         return self.display_name
 
@@ -127,7 +128,7 @@ class Subject(models.Model):
 
         ordering = ["name"]
 
-    def __str__(self):
+    def __str__(self) -> str:
 
         return self.display_name
 
@@ -146,13 +147,13 @@ class Course(models.Model):
 
         ordering = ["name"]
 
-    def __str__(self):
+    def __str__(self) -> str:
 
         return self.display_name
 
 class ScheduleEntryManager(models.Manager):
 
-    def cleanup_past_entries(self):
+    def cleanup_past_entries(self) -> int:
 
         """Delete schedule entries that ended before now and return the number removed."""
 
@@ -207,16 +208,16 @@ class ScheduleEntry(models.Model):
         ordering = ["date", "start_time"]
         verbose_name_plural = "Schedule Entries"
 
-    def __str__(self):
+    def __str__(self) -> str:
 
         return f"{self.subject.display_name} - {self.teacher.username} - {self.date} {self.start_time}"
 
     @property
-    def room(self):
+    def room(self) -> Optional[str]:
 
         return self.classroom.name if self.classroom else None
 
-    def is_active_now(self):
+    def is_active_now(self) -> bool:
 
         from django.utils import timezone
 
@@ -254,13 +255,13 @@ class AuditLog(models.Model):
         verbose_name = "Audit Log"
         verbose_name_plural = "Audit Logs"
 
-    def __str__(self):
+    def __str__(self) -> str:
 
         actor_name = self.actor.username if self.actor else "System"
 
         return f"{actor_name} - {self.action} - {self.creation_date.strftime('%Y-%m-%d %H:%M')}"
 
-    def get_action_display(self):
+    def get_action_display(self) -> str:
 
         action_map = {
             "admin.add": "Created",
@@ -272,7 +273,7 @@ class AuditLog(models.Model):
 
         return action_map.get(self.action, self.action.replace("_", " ").title())
 
-    def get_target_display(self):
+    def get_target_display(self) -> str:
 
         if not self.target:
             return "N/A"
@@ -301,7 +302,7 @@ class AuditLog(models.Model):
 
         return self.target
 
-    def get_object_repr(self):
+    def get_object_repr(self) -> Optional[str]:
 
         if self.extra and "object" in self.extra:
 

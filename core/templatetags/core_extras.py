@@ -1,9 +1,10 @@
 from django import template
+from typing import Any
 
 register = template.Library()
 
 @register.filter
-def has_group(user, group_name):
+def has_group(user: Any, group_name: str) -> bool:
 
     """Return True if the user belongs to the group with the provided name."""
 
@@ -14,7 +15,7 @@ def has_group(user, group_name):
     return user.groups.filter(name=group_name).exists()
 
 @register.filter
-def is_admin(user):
+def is_admin(user: Any) -> bool:
 
     """Determine whether the user is a superuser or belongs to the admin group."""
 

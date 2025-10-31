@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.http import HttpRequest
+from typing import Any, Iterable
 from .models import InviteCode, Room, RoomMembership, Message, AuditLog, ScheduleEntry, Classroom, Subject, Course
 from .middleware import log_admin_action
 
@@ -6,7 +8,7 @@ class AuditedModelAdmin(admin.ModelAdmin):
 
     """Log admin create, update, and delete actions through the audit helper."""
 
-    def save_model(self, request, obj, form, change):
+    def save_model(self, request: HttpRequest, obj: Any, form: Any, change: bool) -> None:
 
         action = "change" if change else "add"
 
@@ -22,7 +24,7 @@ class AuditedModelAdmin(admin.ModelAdmin):
             }
         )
 
-    def delete_model(self, request, obj):
+    def delete_model(self, request: HttpRequest, obj: Any) -> None:
 
         obj_repr = str(obj)
 
@@ -35,7 +37,7 @@ class AuditedModelAdmin(admin.ModelAdmin):
 
         super().delete_model(request, obj)
 
-    def delete_queryset(self, request, queryset):
+    def delete_queryset(self, request: HttpRequest, queryset: Iterable[Any]) -> None:
 
         for obj in queryset:
 
@@ -90,7 +92,7 @@ class MessageAdmin(AuditedModelAdmin):
     search_fields = ("author__username", "body", "room__name")
     readonly_fields = ("creation_date", "edit_date")
 
-    def body_preview(self, obj):
+    def body_preview(self, obj: Message) -> str:
 
         return obj.body[:50] + ("..." if len(obj.body) > 50 else "")
 

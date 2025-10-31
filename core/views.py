@@ -1,4 +1,4 @@
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
@@ -10,6 +10,7 @@ from datetime import timedelta, date
 from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course, AuditLog
 from django.core.paginator import Paginator
 from django.db.models import Sum, Q
+from typing import Optional
 import secrets
 import csv
 
@@ -22,7 +23,14 @@ FLASH_LEVEL_MAP = {
     "info": flash_messages.info,
 }
 
-def ajax_or_redirect(request, success, message, redirect_name, level=None, status_code=None):
+def ajax_or_redirect(
+    request: HttpRequest,
+    success: bool,
+    message: str,
+    redirect_name: str,
+    level: Optional[str] = None,
+    status_code: Optional[int] = None,
+) -> HttpResponse:
 
     """Return a JSON response for AJAX callers or redirect with flash messaging."""
 
@@ -44,7 +52,7 @@ def ajax_or_redirect(request, success, message, redirect_name, level=None, statu
 
 
 @login_required
-def code_editor(request):
+def code_editor(request: HttpRequest) -> HttpResponse:
 
     default_example = f"print(\"Hello, {request.user.get_username()}!\")\n"
 
@@ -54,7 +62,7 @@ def code_editor(request):
 
     return render(request, "core/code_editor.html", context)
 
-def home(request):
+def home(request: HttpRequest) -> HttpResponse:
 
     context = {}
 
@@ -81,12 +89,12 @@ def home(request):
 
     return render(request, "core/home.html", context)
 
-def healthcheck(request):
+def healthcheck(request: HttpRequest) -> HttpResponse:
 
     return HttpResponse("OK", content_type="text/plain")
 
 @login_required
-def members(request):
+def members(request: HttpRequest) -> HttpResponse:
 
     """Group users by role for the members page."""
 
@@ -122,7 +130,7 @@ def members(request):
     return render(request, "core/members.html", context)
 
 @login_required
-def chat(request):
+def chat(request: HttpRequest) -> HttpResponse:
 
     """Handle chat interactions, create a default room, and restrict announcements to admins."""
 
@@ -178,7 +186,7 @@ def chat(request):
     return render(request, "core/chat.html", context)
 
 @login_required
-def admin_dashboard(request):
+def admin_dashboard(request: HttpRequest) -> HttpResponse:
 
     """Gather high-level statistics for the administrative dashboard view."""
 
@@ -232,7 +240,7 @@ def admin_dashboard(request):
     return render(request, "core/admin_dashboard.html", context)
 
 @login_required
-def admin_invites(request):
+def admin_invites(request: HttpRequest) -> HttpResponse:
 
     """Generate invite codes for admins and render the existing code list."""
 
@@ -296,7 +304,7 @@ def admin_invites(request):
 
 
 @login_required
-def admin_audit_logs(request):
+def admin_audit_logs(request: HttpRequest) -> HttpResponse:
 
     """Render the audit log list with filtering and pagination for admins."""
 
@@ -351,7 +359,7 @@ def admin_audit_logs(request):
 
 @login_required
 @require_POST
-def delete_invite_code(request, code_id):
+def delete_invite_code(request: HttpRequest, code_id: int) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -371,7 +379,7 @@ def delete_invite_code(request, code_id):
 
 @login_required
 @require_POST
-def promote_user(request, user_id):
+def promote_user(request: HttpRequest, user_id: int) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -403,7 +411,7 @@ def promote_user(request, user_id):
     return ajax_or_redirect(request, True, f"User '{user.username}' has been promoted to admin.", "members")
 
 @login_required
-def edit_message(request, message_id):
+def edit_message(request: HttpRequest, message_id: int) -> HttpResponse:
 
     try:
 
@@ -458,7 +466,7 @@ def edit_message(request, message_id):
 
 @login_required
 @require_POST
-def delete_message(request, message_id):
+def delete_message(request: HttpRequest, message_id: int) -> HttpResponse:
     is_admin_user = request.user.is_superuser or request.user.groups.filter(name='admin').exists()
 
     try:
@@ -495,7 +503,7 @@ def delete_message(request, message_id):
 
 @login_required
 @require_POST
-def demote_user(request, user_id):
+def demote_user(request: HttpRequest, user_id: int) -> HttpResponse:
 
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
 
@@ -532,7 +540,7 @@ def demote_user(request, user_id):
 
 @login_required
 @require_POST
-def remove_user(request, user_id):
+def remove_user(request: HttpRequest, user_id: int) -> HttpResponse:
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
         return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "members", status_code=403)
@@ -559,7 +567,7 @@ def remove_user(request, user_id):
     return ajax_or_redirect(request, True, f"User '{username}' has been removed.", "members")
 
 @login_required
-def scheduler(request):
+def scheduler(request: HttpRequest) -> HttpResponse:
 
     """List schedule entries with filtering, pagination, and active entry flags."""
 
@@ -638,7 +646,7 @@ def scheduler(request):
     return render(request, "core/scheduler.html", context)
 
 @login_required
-def create_schedule_entry(request):
+def create_schedule_entry(request: HttpRequest) -> HttpResponse:
 
     """Create a schedule entry after validating admin permissions and selections."""
 
@@ -708,7 +716,7 @@ def create_schedule_entry(request):
     return render(request, "core/create_schedule_entry.html", context)
 
 @login_required
-def edit_schedule_entry(request, entry_id):
+def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
     """Update a schedule entry after validating admin permissions and selections."""
 
@@ -777,7 +785,7 @@ def edit_schedule_entry(request, entry_id):
 
 @login_required
 @require_POST
-def delete_schedule_entry(request, entry_id):
+def delete_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
@@ -797,11 +805,11 @@ def delete_schedule_entry(request, entry_id):
     return ajax_or_redirect(request, True, "Schedule entry successfully deleted.", "scheduler")
 
 @login_required
-def export_schedule_csv(request):
+def export_schedule_csv(request: HttpRequest) -> HttpResponse:
 
     """Export the filtered schedule entries as a CSV attachment."""
 
-    def valid(val):
+    def valid(val: Optional[str]) -> bool:
 
         return val and val != "None"
 
