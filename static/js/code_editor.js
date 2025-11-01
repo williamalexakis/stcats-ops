@@ -1,3 +1,4 @@
+/** Bootstraps the client-side code editor backed by Monaco and Pyodide */
 (function () {
     const initialCodeElement = document.getElementById("initial-code-data");
     let initialCode = "";
@@ -10,7 +11,7 @@
         }
 
         if (typeof initialCodeElement.remove === "function") {
-            initialCodeElement.remove();
+            initialCodeElement.remove();  // Remove embedded data element once consumed
         }
     }
 
@@ -31,6 +32,7 @@
     let currentFilename = "code.py";
     let queuedCode = null;
 
+    /** Update the status badge to reflect the current editor state */
     function updateStatus(state, label) {
         const validStates = ["idle", "loading", "running", "success", "error", "stopped"];
         const safeState = validStates.includes(state) ? state : "idle";
@@ -39,10 +41,12 @@
         statusBadge.innerHTML = '<span class="status-dot"></span>' + label;
     }
 
+    /** Remove all previous output lines from the console area */
     function clearOutput() {
         outputArea.innerHTML = "";
     }
 
+    /** Append a formatted output line to the console area */
     function appendOutput(text, type) {
         const line = document.createElement("div");
         line.className = "output-line output-" + (type || "stdout");
@@ -51,6 +55,7 @@
         outputArea.scrollTop = outputArea.scrollHeight;
     }
 
+    /** Run the queued code inside the Pyodide worker */
     function executeCode(code) {
         queuedCode = null;
         clearOutput();
@@ -59,15 +64,17 @@
         worker.postMessage({ type: "run", code });
     }
 
+    /** Toggle button states and internal flags while the worker executes code */
     function setRunningState(running) {
         isRunning = running;
         runButton.disabled = running || !workerReady;
         stopButton.disabled = !running;
     }
 
+    /** Rebuild the Pyodide web worker and warm it up for execution */
     function rebuildWorker() {
         if (worker) {
-            worker.terminate();
+            worker.terminate();  // Tear down old worker to avoid lingering state
         }
 
         const workerSource = `
@@ -229,18 +236,20 @@ builtins.__import__ = _safe_import
         stopButton.disabled = true;
 
         try {
-            worker.postMessage({ type: "warmup" });
+            worker.postMessage({ type: "warmup" });  // Preload runtime to reduce first-run delay
         } catch (error) {
             appendOutput("Failed to initialize Python runtime.", "error");
         }
     }
 
+    /** Lazily ensure a worker exists before attempting to send jobs */
     function ensureWorker() {
         if (!worker) {
             rebuildWorker();
         }
     }
 
+    /** Load the Monaco editor assets and instantiate the editor instance */
     function initMonaco() {
         const loaderUrl = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs";
 
@@ -273,6 +282,7 @@ builtins.__import__ = _safe_import
         });
     }
 
+    /** Synchronize the Monaco theme with the surrounding site theme */
     function syncEditorTheme() {
         if (!window.monaco || !editorInstance) {
             return;
@@ -282,6 +292,7 @@ builtins.__import__ = _safe_import
         monaco.editor.setTheme(isDark ? "vs-dark" : "vs");
     }
 
+    /** Observe theme attribute changes and update Monaco in response */
     const themeObserver = new MutationObserver(function (mutations) {
         for (const mutation of mutations) {
             if (mutation.type === "attributes" && mutation.attributeName === "data-theme") {
@@ -296,7 +307,7 @@ builtins.__import__ = _safe_import
         ensureWorker();
 
         if (!editorInstance) {
-            appendOutput("Editor is still loading. Please wait.", "info");
+            appendOutput("Editor is still loading. Please wait.", "info");  // Guard against early clicks
             return;
         }
 
@@ -320,25 +331,25 @@ builtins.__import__ = _safe_import
         executeCode(code);
     });
 
-    stopButton.addEventListener("click", function () {
-        if (!isRunning) {
-            return;
-        }
+        stopButton.addEventListener("click", function () {
+            if (!isRunning) {
+                return;
+            }
 
-        appendOutput("Execution stopped by user.", "info");
-        updateStatus("stopped", "Stopped");
-        setRunningState(false);
-        queuedCode = null;
-        rebuildWorker();
-    });
+            appendOutput("Execution stopped by user.", "info");
+            updateStatus("stopped", "Stopped");
+            setRunningState(false);
+            queuedCode = null;
+            rebuildWorker();  // Rebuild to guarantee a clean interpreter
+        });
 
-    importButton.addEventListener("click", function () {
-        fileInput.click();
-    });
+        importButton.addEventListener("click", function () {
+            fileInput.click();  // Trigger hidden file picker for uploads
+        });
 
-    exportButton.addEventListener("click", function () {
-        if (!editorInstance) {
-            appendOutput("Editor is still loading. Please wait.", "info");
+        exportButton.addEventListener("click", function () {
+            if (!editorInstance) {
+                appendOutput("Editor is still loading. Please wait.", "info");
             return;
         }
 
@@ -379,7 +390,7 @@ builtins.__import__ = _safe_import
             if (editorInstance) {
                 editorInstance.setValue(e.target.result);
                 appendOutput("Loaded file: " + file.name, "info");
-                currentFilename = file.name;
+                currentFilename = file.name;  // Track name for export default
             } else {
                 appendOutput("Editor is still loading. Please wait.", "info");
             }

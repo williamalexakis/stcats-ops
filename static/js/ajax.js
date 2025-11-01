@@ -1,3 +1,4 @@
+/** Provide shared AJAX utilities for partial updates and flash messages */
 (function () {
     const REQUEST_HEADER = { 'X-Requested-With': 'XMLHttpRequest' };
     const FLASH_ICONS = {
@@ -7,14 +8,16 @@
         warning: '<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 19h14.14a2 2 0 001.74-3l-7.07-12a2 2 0 00-3.42 0l-7.07 12a2 2 0 001.74 3z"></path></svg>'
     };
 
-    const flashContainer = document.getElementById('flash-container');
+    const flashContainer = document.getElementById('flash-container');  // Where transient alerts render
 
+    /** Build an icon element that matches the flash level */
     function createFlashIcon(level) {
         const template = document.createElement('template');
         template.innerHTML = (FLASH_ICONS[level] || FLASH_ICONS.info).trim();
         return template.content.firstChild;
     }
 
+    /** Display a flash message element and schedule its removal */
     function showFlash(level, message) {
         if (!flashContainer || !message) {
             return;
@@ -34,6 +37,7 @@
         }, 6000);
     }
 
+    /** Resolve a DOM container for partial updates */
     function resolveTarget(selector, fallbackElement) {
         if (selector) {
             return document.querySelector(selector);
@@ -47,6 +51,7 @@
         return null;
     }
 
+    /** Turn a raw URL or keyword into a partial-friendly URL */
     function buildPartialUrl(rawUrl, useLocationSearch = false) {
         const url = rawUrl instanceof URL
             ? new URL(rawUrl.href)
@@ -63,6 +68,7 @@
         return url;
     }
 
+    /** Fetch HTML content with the expected AJAX headers */
     async function fetchHtml(url) {
         const response = await fetch(url, {
             credentials: 'same-origin',
@@ -76,6 +82,7 @@
         return response.text();
     }
 
+    /** Scroll the chat thread to the bottom if present */
     function scrollChat(container) {
         if (!container) {
             return;
@@ -86,6 +93,7 @@
         }
     }
 
+    /** Update the scheduler export button so it mirrors the current filters */
     function updateSchedulerExport(scope) {
         const btn = scope.querySelector ? scope.querySelector('#export-csv-btn') : document.getElementById('export-csv-btn');
         if (!btn) {
@@ -101,6 +109,7 @@
         btn.setAttribute('href', search ? `${baseHref}${search}` : baseHref);
     }
 
+    /** Apply post-refresh behaviors after a partial update completes */
     function afterPartialUpdate(container) {
         if (!container) {
             return;
@@ -113,6 +122,7 @@
         }
     }
 
+    /** Refresh a partial container with new markup retrieved over AJAX */
     async function refreshPartial(urlOrKeyword, targetSelector, options = {}) {
         const target = resolveTarget(targetSelector, options.sourceElement);
         if (!target) {
@@ -123,7 +133,7 @@
         let useLocationSearch = options.useLocationSearch ?? false;
 
         if (!urlOrKeyword || urlOrKeyword === 'current') {
-            url = new URL(window.location.pathname + window.location.search, window.location.origin);
+            url = new URL(window.location.pathname + window.location.search, window.location.origin);  // Mirror current view
             useLocationSearch = true;
         } else {
             url = urlOrKeyword instanceof URL ? new URL(urlOrKeyword.href) : new URL(urlOrKeyword, window.location.origin);
@@ -140,12 +150,13 @@
         }
     }
 
+    /** Submit a form as multipart/form-data over fetch and process the JSON reply */
     async function submitJsonForm(form, event) {
         if (form.dataset.ajaxPending === 'true') {
             return;
         }
 
-        form.dataset.ajaxPending = 'true';
+        form.dataset.ajaxPending = 'true';  // Block duplicate submissions while pending
 
         const action = form.getAttribute('action') || window.location.href;
         const method = (form.getAttribute('method') || 'POST').toUpperCase();
@@ -210,6 +221,7 @@
         form.dataset.ajaxPending = 'false';
     }
 
+    /** Submit a partial form and hydrate the target container with the response HTML */
     async function submitPartialForm(form, event) {
         const action = form.getAttribute('action') || window.location.pathname;
         const params = new URLSearchParams(new FormData(form));
@@ -218,7 +230,7 @@
             params.append(event.submitter.name, event.submitter.value);
         }
 
-        params.set('partial', '1');
+        params.set('partial', '1');  // Ensure the server renders the partial view
 
         const url = new URL(action, window.location.origin);
         url.search = params.toString();
@@ -246,6 +258,7 @@
         updateSchedulerExport(document);
     }
 
+    // Handle delegated submit events for AJAX-enabled forms
     document.addEventListener('submit', (event) => {
         const form = event.target;
         if (!(form instanceof HTMLFormElement)) {
@@ -266,6 +279,7 @@
         }
     }, true);
 
+    // Handle delegated clicks for links that request partial updates
     document.addEventListener('click', (event) => {
         if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
             return;
@@ -299,6 +313,7 @@
             });
     });
 
+    // Re-fetch partials when the user navigates via the browser history
     window.addEventListener('popstate', () => {
         document.querySelectorAll('[data-partial-url]').forEach((container) => {
             const sourceUrl = container.dataset.partialUrl || 'current';
@@ -314,6 +329,7 @@
         updateSchedulerExport(document);
     });
 
+    // Apply initial enhancements once the DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
         updateSchedulerExport(document);
         scrollChat(document.getElementById('chat-messages'));
