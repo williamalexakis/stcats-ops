@@ -55,7 +55,7 @@ class Room(models.Model):
 
     class Meta:
 
-        unique_together = [("name")]
+        unique_together = (("name",),)
 
 class RoomMembership(models.Model):
 
