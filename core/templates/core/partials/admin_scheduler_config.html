@@ -52,7 +52,7 @@
                               data-ajax-target="#admin-scheduler-config-content">
                             {% csrf_token %}
                             <button type="submit"
-                                    onclick="return confirm('Delete {{ classroom.display_name }}?');"
+                                    onclick="return confirm('Delete {{ classroom.display_name|escapejs }}?');"
                                     class="action-button action-button--danger">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
@@ -118,7 +118,7 @@
                               data-ajax-target="#admin-scheduler-config-content">
                             {% csrf_token %}
                             <button type="submit"
-                                    onclick="return confirm('Delete {{ subject.name }}?');"
+                                    onclick="return confirm('Delete {{ subject.name|escapejs }}?');"
                                     class="action-button action-button--danger">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
@@ -184,7 +184,7 @@
                               data-ajax-target="#admin-scheduler-config-content">
                             {% csrf_token %}
                             <button type="submit"
-                                    onclick="return confirm('Delete {{ course.name }}?');"
+                                    onclick="return confirm('Delete {{ course.name|escapejs }}?');"
                                     class="action-button action-button--danger">
                                 <i class="fa-solid fa-trash"></i>
                             </button>

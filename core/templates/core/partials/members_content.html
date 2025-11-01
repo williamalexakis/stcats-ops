@@ -3,13 +3,13 @@
     <div class="page-header__group">
         <h1 class="page-header__title">Members</h1>
 
-        <td class="count-badge-wrapper">
+        <div class="count-badge-wrapper">
             <span class="count-badge">
 
                 {{ total_count }} total
 
             </span>
-        </td>
+        </div>
     </div>
 {% if request.user|is_admin %}
     <div class="page-header__actions">
@@ -75,7 +75,7 @@
                                       data-ajax-target="#members-content">
                                     {% csrf_token %}
                                     <button type="submit"
-                                            onclick="return confirm('Demote {{ user.username }} to teacher?');"
+                                            onclick="return confirm('Demote {{ user.username|escapejs }} to teacher?');"
                                             class="action-button action-button--info">
                                         <i class="fa-solid fa-arrow-down"></i>
                                     </button>
@@ -89,7 +89,7 @@
                                       data-ajax-target="#members-content">
                                     {% csrf_token %}
                                     <button type="submit"
-                                            onclick="return confirm('Are you sure you want to remove {{ user.username }}?');"
+                                            onclick="return confirm('Are you sure you want to remove {{ user.username|escapejs }}?');"
                                             class="action-button action-button--danger">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
@@ -156,7 +156,7 @@
                                       data-ajax-target="#members-content">
                                     {% csrf_token %}
                                     <button type="submit"
-                                            onclick="return confirm('Promote {{ user.username }} to admin?');"
+                                            onclick="return confirm('Promote {{ user.username|escapejs }} to admin?');"
                                             class="action-button action-button--success">
                                         <i class="fa-solid fa-arrow-up"></i>
                                     </button>
@@ -170,7 +170,7 @@
                                       data-ajax-target="#members-content">
                                     {% csrf_token %}
                                     <button type="submit"
-                                            onclick="return confirm('Are you sure you want to remove {{ user.username }}?');"
+                                            onclick="return confirm('Are you sure you want to remove {{ user.username|escapejs }}?');"
                                             class="action-button action-button--danger">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
