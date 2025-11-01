@@ -1,3 +1,4 @@
+from django import forms
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
@@ -15,12 +16,20 @@ def signup(request: HttpRequest) -> HttpResponse:
 
         if form.is_valid():
 
-            user = form.save()
+            try:
 
-            messages.success(request, "Account successfully created!")
-            login(request, user)
+                user = form.save()
 
-            return redirect(reverse("home"))
+            except forms.ValidationError as error:
+
+                form.add_error("invite_code", error)
+
+            else:
+
+                messages.success(request, "Account successfully created!")
+                login(request, user)
+
+                return redirect(reverse("home"))
 
     else:
 

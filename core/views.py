@@ -98,17 +98,19 @@ def members(request: HttpRequest) -> HttpResponse:
 
     """Group users by role for the members page."""
 
-    all_users = User.objects.all().select_related().prefetch_related("groups")
+    all_users = list(User.objects.all().prefetch_related("groups"))
     admins = []
     teachers = []
 
     for user in all_users:
 
-        if user.is_superuser or user.groups.filter(name="admin").exists():
+        group_names = {group.name for group in user.groups.all()}
+
+        if user.is_superuser or "admin" in group_names:
 
             admins.append(user)
 
-        elif user.groups.filter(name="teacher").exists():
+        elif "teacher" in group_names:
 
             teachers.append(user)
 
@@ -120,7 +122,7 @@ def members(request: HttpRequest) -> HttpResponse:
     context = {
         "admins" : admins,
         "teachers" : teachers,
-        "total_count" : all_users.count()
+        "total_count" : len(all_users)
     }
 
     if request.GET.get("partial") == "1":

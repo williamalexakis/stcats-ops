@@ -38,7 +38,7 @@ class SignupForm(UserCreationForm):
 
             raise forms.ValidationError("This invite code has no remaining uses.")
 
-        self._invite = invite  # Store the invite to adjust usage when saving
+        self._invite_id = invite.pk  # Store the invite PK so we can safely adjust usage when saving
 
         return code
 
@@ -47,22 +47,50 @@ class SignupForm(UserCreationForm):
 
         """Create a user, decrement invite usage, and assign the teacher group."""
 
-        user: User = super().save(commit=commit)
-        invite: Optional[InviteCode] = getattr(self, "_invite", None)
+        invite: Optional[InviteCode] = None
+        invite_id = getattr(self, "_invite_id", None)
 
-        if invite:
+        if invite_id is not None:
+
+            try:
+
+                invite = InviteCode.objects.select_for_update().get(pk=invite_id)
+
+            except InviteCode.DoesNotExist:
+
+                raise forms.ValidationError("This invite code is no longer available.")
+
+            now = timezone.now()
+
+            if invite.expiration_date and invite.expiration_date < now:
+
+                invite.delete()
+
+                raise forms.ValidationError("This invite code has expired.")
+
+            if invite.remaining_uses <= 0:
+
+                invite.delete()
+
+                raise forms.ValidationError("This invite code has no remaining uses.")
 
             invite.remaining_uses -= 1
 
-            # Delete the invite code if it's expired
-            # or has been used up
-            if invite.remaining_uses <= 0 or (invite.expiration_date and invite.expiration_date < timezone.now()):
+            if invite.remaining_uses <= 0:
 
                 invite.delete()
+
+                invite = None
 
             else:
 
                 invite.save(update_fields=["remaining_uses"])
+
+        user: User = super().save(commit=commit)
+
+        if not commit:
+
+            return user
 
         teacher_group = Group.objects.filter(name="teacher").first()
 
