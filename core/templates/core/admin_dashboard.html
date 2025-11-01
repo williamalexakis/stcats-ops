@@ -123,42 +123,40 @@
 
 <div class="card quick-actions">
     <div class="quick-actions__header">
-        <i class="fa-solid fa-bolt icon-teacher"></i>
-
-        <h3 class="quick-actions__title">Quick Actions</h3>
+        <h2 class="quick-actions__title">Quick Links</h2>
     </div>
 
-    <div class="tile-grid">
+    <div class="home-quick-links__grid home-features home-features--grid">
         {% if request.user.is_superuser %}
 
             <a href="/admin/"
-               class="tile-link">
-                <i class="fa-solid fa-server tile-link__icon"></i>
+               class="home-feature-link">
+                <i class="fa-solid fa-server home-feature-link__icon"></i>
 
-                <span class="tile-link__label">Access Backend</span>
+                <span class="home-feature-link__label">Access Backend</span>
             </a>
 
         {% endif %}
 
         <a href="{% url 'admin_invites' %}"
-           class="tile-link">
-            <i class="fa-solid fa-ticket tile-link__icon"></i>
+           class="home-feature-link">
+            <i class="fa-solid fa-ticket home-feature-link__icon"></i>
 
-            <span class="tile-link__label">Manage Invites</span>
+            <span class="home-feature-link__label">Manage Invites</span>
         </a>
 
         <a href="{% url 'admin_scheduler_config' %}"
-           class="tile-link">
-            <i class="fa-solid fa-calendar-days tile-link__icon"></i>
+           class="home-feature-link">
+            <i class="fa-solid fa-calendar-days home-feature-link__icon"></i>
 
-            <span class="tile-link__label">Configure Schedule</span>
+            <span class="home-feature-link__label">Configure Schedule</span>
         </a>
 
         <a href="{% url 'admin_audit_logs' %}"
-           class="tile-link">
-            <i class="fa-solid fa-clipboard-list tile-link__icon"></i>
+           class="home-feature-link">
+            <i class="fa-solid fa-clipboard-list home-feature-link__icon"></i>
 
-            <span class="tile-link__label">View Audit Logs</span>
+            <span class="home-feature-link__label">View Audit Logs</span>
         </a>
     </div>
 </div>
