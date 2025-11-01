@@ -6,10 +6,10 @@ from django.contrib import messages as flash_messages
 from django.contrib.auth.models import Group
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from datetime import timedelta, date
+from datetime import datetime, timedelta, date
 from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course, AuditLog
 from django.core.paginator import Paginator
-from django.db.models import Sum, Q
+from django.db.models import ProtectedError, Sum, Q
 from typing import Optional
 import secrets
 import csv
@@ -564,7 +564,19 @@ def remove_user(request: HttpRequest, user_id: int) -> HttpResponse:
         return ajax_or_redirect(request, False, "Cannot remove your own account.", "members", status_code=400)
 
     username = user.username
-    user.delete()
+    try:
+
+        user.delete()
+
+    except ProtectedError:
+
+        return ajax_or_redirect(
+            request,
+            False,
+            "Cannot remove this account because it is referenced by existing records.",
+            "members",
+            status_code=409
+        )
 
     return ajax_or_redirect(request, True, f"User '{username}' has been removed.", "members")
 
@@ -665,9 +677,57 @@ def create_schedule_entry(request: HttpRequest) -> HttpResponse:
         classroom_id = request.POST.get('classroom')
         subject_id = request.POST.get('subject')
         course_id = request.POST.get('course')
-        date = request.POST.get('date')
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
+        date_value = request.POST.get('date')
+        start_time_value = request.POST.get('start_time')
+        end_time_value = request.POST.get('end_time')
+
+        errors = []
+
+        if not all([teacher_id, classroom_id, subject_id, course_id, date_value, start_time_value, end_time_value]):
+
+            errors.append("All fields are required.")
+
+        try:
+
+            entry_date = datetime.strptime(date_value, "%Y-%m-%d").date() if date_value else None
+
+        except (TypeError, ValueError):
+
+            entry_date = None
+            errors.append("A valid date is required.")
+
+        def parse_time(value: Optional[str]):
+
+            try:
+
+                return datetime.strptime(value, "%H:%M").time() if value else None
+
+            except (TypeError, ValueError):
+
+                return None
+
+        start_time = parse_time(start_time_value)
+        end_time = parse_time(end_time_value)
+
+        if start_time is None:
+
+            errors.append("A valid start time is required.")
+
+        if end_time is None:
+
+            errors.append("A valid end time is required.")
+
+        if start_time and end_time and start_time >= end_time:
+
+            errors.append("End time must be after the start time.")
+
+        if errors:
+
+            for message_text in errors:
+
+                flash_messages.error(request, message_text)
+
+            return redirect('scheduler')
 
         try:
 
@@ -681,7 +741,7 @@ def create_schedule_entry(request: HttpRequest) -> HttpResponse:
                 classroom=classroom,
                 subject=subject,
                 course=course,
-                date=date,
+                date=entry_date,
                 start_time=start_time,
                 end_time=end_time,
                 created_by=request.user
@@ -739,9 +799,57 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
             classroom_id = request.POST.get('classroom')
             subject_id = request.POST.get('subject')
             course_id = request.POST.get('course')
-            entry.date = request.POST.get('date')
-            entry.start_time = request.POST.get('start_time')
-            entry.end_time = request.POST.get('end_time')
+            date_value = request.POST.get('date')
+            start_time_value = request.POST.get('start_time')
+            end_time_value = request.POST.get('end_time')
+
+            errors = []
+
+            try:
+
+                entry_date = datetime.strptime(date_value, "%Y-%m-%d").date() if date_value else None
+
+            except (TypeError, ValueError):
+
+                entry_date = None
+                errors.append("A valid date is required.")
+
+            def parse_time(value: Optional[str]):
+
+                try:
+
+                    return datetime.strptime(value, "%H:%M").time() if value else None
+
+                except (TypeError, ValueError):
+
+                    return None
+
+            start_time = parse_time(start_time_value)
+            end_time = parse_time(end_time_value)
+
+            if not all([teacher_id, classroom_id, subject_id, course_id, date_value, start_time_value, end_time_value]):
+
+                errors.append("All fields are required.")
+
+            if start_time is None:
+
+                errors.append("A valid start time is required.")
+
+            if end_time is None:
+
+                errors.append("A valid end time is required.")
+
+            if start_time and end_time and start_time >= end_time:
+
+                errors.append("End time must be after the start time.")
+
+            if errors:
+
+                for message_text in errors:
+
+                    flash_messages.error(request, message_text)
+
+                return redirect('scheduler')
 
             try:
 
@@ -749,6 +857,9 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
                 entry.classroom = Classroom.objects.get(id=classroom_id)
                 entry.subject = Subject.objects.get(id=subject_id)
                 entry.course = Course.objects.get(id=course_id)
+                entry.date = entry_date
+                entry.start_time = start_time
+                entry.end_time = end_time
 
                 entry.save()
                 flash_messages.success(request, "Schedule entry successfully updated.")
