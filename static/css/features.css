@@ -701,14 +701,22 @@
 }
 
 .member-card__utilities {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
     margin-left: auto;
+    vertical-align: middle;
 }
 
 .member-card__utilities form {
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+.member-card__utilities button {
+  line-height: 1;
+  vertical-align: middle;
 }
 
 @media (max-width: 1080px) {
@@ -746,16 +754,13 @@
     position: absolute;
     top: 12px;
     right: 12px;
-    background: transparent;
-    border: none;
-    color: var(--text-tertiary);
     font-size: 18px;
     cursor: pointer;
     transition: color 0.2s ease;
 }
 
 .member-info-modal__close:hover {
-    color: var(--text-primary);
+    color: #fff;
 }
 
 .member-info-modal__title {
@@ -1423,15 +1428,13 @@
 .chat-action--muted {
     background: var(--card-bg);
     color: var(--text-secondary);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 6px 16px var(--shadow);
-    backdrop-filter: saturate(140%) blur(8px);
+    border: 1px solid var(--text-tertiary);
+    box-shadow: 0 6px 16px var(--shadow-hover);
 }
 
 .chat-action--muted:hover {
-    background: var(--info-bg);
-    border-color: var(--link-color);
-    color: var(--link-color);
+    background: var(--text-tertiary);
+    color: #fff;
     transform: translateY(-1px);
     box-shadow: 0 12px 24px var(--shadow-hover);
 }
@@ -1448,6 +1451,48 @@
     color: #fff;
     transform: translateY(-1px);
     box-shadow: 0 12px 24px rgba(248, 113, 113, 0.35);
+}
+
+.chat-action--confirm {
+    background: var(--info-bg);
+    color: var(--info-text);
+    border: 1px solid var(--info-border);
+    box-shadow: 0 6px 16px var(--focus-ring);
+}
+
+.chat-action--confirm:hover {
+    background: var(--info-border);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px var(--focus-ring);
+}
+
+.chat-action--success {
+    background: var(--success-bg);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+    box-shadow: 0 6px 16px var(--home-chip-success-bg);
+}
+
+.chat-action--success:hover {
+    background: var(--success-border);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px var(--home-chip-success-bg);
+}
+
+.chat-action--info {
+    background: var(--member-info-button-bg);
+    color: var(--member-info-button-fg);
+    border: 1px solid var(--member-info-button-border);
+    box-shadow: 0 6px 16px var(--member-info-button-hover-bg);
+}
+
+.chat-action--info:hover {
+    background: var(--member-info-button-hover-bg);
+    color: var(--member-info-button-hover-fg);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px var(--member-info-button-hover-bg);
 }
 
 .pagination {
