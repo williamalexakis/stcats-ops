@@ -42,58 +42,6 @@ class InviteCode(models.Model):
 
         return f"{self.code} ({self.remaining_uses} use(s) left)"
 
-class Room(models.Model):
-
-    name = models.CharField(max_length=80)
-    is_private = models.BooleanField(default=False)
-    creator = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="rooms_created"
-    )
-    creation_date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-
-        unique_together = (("name",),)
-
-class RoomMembership(models.Model):
-
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="memberships")
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="room_memberships"
-    )
-    join_date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-
-        unique_together = [("room", "user")]
-
-class Message(models.Model):
-
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="messages")
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="messages"
-    )
-    body = models.TextField()
-    creation_date = models.DateTimeField(auto_now_add=True)
-    edit_date = models.DateTimeField(null=True, blank=True)
-    is_announcement = models.BooleanField(default=False)
-    is_pinned = models.BooleanField(default=False)
-
-    class Meta:
-
-        ordering = ["id"]
-
-    def __str__(self) -> str:
-
-        preview = self.body[:50]
-        return f"{self.author.username}: {preview}..." if len(self.body) > 50 else f"{self.author.username}: {preview}"
-
 class Classroom(models.Model):
 
     name = models.CharField(max_length=100, unique=True)

@@ -7,7 +7,7 @@ An internal web platform that supports management and coordination for the St. C
 
 ## Features
 
-- **Announcements & Chat** – Send messages and department-wide notices.
+- **Microsoft SSO** – Signups and logins can be performed via Azure AD.
 - **Role Management** – Promote, demote, or remove users through the members view.
 - **Scheduling System** – Manage courses, classrooms, and time slots, then export filtered schedules as `.csv` files.
 - **Code Editor** – Run Python code in-browser; import `.py` files and export current code.
@@ -38,8 +38,8 @@ An internal web platform that supports management and coordination for the St. C
     DATABASE_URL=sqlite:///db.sqlite3  # Or e.g. postgres://user:pass@localhost:5432/stcats for PostgreSQL
     ALLOWED_HOSTS=127.0.0.1,localhost
     CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
-    SESSION_COOKIE_SAMESITE=Lax        # Required for Microsoft redirects
-    CSRF_COOKIE_SAMESITE=Lax           # Required for Microsoft redirects
+    SESSION_COOKIE_SAMESITE=Lax               # Required for Microsoft redirects
+    CSRF_COOKIE_SAMESITE=Lax                  # Required for Microsoft redirects
     SOCIAL_AUTH_AZUREAD_OAUTH2_KEY=...        # Azure AD application (client) ID
     SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET=...     # Azure AD client secret
     SOCIAL_AUTH_AZUREAD_OAUTH2_TENANT_ID=...  # Azure AD tenant ID (GUID)

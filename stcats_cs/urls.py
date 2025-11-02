@@ -1,17 +1,16 @@
 from django.contrib import admin
 from django.urls import include, path
 from core.views import (
-    home, healthcheck, members, chat,
+    home, healthcheck, members,
     admin_dashboard, admin_invites,
     admin_audit_logs, delete_invite_code,
     promote_user, demote_user,
-    remove_user, edit_message, code_editor,
-    delete_message, scheduler,
+    remove_user, code_editor,
+    scheduler,
     create_schedule_entry, edit_schedule_entry,
     delete_schedule_entry, export_schedule_csv
 )
 from core.views_auth import signup, logout_view, complete_sso_signup, legacy_signup
-from core.views_announce import announcement_list
 from core.views_scheduler_config import (
     admin_scheduler_config, add_classroom, delete_classroom,
     add_subject, delete_subject, add_course, delete_course
@@ -27,10 +26,6 @@ urlpatterns = [
     path("signup/", signup, name="signup"),
     path("signup/legacy/", legacy_signup, name="legacy_signup"),
     path("signup/complete/", complete_sso_signup, name="complete_sso_signup"),
-    path("chat/", chat, name="chat"),
-    path("chat/message/<int:message_id>/edit/", edit_message, name="edit_message"),
-    path("chat/message/<int:message_id>/delete/", delete_message, name="delete_message"),
-    path("announcements/", announcement_list, name="announcements"),
     path("members/", members, name="members"),
     path("code-editor/", code_editor, name="code_editor"),
     path("panel/", admin_dashboard, name="admin_dashboard"),

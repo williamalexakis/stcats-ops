@@ -91,34 +91,6 @@
             {% endif %}
         </div>
     </div>
-
-    <div class="card stat-card stat-card--info">
-        <div class="stat-card__header">
-            <div>
-                <div class="stat-card__title">Total Messages</div>
-
-                <div class="stat-card__value">{{ total_messages }}</div>
-            </div>
-
-            <div class="stat-card__icon stat-card__icon--info">
-                <i class="fa-solid fa-comment-dots stat-card__icon-inner"></i>
-            </div>
-        </div>
-        <div class="stat-card__meta">
-
-            {% if announcement_count > 0 %}
-
-                <i class="fa-solid fa-bullhorn icon-teacher"></i>
-
-                {{ announcement_count }} announcement{{ announcement_count|pluralize }}
-
-            {% else %}
-
-                <span class="text-tertiary">No announcements</span>
-
-            {% endif %}
-        </div>
-    </div>
 </div>
 
 <div class="card quick-actions">

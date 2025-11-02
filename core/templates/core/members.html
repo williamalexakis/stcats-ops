@@ -3,10 +3,184 @@
 
 {% block title %}Members - CS Dept Platform{% endblock %}
 
+{% block head %}
+    {{ block.super }}
+    <style>
+        .members-columns {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+            justify-content: stretch;
+        }
+
+        .member-column {
+            flex: 1 1 50%;
+            min-width: 0;
+            display: flex;
+        }
+
+        .members-columns > :only-child {
+            flex-basis: 100%;
+        }
+
+        .member-column__card {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            width: 100%;
+            min-height: 100%;
+            margin-bottom: 0;
+        }
+
+        .member-column__header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .member-column__header i {
+            font-size: 22px;
+        }
+
+        .member-column__heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .member-column__heading h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .member-column__list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .action-button--member-info {
+            background: var(--member-info-button-bg);
+            color: var(--member-info-button-fg);
+            border: 1px solid var(--member-info-button-border);
+            box-shadow: 0 8px 18px rgba(88, 28, 135, 0.18);
+        }
+
+        .action-button--member-info:hover {
+            background: var(--member-info-button-hover-bg);
+            color: var(--member-info-button-hover-fg);
+            border-color: var(--member-info-button-hover-border);
+            box-shadow: 0 10px 22px rgba(88, 28, 135, 0.24);
+        }
+
+        .member-card__info-button i {
+            pointer-events: none;
+            font-size: 14px;
+        }
+
+        @media (max-width: 1080px) {
+            .members-columns {
+                flex-direction: column;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 
 <div id="members-content" data-partial-url="{% url 'members' %}?partial=1">
     {% include "core/partials/members_content.html" %}
 </div>
 
+<div id="member-info-modal" class="member-info-modal" hidden>
+    <div class="member-info-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="member-info-title">
+        <button type="button" class="member-info-modal__close" aria-label="Close member details">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h3 id="member-info-title" class="member-info-modal__title">Member Details</h3>
+
+        <dl class="member-info-modal__details">
+            <div>
+                <dt>Username</dt>
+                <dd id="member-info-username"></dd>
+            </div>
+            <div>
+                <dt>Email</dt>
+                <dd id="member-info-email"></dd>
+            </div>
+            <div>
+                <dt>Role</dt>
+                <dd id="member-info-role"></dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        const memberModal = document.getElementById('member-info-modal');
+        const memberUsername = document.getElementById('member-info-username');
+        const memberEmail = document.getElementById('member-info-email');
+        const memberRole = document.getElementById('member-info-role');
+
+        function setRoleDetails(trigger) {
+            memberRole.replaceChildren();
+
+            const iconClass = trigger.dataset.memberRoleIcon || '';
+            if (iconClass) {
+                const icon = document.createElement('i');
+                icon.className = iconClass;
+                icon.setAttribute('aria-hidden', 'true');
+                memberRole.appendChild(icon);
+            }
+
+            const label = document.createElement('span');
+            label.textContent = trigger.dataset.memberRole || 'N/A';
+            memberRole.appendChild(label);
+        }
+
+        function closeMemberModal() {
+            if (!memberModal.hasAttribute('hidden')) {
+                memberModal.setAttribute('hidden', '');
+            }
+
+            document.querySelectorAll('[data-member-info]').forEach((button) => {
+                button.setAttribute('aria-expanded', 'false');
+            });
+        }
+
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('.member-info-modal__close') || event.target === memberModal) {
+                closeMemberModal();
+                return;
+            }
+
+            const trigger = event.target.closest('[data-member-info]');
+            if (!trigger) {
+                return;
+            }
+
+            memberUsername.textContent = trigger.dataset.memberUsername || 'N/A';
+            memberEmail.textContent = trigger.dataset.memberEmail || 'N/A';
+            setRoleDetails(trigger);
+
+            memberModal.removeAttribute('hidden');
+            document.querySelectorAll('[data-member-info]').forEach((button) => {
+                button.setAttribute('aria-expanded', 'false');
+            });
+            trigger.setAttribute('aria-expanded', 'true');
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeMemberModal();
+            }
+        });
+    </script>
 {% endblock %}

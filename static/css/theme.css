@@ -60,8 +60,6 @@
     --home-panel-border: rgba(148, 163, 184, 0.22);
     --home-panel-shadow: rgba(15, 23, 42, 0.12);
     --home-panel-empty-icon: rgba(37, 99, 235, 0.48);
-    --home-accent-announcement: rgba(37, 99, 235, 0.12);
-    --home-accent-announcement-fg: #1d4ed8;
     --home-accent-schedule: rgba(16, 185, 129, 0.14);
     --home-accent-schedule-fg: #047857;
     --home-chip-primary-bg: rgba(37, 99, 235, 0.18);
@@ -76,10 +74,14 @@
     --home-chip-info-fg: #1e1b4b;
     --home-chip-time-bg: rgba(251, 191, 36, 0.24);
     --home-chip-time-fg: #92400e;
-    --home-announcement-item-bg: rgba(219, 234, 254, 0.7);
-    --home-announcement-item-border: rgba(37, 99, 235, 0.24);
     --home-schedule-item-bg: rgba(209, 250, 229, 0.6);
     --home-schedule-item-border: rgba(16, 185, 129, 0.24);
+    --member-info-button-bg: rgba(196, 181, 253, 0.35);
+    --member-info-button-border: rgba(124, 58, 237, 0.5);
+    --member-info-button-fg: #42318c;
+    --member-info-button-hover-bg: rgba(124, 58, 237, 0.28);
+    --member-info-button-hover-border: rgba(109, 40, 217, 0.7);
+    --member-info-button-hover-fg: #2e1b69;
 }
 
 :root[data-theme="dark"] {
@@ -144,8 +146,6 @@
     --home-panel-border: rgba(148, 163, 184, 0.28);
     --home-panel-shadow: rgba(2, 6, 23, 0.65);
     --home-panel-empty-icon: rgba(148, 163, 184, 0.6);
-    --home-accent-announcement: rgba(59, 130, 246, 0.22);
-    --home-accent-announcement-fg: #e0f2fe;
     --home-accent-schedule: rgba(34, 197, 94, 0.26);
     --home-accent-schedule-fg: #bbf7d0;
     --home-chip-primary-bg: rgba(37, 99, 235, 0.3);
@@ -160,8 +160,12 @@
     --home-chip-info-fg: #ede9fe;
     --home-chip-time-bg: rgba(251, 191, 36, 0.28);
     --home-chip-time-fg: #fef3c7;
-    --home-announcement-item-bg: rgba(30, 64, 175, 0.38);
-    --home-announcement-item-border: rgba(96, 165, 250, 0.45);
     --home-schedule-item-bg: rgba(2, 44, 34, 0.5);
     --home-schedule-item-border: rgba(34, 197, 94, 0.42);
+    --member-info-button-bg: rgba(168, 85, 247, 0.32);
+    --member-info-button-border: rgba(233, 213, 255, 0.45);
+    --member-info-button-fg: #ede9fe;
+    --member-info-button-hover-bg: rgba(147, 51, 234, 0.5);
+    --member-info-button-hover-border: rgba(233, 213, 255, 0.75);
+    --member-info-button-hover-fg: #ffffff;
 }

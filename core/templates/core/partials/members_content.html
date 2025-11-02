@@ -18,178 +18,201 @@
 {% endif %}
 </div>
 
-{% if admins %}
+{% if admins or teachers %}
 
-    <div class="card card--spaced">
-        <div class="admin-config-card__header">
-            <div class="admin-config-card__heading">
-                <i class="fa-solid fa-shield-halved icon-admin"></i>
+    <div class="members-columns" role="list">
 
-                <h3>Administrators</h3>
+        {% if admins %}
 
-                <span class="tag tag--danger">{{ admins|length }}</span>
-            </div>
-        </div>
+            <section class="member-column" role="listitem" aria-label="Administrators">
+                <div class="card member-column__card">
+                    <div class="member-column__header">
+                        <i class="fa-solid fa-shield-halved icon-admin"></i>
 
-        <div class="member-grid">
-
-            {% for user in admins %}
-
-                <div class="member-card">
-                    <div class="member-card__avatar member-card__avatar--admin">
-                        {{ user.username|first|upper }}
-                    </div>
-
-                    <div class="member-card__info">
-                        <div class="member-card__name">
-                            {{ user.username }}
-                        </div>
-
-                        <div class="member-card__role">
-
-                            {% if user.is_superuser %}
-
-                                <i class="fa-solid fa-crown icon-superuser"></i>
-                                Superuser
-
-                            {% else %}
-
-                                <i class="fa-solid fa-user-shield icon-admin"></i>
-                                Admin
-
-                            {% endif %}
-
+                        <div class="member-column__heading">
+                            <h3>Administrators</h3>
+                            <span class="count-circle count-circle--danger">{{ admins|length }}</span>
                         </div>
                     </div>
 
-                    {% if request.user|is_admin %}
+                    <div class="member-column__list">
 
-                        {% if not user.is_superuser and user != request.user %}
+                        {% for user in admins %}
 
-                            <div class="member-card__actions">
-                                <form method="post"
-                                      action="{% url 'demote_user' user.id %}"
-                                      style="display:inline"
-                                      data-ajax="json"
-                                      data-ajax-refresh="{% url 'members' %}?partial=1"
-                                      data-ajax-target="#members-content">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            onclick="return confirm('Demote {{ user.username|escapejs }} to teacher?');"
-                                            class="action-button action-button--info">
-                                        <i class="fa-solid fa-arrow-down"></i>
+                            <article class="member-card">
+                                <div class="member-card__avatar member-card__avatar--admin" aria-hidden="true">
+                                    {{ user.username|first|upper }}
+                                </div>
+
+                                <div class="member-card__info">
+                                    <div class="member-card__name">
+                                        {{ user.username }}
+                                    </div>
+
+                                    <div class="member-card__role">
+
+                                        {% if user.is_superuser %}
+
+                                            <i class="fa-solid fa-crown icon-superuser"></i>
+                                            Superuser
+
+                                        {% else %}
+
+                                            <i class="fa-solid fa-user-shield icon-admin"></i>
+                                            Admin
+
+                                        {% endif %}
+
+                                    </div>
+                                </div>
+
+                                <div class="member-card__utilities">
+                                    <button type="button"
+                                            class="action-button action-button--member-info member-card__info-button"
+                                            data-member-info
+                                            data-member-username="{{ user.username|escape }}"
+                                            data-member-email="{{ user.email|default:'N/A'|escape }}"
+                                            data-member-role="{% if user.is_superuser %}Superuser{% else %}Admin{% endif %}"
+                                            data-member-role-icon="{% if user.is_superuser %}fa-solid fa-crown{% else %}fa-solid fa-user-shield{% endif %}"
+                                            aria-expanded="false"
+                                            aria-label="View details for {{ user.username|escape }}">
+                                        <i class="fa-solid fa-circle-info"></i>
                                     </button>
-                                </form>
 
-                                <form method="post"
-                                      action="{% url 'remove_user' user.id %}"
-                                      style="display:inline"
-                                      data-ajax="json"
-                                      data-ajax-refresh="{% url 'members' %}?partial=1"
-                                      data-ajax-target="#members-content">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            onclick="return confirm('Are you sure you want to remove {{ user.username|escapejs }}?');"
-                                            class="action-button action-button--danger">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
+                                    {% if request.user|is_admin and not user.is_superuser and user != request.user %}
+                                        <form method="post"
+                                              action="{% url 'demote_user' user.id %}"
+                                              style="display:inline"
+                                              data-ajax="json"
+                                              data-ajax-refresh="{% url 'members' %}?partial=1"
+                                              data-ajax-target="#members-content">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    onclick="return confirm('Demote {{ user.username|escapejs }} to teacher?');"
+                                                    class="action-button action-button--info"
+                                                    aria-label="Demote {{ user.username }}">
+                                                <i class="fa-solid fa-arrow-down"></i>
+                                            </button>
+                                        </form>
 
-                        {% endif %}
+                                        <form method="post"
+                                              action="{% url 'remove_user' user.id %}"
+                                              style="display:inline"
+                                              data-ajax="json"
+                                              data-ajax-refresh="{% url 'members' %}?partial=1"
+                                              data-ajax-target="#members-content">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    onclick="return confirm('Are you sure you want to remove {{ user.username|escapejs }}?');"
+                                                    class="action-button action-button--danger"
+                                                    aria-label="Remove {{ user.username }}">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% endfor %}
 
-                    {% endif %}
-
+                    </div>
                 </div>
+            </section>
 
-            {% endfor %}
+        {% endif %}
 
-        </div>
+        {% if teachers %}
+
+            <section class="member-column" role="listitem" aria-label="Teachers">
+                <div class="card member-column__card">
+                    <div class="member-column__header">
+                        <i class="fa-solid fa-chalkboard icon-teacher"></i>
+
+                        <div class="member-column__heading">
+                            <h3>Teachers</h3>
+                            <span class="count-circle count-circle--info">{{ teachers|length }}</span>
+                        </div>
+                    </div>
+
+                    <div class="member-column__list">
+
+                        {% for user in teachers %}
+
+                            <article class="member-card">
+                                <div class="member-card__avatar member-card__avatar--teacher" aria-hidden="true">
+                                    {{ user.username|first|upper }}
+                                </div>
+
+                                <div class="member-card__info">
+                                    <div class="member-card__name">
+                                        {{ user.username }}
+                                    </div>
+
+                                    <div class="member-card__role">
+
+                                        <i class="fa-solid fa-chalkboard-user icon-teacher"></i>
+                                        Teacher
+
+                                    </div>
+                                </div>
+
+                                <div class="member-card__utilities">
+                                    <button type="button"
+                                            class="action-button action-button--member-info member-card__info-button"
+                                            data-member-info
+                                            data-member-username="{{ user.username|escape }}"
+                                            data-member-email="{{ user.email|default:'N/A'|escape }}"
+                                            data-member-role="{% if user.is_superuser %}Superuser{% elif user|is_admin %}Admin{% else %}Teacher{% endif %}"
+                                            data-member-role-icon="{% if user.is_superuser %}fa-solid fa-crown{% elif user|is_admin %}fa-solid fa-user-shield{% else %}fa-solid fa-chalkboard-user{% endif %}"
+                                            aria-expanded="false"
+                                            aria-label="View details for {{ user.username|escape }}">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    </button>
+
+                                    {% if request.user|is_admin and user != request.user %}
+                                        <form method="post"
+                                              action="{% url 'promote_user' user.id %}"
+                                              style="display:inline"
+                                              data-ajax="json"
+                                              data-ajax-refresh="{% url 'members' %}?partial=1"
+                                              data-ajax-target="#members-content">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    onclick="return confirm('Promote {{ user.username|escapejs }} to admin?');"
+                                                    class="action-button action-button--success"
+                                                    aria-label="Promote {{ user.username }}">
+                                                <i class="fa-solid fa-arrow-up"></i>
+                                            </button>
+                                        </form>
+
+                                        <form method="post"
+                                              action="{% url 'remove_user' user.id %}"
+                                              style="display:inline"
+                                              data-ajax="json"
+                                              data-ajax-refresh="{% url 'members' %}?partial=1"
+                                              data-ajax-target="#members-content">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    onclick="return confirm('Are you sure you want to remove {{ user.username|escapejs }}?');"
+                                                    class="action-button action-button--danger"
+                                                    aria-label="Remove {{ user.username }}">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </article>
+
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </section>
+
+        {% endif %}
+
     </div>
 
-{% endif %}
-
-{% if teachers %}
-
-    <div class="card card--spaced">
-        <div class="admin-config-card__header">
-            <div class="admin-config-card__heading">
-                <i class="fa-solid fa-chalkboard icon-teacher"></i>
-
-                <h3>Teachers</h3>
-
-                <span class="tag tag--danger">{{ teachers|length }}</span>
-            </div>
-        </div>
-
-        <div class="member-grid">
-
-            {% for user in teachers %}
-
-                <div class="member-card">
-                    <div class="member-card__avatar member-card__avatar--teacher">
-                        {{ user.username|first|upper }}
-                    </div>
-
-                    <div class="member-card__info">
-                        <div class="member-card__name">
-                            {{ user.username }}
-                        </div>
-
-                        <div class="member-card__role">
-
-                            <i class="fa-solid fa-chalkboard-user icon-teacher"></i>
-                            Teacher
-
-                        </div>
-                    </div>
-
-                    {% if request.user|is_admin %}
-
-                        {% if user != request.user %}
-                            <div class="member-card__actions">
-                                <form method="post"
-                                      action="{% url 'promote_user' user.id %}"
-                                      style="display:inline"
-                                      data-ajax="json"
-                                      data-ajax-refresh="{% url 'members' %}?partial=1"
-                                      data-ajax-target="#members-content">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            onclick="return confirm('Promote {{ user.username|escapejs }} to admin?');"
-                                            class="action-button action-button--success">
-                                        <i class="fa-solid fa-arrow-up"></i>
-                                    </button>
-                                </form>
-
-                                <form method="post"
-                                      action="{% url 'remove_user' user.id %}"
-                                      style="display:inline"
-                                      data-ajax="json"
-                                      data-ajax-refresh="{% url 'members' %}?partial=1"
-                                      data-ajax-target="#members-content">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            onclick="return confirm('Are you sure you want to remove {{ user.username|escapejs }}?');"
-                                            class="action-button action-button--danger">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        {% endif %}
-
-                    {% endif %}
-
-                </div>
-
-            {% endfor %}
-
-        </div>
-    </div>
-
-{% endif %}
-
-{% if not admins and not teachers %}
+{% else %}
 
     <div class="card empty-state">
         <svg class="empty-state__illustration" fill="none" stroke="currentColor" viewBox="0 0 24 24">

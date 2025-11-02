@@ -1,0 +1,34 @@
+{% if upcoming_entries %}
+
+    <ul class="home-panel-list">
+        {% for entry in upcoming_entries %}
+
+            <li class="home-panel-item home-panel-item--schedule">
+                <div class="home-panel-item__icon home-panel-item__icon--schedule">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+
+                <div class="home-panel-item__content">
+                    <div class="home-panel-item__header">
+                        <strong>{{ entry.course.display_name }}</strong>
+                        <span class="home-panel-item__meta">{{ entry.date|date:"M j, Y" }}</span>
+                    </div>
+
+                    <div class="home-panel-item__badges">
+                        <span class="home-panel-chip home-panel-chip--time">{{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}</span>
+                        <span class="home-panel-chip home-panel-chip--success">{{ entry.subject.display_name }}</span>
+                        <span class="home-panel-chip home-panel-chip--accent">{{ entry.classroom.display_name }}</span>
+                    </div>
+                </div>
+            </li>
+
+        {% endfor %}
+    </ul>
+
+{% else %}
+
+    <div class="home-panel-empty">
+        <p>No sessions available.</p>
+    </div>
+
+{% endif %}

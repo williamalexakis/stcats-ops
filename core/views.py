@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from datetime import datetime, timedelta, date
-from .models import Message, InviteCode, Room, ScheduleEntry, Classroom, Subject, Course, AuditLog
+from .models import InviteCode, ScheduleEntry, Classroom, Subject, Course, AuditLog
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError, Sum, Q
 from typing import Optional
@@ -64,7 +64,7 @@ def code_editor(request: HttpRequest) -> HttpResponse:
 
 def home(request: HttpRequest) -> HttpResponse:
 
-    context = {}
+    upcoming_entries = []
 
     if request.user.is_authenticated:
 
@@ -72,20 +72,23 @@ def home(request: HttpRequest) -> HttpResponse:
         today = now.date()
         current_time = now.time()
 
-        announcements = Message.objects.filter(
-            is_announcement=True
-        ).select_related("author", "room").order_by("-is_pinned", "-creation_date")[:5]
+        upcoming_entries = list(
+            ScheduleEntry.objects.filter(
+                teacher=request.user
+            ).filter(
+                Q(date__gt=today) | Q(date=today, end_time__gte=current_time)
+            ).select_related("classroom", "subject", "course").order_by("date", "start_time")[:5]
+        )
 
-        upcoming_entries = ScheduleEntry.objects.filter(
-            teacher=request.user
-        ).filter(
-            Q(date__gt=today) | Q(date=today, end_time__gte=current_time)
-        ).select_related("classroom", "subject", "course").order_by("date", "start_time")[:5]
+    if request.GET.get("partial") == "upcoming":
 
-        context.update({
-            "announcements": announcements,
-            "upcoming_entries": upcoming_entries,
+        return render(request, "core/partials/home_schedule.html", {
+            "upcoming_entries": upcoming_entries
         })
+
+    context = {
+        "upcoming_entries": upcoming_entries
+    }
 
     return render(request, "core/home.html", context)
 
@@ -132,62 +135,6 @@ def members(request: HttpRequest) -> HttpResponse:
     return render(request, "core/members.html", context)
 
 @login_required
-def chat(request: HttpRequest) -> HttpResponse:
-
-    """Handle chat interactions, create a default room, and restrict announcements to admins."""
-
-    is_admin_user = request.user.is_superuser or request.user.groups.filter(name="admin").exists()
-
-    # Get the room, or otherwise create a
-    # default General room if none are available
-    room, created = Room.objects.get_or_create(
-        name="General",
-        defaults={
-            "creator": request.user,
-            "is_private": False
-        }
-    )
-
-    # Handle message posting
-    if request.method == "POST":
-
-        body = request.POST.get("body", "").strip()
-        is_announcement = request.POST.get("is_announcement") == "on"
-        is_pinned = request.POST.get("is_pinned") == "on" if is_announcement else False
-
-        if not is_admin_user:
-
-            is_announcement = False
-            is_pinned = False
-
-        if body:
-
-            Message.objects.create(
-                room=room,
-                author=request.user,
-                body=body,
-                is_announcement=is_announcement,
-                is_pinned=is_pinned
-            )
-            return ajax_or_redirect(request, True, "Message sent.", "chat")
-
-        return ajax_or_redirect(request, False, "Message cannot be empty.", "chat", status_code=400)
-
-    # Get messages from the room, sorted chronologically
-    chat_messages = Message.objects.filter(room=room).select_related("author").order_by("-creation_date")[:100]
-    chat_messages = list(reversed(chat_messages))
-    context = {
-        "chat_messages": chat_messages,
-        "room": room
-    }
-
-    if request.GET.get("partial") == "1":
-
-        return render(request, "core/partials/chat_messages.html", context)
-
-    return render(request, "core/chat.html", context)
-
-@login_required
 def admin_dashboard(request: HttpRequest) -> HttpResponse:
 
     """Gather high-level statistics for the administrative dashboard view."""
@@ -223,10 +170,6 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
     today = date.today()
     upcoming_entries = ScheduleEntry.objects.filter(date__gte=today).count()
 
-    # Message stuff
-    total_messages = Message.objects.count()
-    announcement_count = Message.objects.filter(is_announcement=True).count()
-
     context = {
         "total_users": total_users,
         "admin_count": admin_count,
@@ -234,9 +177,7 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
         "active_invites": active_invites,
         "total_invite_uses": total_invite_uses,
         "total_schedule_entries": total_schedule_entries,
-        "upcoming_entries": upcoming_entries,
-        "total_messages": total_messages,
-        "announcement_count": announcement_count
+        "upcoming_entries": upcoming_entries
     }
 
     return render(request, "core/admin_dashboard.html", context)
@@ -411,97 +352,6 @@ def promote_user(request: HttpRequest, user_id: int) -> HttpResponse:
     user.groups.add(admin_group)
 
     return ajax_or_redirect(request, True, f"User '{user.username}' has been promoted to admin.", "members")
-
-@login_required
-def edit_message(request: HttpRequest, message_id: int) -> HttpResponse:
-
-    try:
-
-        message = Message.objects.get(id=message_id)
-        is_admin_user = request.user.is_superuser or request.user.groups.filter(name="admin").exists()
-
-        # Only allow editing your own messages
-        if message.author != request.user:
-
-            flash_messages.error(request, "You do not have permission to perform this action.")
-
-            return redirect('chat')
-
-        if request.method == 'POST':
-
-            body = request.POST.get('body', '').strip()
-            is_announcement = request.POST.get('is_announcement') == 'on'
-            is_pinned = request.POST.get('is_pinned') == 'on' if is_announcement else False
-
-            if not is_admin_user:
-
-                is_announcement = False
-                is_pinned = False
-
-            if body:
-
-                message.body = body
-                message.is_announcement = is_announcement
-                message.is_pinned = is_pinned
-                message.edit_date = timezone.now()
-
-                message.save()
-                flash_messages.success(request, "Message updated.")
-
-            else:
-
-                flash_messages.error(request, "Message cannot be empty.")
-
-            return redirect("chat")
-
-        context = {
-            "message" : message
-        }
-
-        return render(request, "core/edit_message.html", context)
-
-    except Message.DoesNotExist:
-
-        flash_messages.error(request, "Message not found.")
-
-        return redirect("chat")
-
-@login_required
-@require_POST
-def delete_message(request: HttpRequest, message_id: int) -> HttpResponse:
-    is_admin_user = request.user.is_superuser or request.user.groups.filter(name='admin').exists()
-
-    try:
-
-        message = Message.objects.get(id=message_id)
-
-    except Message.DoesNotExist:
-
-        return ajax_or_redirect(request, False, "Message not found.", "chat", status_code=404)
-
-    if message.author == request.user:
-
-        can_delete = True
-
-    elif is_admin_user:
-
-        if message.author.is_superuser:
-
-            return ajax_or_redirect(request, False, "Cannot delete superuser messages.", "chat", status_code=403)
-
-        can_delete = True
-
-    else:
-
-        can_delete = False
-
-    if not can_delete:
-
-        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "chat", status_code=403)
-
-    message.delete()
-
-    return ajax_or_redirect(request, True, "Message deleted.", "chat")
 
 @login_required
 @require_POST

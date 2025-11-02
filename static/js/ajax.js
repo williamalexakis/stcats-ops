@@ -82,17 +82,6 @@
         return response.text();
     }
 
-    /** Scroll the chat thread to the bottom if present */
-    function scrollChat(container) {
-        if (!container) {
-            return;
-        }
-        const thread = container.querySelector('.chat-thread');
-        if (thread) {
-            thread.scrollTop = thread.scrollHeight;
-        }
-    }
-
     /** Update the scheduler export button so it mirrors the current filters */
     function updateSchedulerExport(scope) {
         const btn = scope.querySelector ? scope.querySelector('#export-csv-btn') : document.getElementById('export-csv-btn');
@@ -116,10 +105,7 @@
         }
 
         updateSchedulerExport(container);
-
-        if (container.id === 'chat-messages') {
-            scrollChat(container);
-        }
+        setupAutoRefresh(container);
     }
 
     /** Refresh a partial container with new markup retrieved over AJAX */
@@ -148,6 +134,43 @@
         } catch (error) {
             showFlash('error', 'Failed to refresh content. Please try again.');
         }
+    }
+
+    /** Register periodic refresh behaviour for containers that opt in */
+    function setupAutoRefresh(scope = document) {
+        const containers = [];
+
+        if (scope instanceof Element && scope.matches('[data-auto-refresh]')) {
+            containers.push(scope);
+        }
+
+        if (scope.querySelectorAll) {
+            scope.querySelectorAll('[data-auto-refresh]').forEach((el) => containers.push(el));
+        }
+
+        containers.forEach((container) => {
+            if (!container.id || container.dataset.autoRefreshHandle) {
+                return;
+            }
+
+            const interval = parseInt(container.dataset.autoRefresh, 10);
+            if (!Number.isFinite(interval) || interval <= 0) {
+                return;
+            }
+
+            const refreshUrl = container.dataset.partialUrl || container.dataset.autoRefreshUrl || window.location.pathname;
+            const useLocationSearch = container.dataset.partialFollowsLocation === 'true';
+
+            const tick = () => {
+                refreshPartial(refreshUrl, `#${container.id}`, {
+                    sourceElement: container,
+                    useLocationSearch
+                });
+            };
+
+            const handle = window.setInterval(tick, interval);
+            container.dataset.autoRefreshHandle = String(handle);
+        });
     }
 
     /** Submit a form as multipart/form-data over fetch and process the JSON reply */
@@ -332,6 +355,6 @@
     // Apply initial enhancements once the DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
         updateSchedulerExport(document);
-        scrollChat(document.getElementById('chat-messages'));
+        setupAutoRefresh();
     });
 })();

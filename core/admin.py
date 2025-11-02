@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.http import HttpRequest
 from typing import Any, Iterable
-from .models import InviteCode, Room, RoomMembership, Message, AuditLog, ScheduleEntry, Classroom, Subject, Course
+from .models import InviteCode, AuditLog, ScheduleEntry, Classroom, Subject, Course
 from .middleware import log_admin_action
 
 class AuditedModelAdmin(admin.ModelAdmin):
@@ -71,33 +71,6 @@ class InviteCodeAdmin(AuditedModelAdmin):
 
         super().save_model(request, obj, form, change)
 
-class RoomAdmin(AuditedModelAdmin):
-
-    list_display = ("name", "is_private", "creator", "creation_date")
-    list_filter = ("is_private", "creation_date")
-    search_fields = ("name", "creator__username")
-    readonly_fields = ("creator", "creation_date")
-
-class RoomMembershipAdmin(AuditedModelAdmin):
-
-    list_display = ("room", "user", "join_date")
-    list_filter = ("join_date", "room")
-    search_fields = ("room__name", "user__username")
-    readonly_fields = ("join_date",)
-
-class MessageAdmin(AuditedModelAdmin):
-
-    list_display = ("room", "author", "body_preview", "is_announcement", "is_pinned", "creation_date", "edit_date")
-    list_filter = ("is_announcement", "is_pinned", "creation_date", "room")
-    search_fields = ("author__username", "body", "room__name")
-    readonly_fields = ("creation_date", "edit_date")
-
-    def body_preview(self, obj: Message) -> str:
-
-        return obj.body[:50] + ("..." if len(obj.body) > 50 else "")
-
-    body_preview.short_description = "Message Preview"
-
 class ScheduleEntryAdmin(AuditedModelAdmin):
 
     list_display = ("date", "start_time", "end_time", "teacher", "classroom", "subject", "course", "created_by")
@@ -145,9 +118,6 @@ class AuditLogAdmin(admin.ModelAdmin):
         return False
 
 admin.site.register(InviteCode, InviteCodeAdmin)
-admin.site.register(Room, RoomAdmin)
-admin.site.register(RoomMembership, RoomMembershipAdmin)
-admin.site.register(Message, MessageAdmin)
 admin.site.register(ScheduleEntry, ScheduleEntryAdmin)
 admin.site.register(AuditLog, AuditLogAdmin)
 admin.site.register(Classroom)
