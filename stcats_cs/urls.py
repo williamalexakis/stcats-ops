@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from core.views import (
     home, healthcheck, members, chat,
     admin_dashboard, admin_invites,
@@ -10,7 +10,7 @@ from core.views import (
     create_schedule_entry, edit_schedule_entry,
     delete_schedule_entry, export_schedule_csv
 )
-from core.views_auth import signup, logout_view
+from core.views_auth import signup, logout_view, complete_sso_signup, legacy_signup
 from core.views_announce import announcement_list
 from core.views_scheduler_config import (
     admin_scheduler_config, add_classroom, delete_classroom,
@@ -20,10 +20,13 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("auth/", include("social_django.urls", namespace="social")),
     path("", home, name="home"),
     path("login/", auth_views.LoginView.as_view(template_name="core/login.html"), name="login"),
     path("logout/", logout_view, name="logout"),
     path("signup/", signup, name="signup"),
+    path("signup/legacy/", legacy_signup, name="legacy_signup"),
+    path("signup/complete/", complete_sso_signup, name="complete_sso_signup"),
     path("chat/", chat, name="chat"),
     path("chat/message/<int:message_id>/edit/", edit_message, name="edit_message"),
     path("chat/message/<int:message_id>/delete/", delete_message, name="delete_message"),

@@ -4,34 +4,63 @@
 
 {% block content %}
 
-<div class="card auth-card">
-    <div class="auth-card__header">
-        <i class="fa-solid fa-arrow-right-to-bracket auth-card__icon"></i>
+{% if request.GET.legacy %}
+    <div class="card auth-card">
+        <div class="auth-card__header">
+            <i class="fa-solid fa-arrow-right-to-bracket auth-card__icon"></i>
+            <i class="fa-solid fa-key auth-card__icon" style="margin-left: 0.4rem;"></i>
 
-        <h2 class="auth-card__title">Login</h2>
+            <h2 class="auth-card__title">Legacy Login</h2>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <button type="submit" class="auth-card__submit">
+                <i class="fa-solid fa-arrow-right-to-bracket auth-card__submit-icon"></i>
+                Login
+            </button>
+        </form>
+
+        <div class="auth-card__footer">
+            <p class="auth-card__footer-text">
+                Don't have an account?
+                <a href="{% url 'signup' %}" class="auth-card__footer-link">Signup here</a>
+            </p>
+        </div>
     </div>
+{% else %}
+    <div class="card auth-card">
+        <div class="auth-card__header">
+            <i class="fa-solid fa-arrow-right-to-bracket auth-card__icon"></i>
 
-    <form method="post">
+            <h2 class="auth-card__title">Choose Login Method</h2>
+        </div>
 
-        {% csrf_token %}
-        {{ form.as_p }}
-
-        <button type="submit" class="auth-card__submit">
+        {% with request.GET.next as redirect_target %}
+        <a href="{% url 'social:begin' 'azuread-oauth2' %}{% if redirect_target %}?next={{ redirect_target|urlencode }}{% endif %}" class="btn btn-secondary auth-card__submit">
             <i class="fa-solid fa-arrow-right-to-bracket auth-card__submit-icon"></i>
+            <i class="fa-brands fa-microsoft auth-card__submit-icon" style="margin-left: 0.2rem;"></i>
+            Microsoft Login
+        </a>
+        {% endwith %}
 
-            Login
+        <p class="auth-card__footer-text" style="text-align: center;"><strong>or</strong></p>
 
-        </button>
-    </form>
+        <a href="{% url 'login' %}?legacy=1{% if request.GET.next %}&next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-secondary auth-card__submit">
+            <i class="fa-solid fa-arrow-right-to-bracket auth-card__submit-icon"></i>
+            <i class="fa-solid fa-key auth-card__submit-icon" style="margin-left: 0.2rem;"></i>
+            Legacy Login
+        </a>
 
-    <div class="auth-card__footer">
-        <p class="auth-card__footer-text">
-
-            Don't have an account?
-
-            <a href="{% url 'signup' %}" class="auth-card__footer-link">Signup here</a>
-        </p>
+        <div class="auth-card__footer">
+            <p class="auth-card__footer-text">
+                Don't have an account?
+                <a href="{% url 'signup' %}" class="auth-card__footer-link">Signup here</a>
+            </p>
+        </div>
     </div>
-</div>
+{% endif %}
 
 {% endblock %}

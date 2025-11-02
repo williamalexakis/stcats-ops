@@ -13,7 +13,9 @@ TEMPLATES = [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages"
+                "django.contrib.messages.context_processors.messages",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect"
             ]
         }
     }
@@ -55,6 +57,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "social_django",
     "core"
 ]
 
@@ -115,3 +118,35 @@ SESSION_COOKIE_SAMESITE = env("SESSION_COOKIE_SAMESITE", default="Strict")
 CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=_SECURE_DEFAULT)
 CSRF_COOKIE_HTTPONLY = env.bool("CSRF_COOKIE_HTTPONLY", default=True)
 CSRF_COOKIE_SAMESITE = env("CSRF_COOKIE_SAMESITE", default="Strict")
+
+AUTHENTICATION_BACKENDS = [
+    "social_core.backends.azuread.AzureADOAuth2",
+    "django.contrib.auth.backends.ModelBackend"
+]
+
+SOCIAL_AUTH_URL_NAMESPACE = "social"
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = env.bool("SOCIAL_AUTH_REDIRECT_IS_HTTPS", default=not DEBUG)
+SOCIAL_AUTH_AZUREAD_OAUTH2_KEY = env("SOCIAL_AUTH_AZUREAD_OAUTH2_KEY", default="")
+SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET = env("SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET", default="")
+SOCIAL_AUTH_AZUREAD_OAUTH2_TENANT_ID = env("SOCIAL_AUTH_AZUREAD_OAUTH2_TENANT_ID", default="")
+SOCIAL_AUTH_AZUREAD_OAUTH2_RESOURCE = env(
+    "SOCIAL_AUTH_AZUREAD_OAUTH2_RESOURCE",
+    default="https://graph.microsoft.com/"
+)
+SOCIAL_AUTH_AZUREAD_OAUTH2_SCOPE = ["openid", "profile", "email", "User.Read"]
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = LOGIN_REDIRECT_URL
+SOCIAL_AUTH_LOGIN_ERROR_URL = LOGIN_URL
+SOCIAL_AUTH_PROTECTED_USER_FIELDS = ["username"]
+SOCIAL_AUTH_AZUREAD_OAUTH2_AUTH_EXTRA_ARGUMENTS = {"prompt": "select_account"}
+
+SOCIAL_AUTH_PIPELINE = (
+    "social_core.pipeline.social_auth.social_details",
+    "social_core.pipeline.social_auth.social_uid",
+    "social_core.pipeline.social_auth.auth_allowed",
+    "social_core.pipeline.social_auth.social_user",
+    "core.auth_pipeline.require_invite",
+    "core.auth_pipeline.create_user_from_microsoft",
+    "social_core.pipeline.social_auth.associate_user",
+    "social_core.pipeline.social_auth.load_extra_data",
+    "social_core.pipeline.user.user_details"
+)

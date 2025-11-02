@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Signup - CS Dept Platform{% endblock %}
+
+{% block content %}
+
+<div class="card auth-card">
+    <div class="auth-card__header">
+        <i class="fa-solid fa-circle-check auth-card__icon"></i>
+        <i class="fa-brands fa-microsoft auth-card__icon" style="margin-left: 0.4rem;"></i>
+
+        <h2 class="auth-card__title">Complete Signup</h2>
+    </div>
+
+    <p class="auth-card__footer-text">
+        {% if microsoft_email %}
+            Microsoft account: <strong>{{ microsoft_email }}</strong>
+        {% else %}
+            Confirm your details to finish creating your account.
+        {% endif %}
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="partial_token" value="{{ partial_token }}">
+        {{ form.as_p }}
+
+        <button type="submit" class="auth-card__submit">
+            <i class="fa-solid fa-user-plus auth-card__submit-icon"></i>
+            Finish Signup
+        </button>
+    </form>
+
+    <div class="auth-card__footer">
+        <p class="auth-card__footer-text">
+            Need to start over?
+            <a href="{% url 'signup' %}" class="auth-card__footer-link">Restart signup</a>
+        </p>
+        <p class="auth-card__footer-text">
+            Already have an account?
+            <a href="{% url 'login' %}" class="auth-card__footer-link">Login here</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}

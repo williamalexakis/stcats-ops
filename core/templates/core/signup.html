@@ -8,27 +8,32 @@
     <div class="auth-card__header">
         <i class="fa-solid fa-user-plus auth-card__icon"></i>
 
-        <h2 class="auth-card__title">Create Account</h2>
+        <h2 class="auth-card__title">Choose Signup Method</h2>
     </div>
 
-    <form method="post">
-
-        {% csrf_token %}
-        {{ form.as_p }}
-
-        <button type="submit" class="auth-card__submit">
+    {% if azure_configured %}
+        <a href="{% url 'social:begin' 'azuread-oauth2' %}" class="btn btn-secondary auth-card__submit">
             <i class="fa-solid fa-user-plus auth-card__submit-icon"></i>
+            <i class="fa-brands fa-microsoft auth-card__submit-icon" style="margin-left: 0.2rem;"></i>
+            Microsoft Signup
+        </a>
 
-            Create Account
+        <p class="auth-card__footer-text" style="text-align: center;"><strong>or</strong></p>
 
-        </button>
-    </form>
+        <a href="{{ legacy_signup_url }}" class="btn btn-secondary auth-card__submit">
+            <i class="fa-solid fa-user-plus auth-card__submit-icon"></i>
+            <i class="fa-solid fa-key auth-card__submit-icon" style="margin-left: 0.2rem;"></i>
+            Legacy Signup
+        </a>
+    {% else %}
+        <p class="auth-card__footer-text">
+            Microsoft SSO is not configured. Please contact an administrator to set up the Azure AD credentials.
+        </p>
+    {% endif %}
 
     <div class="auth-card__footer">
         <p class="auth-card__footer-text">
-
             Already have an account?
-
             <a href="{% url 'login' %}" class="auth-card__footer-link">Login here</a>
         </p>
     </div>

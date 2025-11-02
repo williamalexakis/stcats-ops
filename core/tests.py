@@ -3,7 +3,7 @@ from django.contrib.auth.models import AnonymousUser, Group
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
-from core.forms import SignupForm
+from core.forms import SignupForm, SSOSignupForm
 from core.middleware import AuditMiddleware, log_admin_action
 from core.models import (
     AuditLog,
@@ -199,6 +199,62 @@ class SignupFormTests(TestCase):
 
         self.assertEqual(invite.remaining_uses, 1)
         self.assertTrue(user.groups.filter(name="teacher").exists())
+
+class SSOSignupFormTests(TestCase):
+
+    """Test the Microsoft SSO signup helper form."""
+
+    def setUp(self) -> None:
+
+        """Create shared invite and teacher group."""
+
+        self.invite_creator = User.objects.create_user(
+            username="microsoft-inviter",
+            password="Testpass123!"
+        )
+        self.invite = InviteCode.objects.create(
+            code="microsoft-invite",
+            creator=self.invite_creator,
+            remaining_uses=1
+        )
+        Group.objects.create(name="teacher")
+
+    def test_rejects_existing_username(self) -> None:
+
+        """Prevent creating an account when the username already exists."""
+
+        User.objects.create_user(
+            username="existing-user",
+            password="Testpass123!"
+        )
+        form = SSOSignupForm(
+            data={
+                "username": "existing-user",
+                "invite_code": self.invite.code
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("username", form.errors)
+
+    def test_save_creates_unusable_password_user_and_consumes_invite(self) -> None:
+
+        """Create an SSO-backed user and remove invite usage."""
+
+        form = SSOSignupForm(
+            data={
+                "username": "new-sso-user",
+                "invite_code": self.invite.code
+            }
+        )
+        self.assertTrue(form.is_valid())
+
+        user = form.save(email="new-sso-user@example.com", extra_fields={"first_name": "New"})
+
+        self.assertEqual(user.email, "new-sso-user@example.com")
+        self.assertFalse(user.has_usable_password())
+        self.assertTrue(user.groups.filter(name="teacher").exists())
+        self.assertFalse(InviteCode.objects.filter(code=self.invite.code).exists())
 
     def test_save_deletes_invite_when_usage_exhausted(self) -> None:
 

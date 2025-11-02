@@ -20,7 +20,7 @@ An internal web platform that supports management and coordination for the St. C
 - Python 3.11+
 - A database connection string (SQLite or PostgreSQL).
 
-### Setup
+### Site
 
 1. Run the following commands:
     ```sh
@@ -38,6 +38,12 @@ An internal web platform that supports management and coordination for the St. C
     DATABASE_URL=sqlite:///db.sqlite3  # Or e.g. postgres://user:pass@localhost:5432/stcats for PostgreSQL
     ALLOWED_HOSTS=127.0.0.1,localhost
     CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
+    SESSION_COOKIE_SAMESITE=Lax        # Required for Microsoft redirects
+    CSRF_COOKIE_SAMESITE=Lax           # Required for Microsoft redirects
+    SOCIAL_AUTH_AZUREAD_OAUTH2_KEY=...        # Azure AD application (client) ID
+    SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET=...     # Azure AD client secret
+    SOCIAL_AUTH_AZUREAD_OAUTH2_TENANT_ID=...  # Azure AD tenant ID (GUID)
+    SOCIAL_AUTH_REDIRECT_IS_HTTPS=False       # Set True behind HTTPS proxy
     ```
 
 3. Run the following commands:
@@ -48,7 +54,7 @@ An internal web platform that supports management and coordination for the St. C
     python manage.py runserver
     ```
 
-4. Visit <http://127.0.0.1:8000> and log in with your superuser credentials.
+4. Visit <http://127.0.0.1:8000/admin/> and log in with your superuser credentials.
 
 ## Management Commands
 

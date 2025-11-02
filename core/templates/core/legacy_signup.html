@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Legacy Signup - CS Dept Platform{% endblock %}
+
+{% block content %}
+
+<div class="card auth-card">
+    <div class="auth-card__header">
+        <i class="fa-solid fa-user-plus auth-card__icon"></i>
+        <i class="fa-solid fa-key auth-card__icon" style="margin-left: 0.3rem;"></i>
+
+        <h2 class="auth-card__title">Legacy Signup</h2>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit" class="auth-card__submit">
+            <i class="fa-solid fa-user-plus auth-card__submit-icon"></i>
+            Create Account
+        </button>
+    </form>
+
+    <div class="auth-card__footer">
+        <p class="auth-card__footer-text">
+            Already have an account?
+            <a href="{% url 'login' %}" class="auth-card__footer-link">Login here</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}

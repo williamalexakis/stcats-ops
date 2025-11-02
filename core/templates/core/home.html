@@ -186,11 +186,11 @@
                 {% else %}
 
                     <div class="home-panel-empty">
-                        <i class="fa-solid fa-bell-slash"></i>
                         <p>No announcements available.</p>
                     </div>
 
                 {% endif %}
+
             </section>
 
             <section class="card home-panel home-panel--schedule">
@@ -198,7 +198,7 @@
                     <h2 class="home-section-header__title">Your Schedule</h2>
 
                     <a class="home-section-header__link" href="{% url 'scheduler' %}">
-                        Open schedule
+                        View all
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </a>
                 </div>
@@ -233,8 +233,7 @@
                 {% else %}
 
                     <div class="home-panel-empty">
-                        <i class="fa-solid fa-face-smile"></i>
-                        <p>No upcoming sessions. Enjoy the free time!</p>
+                        <p>No sessions available.</p>
                     </div>
 
                 {% endif %}
