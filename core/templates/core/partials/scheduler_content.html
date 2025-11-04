@@ -272,9 +272,21 @@
                         </td>
 
                         <td class="table__cell">
-                            <span class="pill pill--group">
-                                {{ entry.group.display_name }}
-                            </span>
+
+                            {% if entry.group.display_name %}
+
+                                <span class="pill pill--group">
+                                    {{ entry.group.display_name }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="pill pill--group">
+                                    N/A
+                                </span>
+
+                            {% endif %}
+
                         </td>
 
                         {% if is_admin %}
