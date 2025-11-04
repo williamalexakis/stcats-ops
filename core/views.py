@@ -756,6 +756,9 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
             start_time_value = request.POST.get('start_time')
             end_time_value = request.POST.get('end_time')
             scope = request.POST.get('recurrence_scope', 'single')
+            is_recurring_requested = request.POST.get('is_recurring') == 'on'
+            interval_value = request.POST.get('recurrence_interval_days')
+            occurrences_value = request.POST.get('recurrence_total_occurrences')
 
             errors = []
 
@@ -797,6 +800,35 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
                 errors.append("End time must be after the start time.")
 
+            interval_days: Optional[int] = None
+            occurrences: Optional[int] = None
+
+            if is_recurring_requested:
+
+                try:
+
+                    interval_days = int(interval_value) if interval_value is not None else None
+
+                except (TypeError, ValueError):
+
+                    interval_days = None
+
+                if interval_days is None or interval_days <= 0:
+
+                    errors.append("Recurring entries require an interval in days greater than zero.")
+
+                try:
+
+                    occurrences = int(occurrences_value) if occurrences_value is not None else None
+
+                except (TypeError, ValueError):
+
+                    occurrences = None
+
+                if occurrences is None or occurrences < 2:
+
+                    errors.append("Recurring entries must repeat at least twice.")
+
             if errors:
 
                 for message_text in errors:
@@ -812,38 +844,14 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
                 subject = Subject.objects.get(id=subject_id)
                 course = Course.objects.get(id=course_id)
                 group = ClassGroup.objects.get(id=group_id)
+
                 apply_to_series = scope == 'series' and entry.recurrence_group and recurrence_count > 1
+                existing_group = entry.recurrence_group
+                existing_is_recurring = existing_group is not None
 
                 with transaction.atomic():
 
-                    if apply_to_series:
-
-                        original_date = entry.date
-                        date_delta = entry_date - original_date
-                        recurrence_qs = ScheduleEntry.objects.filter(
-                            recurrence_group=entry.recurrence_group
-                        ).order_by("date", "start_time", "id")
-
-                        for series_entry in recurrence_qs:
-
-                            series_entry.teacher = teacher
-                            series_entry.classroom = classroom
-                            series_entry.subject = subject
-                            series_entry.course = course
-                            series_entry.group = group
-                            series_entry.start_time = start_time
-                            series_entry.end_time = end_time
-                            series_entry.date = series_entry.date + date_delta
-                            series_entry.save()
-
-                        ScheduleEntry.update_recurrence_metadata(entry.recurrence_group)
-
-                        flash_messages.success(
-                            request,
-                            f"Schedule series of {recurrence_count} entries successfully updated."
-                        )
-
-                    else:
+                    if not existing_is_recurring and not is_recurring_requested:
 
                         entry.teacher = teacher
                         entry.classroom = classroom
@@ -855,11 +863,198 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
                         entry.end_time = end_time
                         entry.save()
 
-                        if entry.recurrence_group:
-
-                            ScheduleEntry.update_recurrence_metadata(entry.recurrence_group)
-
                         flash_messages.success(request, "Schedule entry successfully updated.")
+
+                    elif not existing_is_recurring and is_recurring_requested:
+
+                        recurrence_group = uuid4()
+
+                        entry.teacher = teacher
+                        entry.classroom = classroom
+                        entry.subject = subject
+                        entry.course = course
+                        entry.group = group
+                        entry.date = entry_date
+                        entry.start_time = start_time
+                        entry.end_time = end_time
+                        entry.recurrence_group = recurrence_group
+                        entry.recurrence_interval_days = interval_days
+                        entry.recurrence_total_occurrences = occurrences
+                        entry.recurrence_index = 1
+                        entry.save()
+
+                        for index in range(1, occurrences):
+
+                            occurrence_date = entry_date + timedelta(days=interval_days * index)
+
+                            ScheduleEntry.objects.create(
+                                teacher=teacher,
+                                classroom=classroom,
+                                subject=subject,
+                                course=course,
+                                group=group,
+                                date=occurrence_date,
+                                start_time=start_time,
+                                end_time=end_time,
+                                created_by=request.user,
+                                recurrence_group=recurrence_group,
+                                recurrence_interval_days=interval_days,
+                                recurrence_total_occurrences=occurrences,
+                                recurrence_index=index + 1
+                            )
+
+                        ScheduleEntry.update_recurrence_metadata(recurrence_group)
+
+                        flash_messages.success(
+                            request,
+                            f"Schedule series of {occurrences} entries created."
+                        )
+
+                    elif existing_is_recurring and not is_recurring_requested:
+
+                        if apply_to_series:
+
+                            series_entries = list(
+                                ScheduleEntry.objects.filter(
+                                    recurrence_group=existing_group
+                                ).order_by("date", "start_time", "id")
+                            )
+
+                            original_date = entry.date
+                            date_delta = entry_date - original_date
+
+                            for series_entry in series_entries:
+
+                                series_entry.teacher = teacher
+                                series_entry.classroom = classroom
+                                series_entry.subject = subject
+                                series_entry.course = course
+                                series_entry.group = group
+                                series_entry.start_time = start_time
+                                series_entry.end_time = end_time
+                                series_entry.date = series_entry.date + date_delta
+                                series_entry.recurrence_group = None
+                                series_entry.recurrence_interval_days = None
+                                series_entry.recurrence_total_occurrences = None
+                                series_entry.recurrence_index = None
+                                series_entry.save()
+
+                            flash_messages.success(
+                                request,
+                                "Recurring series converted to individual entries."
+                            )
+
+                        else:
+
+                            entry.teacher = teacher
+                            entry.classroom = classroom
+                            entry.subject = subject
+                            entry.course = course
+                            entry.group = group
+                            entry.date = entry_date
+                            entry.start_time = start_time
+                            entry.end_time = end_time
+                            entry.recurrence_group = None
+                            entry.recurrence_interval_days = None
+                            entry.recurrence_total_occurrences = None
+                            entry.recurrence_index = None
+                            entry.save()
+
+                            if existing_group:
+
+                                ScheduleEntry.update_recurrence_metadata(existing_group)
+
+                            flash_messages.success(
+                                request,
+                                "Schedule entry detached from recurring series."
+                            )
+
+                    else:
+
+                        if apply_to_series:
+
+                            ScheduleEntry.update_recurrence_metadata(existing_group)
+                            entry.refresh_from_db()
+
+                            series_entries = list(
+                                ScheduleEntry.objects.filter(
+                                    recurrence_group=existing_group
+                                ).order_by("recurrence_index", "date", "start_time", "id")
+                            )
+
+                            current_index = entry.recurrence_index or 1
+                            new_series_start = entry_date - timedelta(days=interval_days * (current_index - 1))
+                            target_dates = [
+                                new_series_start + timedelta(days=interval_days * offset)
+                                for offset in range(occurrences)
+                            ]
+
+                            for index, target_date in enumerate(target_dates):
+
+                                if index < len(series_entries):
+
+                                    series_entry = series_entries[index]
+                                    series_entry.teacher = teacher
+                                    series_entry.classroom = classroom
+                                    series_entry.subject = subject
+                                    series_entry.course = course
+                                    series_entry.group = group
+                                    series_entry.start_time = start_time
+                                    series_entry.end_time = end_time
+                                    series_entry.date = target_date
+                                    series_entry.recurrence_interval_days = interval_days
+                                    series_entry.recurrence_total_occurrences = occurrences
+                                    series_entry.recurrence_index = index + 1
+                                    series_entry.save()
+
+                                else:
+
+                                    ScheduleEntry.objects.create(
+                                        teacher=teacher,
+                                        classroom=classroom,
+                                        subject=subject,
+                                        course=course,
+                                        group=group,
+                                        date=target_date,
+                                        start_time=start_time,
+                                        end_time=end_time,
+                                        created_by=request.user,
+                                        recurrence_group=existing_group,
+                                        recurrence_interval_days=interval_days,
+                                        recurrence_total_occurrences=occurrences,
+                                        recurrence_index=index + 1
+                                    )
+
+                            if len(series_entries) > occurrences:
+
+                                for extra_entry in series_entries[occurrences:]:
+
+                                    extra_entry.delete()
+
+                            ScheduleEntry.update_recurrence_metadata(existing_group)
+
+                            flash_messages.success(
+                                request,
+                                f"Schedule series updated to {occurrences} occurrences."
+                            )
+
+                        else:
+
+                            entry.teacher = teacher
+                            entry.classroom = classroom
+                            entry.subject = subject
+                            entry.course = course
+                            entry.group = group
+                            entry.date = entry_date
+                            entry.start_time = start_time
+                            entry.end_time = end_time
+                            entry.save()
+
+                            if existing_group:
+
+                                ScheduleEntry.update_recurrence_metadata(existing_group)
+
+                            flash_messages.success(request, "Schedule entry successfully updated.")
 
                 return redirect('scheduler')
 

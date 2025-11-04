@@ -175,8 +175,83 @@
             </div>
         </div>
 
+        <div class="mt-16">
+            <label>
+                <input
+                    type="checkbox"
+                    id="is_recurring"
+                    name="is_recurring"
+                    {% if entry.is_recurring %}checked{% endif %}
+                />
+                <span class="recurring-toggle__label">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    Recurring entry
+                </span>
+            </label>
+
+            <p class="text-secondary text-small mt-4">
+                When enabled, additional entries are created on the same day at the interval you choose.
+                {% if has_recurrence_peers %}
+                    Select "All {{ recurrence_count }} entries in this series" below to update the entire sequence.
+                {% endif %}
+            </p>
+        </div>
+
+        {% with entry_is_recurring=entry.is_recurring %}
+            <div
+                class="form-grid-two mt-16 recurrence-fields{% if not entry_is_recurring %} recurrence-fields--hidden{% endif %}"
+                data-recurring-fields
+                {% if entry_is_recurring %}
+                    aria-hidden="false"
+                {% else %}
+                    hidden
+                    aria-hidden="true"
+                {% endif %}
+            >
+                <div>
+                    <label for="recurrence_interval_days" class="field-label">
+                        <i class="fa-solid fa-calendar-week"></i> Repeat every (days)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="recurrence_interval_days"
+                        name="recurrence_interval_days"
+                        min="1"
+                        step="1"
+                        class="select-control"
+                        data-recurring-input
+                        value="{{ entry.recurrence_interval_days|default_if_none:'' }}"
+                        {% if not entry_is_recurring %}disabled{% endif %}
+                    />
+                </div>
+
+                <div>
+                    <label for="recurrence_total_occurrences" class="field-label">
+                        <i class="fa-solid fa-hashtag"></i> Number of occurrences
+                    </label>
+
+                    <input
+                        type="number"
+                        id="recurrence_total_occurrences"
+                        name="recurrence_total_occurrences"
+                        min="2"
+                        step="1"
+                        class="select-control"
+                        data-recurring-input
+                        value="{{ entry.recurrence_total_occurrences|default_if_none:'' }}"
+                        {% if not entry_is_recurring %}disabled{% endif %}
+                    />
+
+                    <p class="text-secondary text-small mt-2">
+                        Includes the first scheduled entry.
+                    </p>
+                </div>
+            </div>
+        {% endwith %}
+
         {% if entry.recurrence_group %}
-            <div class="mt-2 text-small text-secondary">
+            <div class="mt-4 text-small text-secondary">
                 <i class="fa-solid fa-rotate-right"></i>
                 Recurring entry
                 {% if has_recurrence_peers %}

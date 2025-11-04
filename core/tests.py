@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser, Group
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
+from django.urls import reverse
 from core.forms import SignupForm, SSOSignupForm
 from core.middleware import AuditMiddleware, log_admin_action
 from core.models import (
@@ -15,7 +16,7 @@ from core.models import (
     Subject,
 )
 from core.templatetags.core_extras import has_group, is_admin
-from datetime import datetime, time, timedelta
+from datetime import datetime, date, time, timedelta
 import uuid
 from unittest import mock
 
@@ -462,6 +463,219 @@ class ScheduleEntryTests(TestCase):
         self.assertEqual(len(remaining), 2)
         self.assertEqual([entry.recurrence_index for entry in remaining], [1, 2])
         self.assertTrue(all(entry.recurrence_total_occurrences == 2 for entry in remaining))
+
+class EditScheduleEntryViewTests(TestCase):
+
+    """Verify recurring series logic within the edit schedule entry view."""
+
+    def setUp(self) -> None:
+
+        self.admin = User.objects.create_user(
+            username="admin",
+            password="Testpass123!",
+            is_superuser=True
+        )
+        self.teacher = User.objects.create_user(
+            username="teacher",
+            password="Testpass123!"
+        )
+        self.classroom = Classroom.objects.create(
+            name="room-201",
+            display_name="Room 201",
+            created_by=self.admin
+        )
+        self.subject = Subject.objects.create(
+            name="math",
+            display_name="Mathematics",
+            created_by=self.admin
+        )
+        self.course = Course.objects.create(
+            name="algebra",
+            display_name="Algebra",
+            created_by=self.admin
+        )
+        self.group = ClassGroup.objects.create(
+            name="g2",
+            display_name="Group 2",
+            created_by=self.admin
+        )
+        self.client.force_login(self.admin)
+
+    def _base_entry(self, date_value: date, start: time, end: time) -> ScheduleEntry:
+
+        return ScheduleEntry.objects.create(
+            teacher=self.teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=date_value,
+            start_time=start,
+            end_time=end,
+            created_by=self.admin
+        )
+
+    def test_edit_can_convert_single_entry_to_recurring_series(self) -> None:
+
+        entry = self._base_entry(datetime(2024, 1, 1).date(), time(9, 0), time(10, 0))
+
+        response = self.client.post(
+            reverse("edit_schedule_entry", args=[entry.id]),
+            {
+                "teacher": str(self.teacher.id),
+                "classroom": str(self.classroom.id),
+                "subject": str(self.subject.id),
+                "course": str(self.course.id),
+                "group": str(self.group.id),
+                "date": "2024-01-01",
+                "start_time": "09:00",
+                "end_time": "10:00",
+                "is_recurring": "on",
+                "recurrence_interval_days": "7",
+                "recurrence_total_occurrences": "3",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        entry.refresh_from_db()
+        self.assertIsNotNone(entry.recurrence_group)
+        self.assertEqual(entry.recurrence_index, 1)
+        self.assertEqual(entry.recurrence_total_occurrences, 3)
+        self.assertEqual(entry.recurrence_interval_days, 7)
+
+        series_entries = list(
+            ScheduleEntry.objects.filter(
+                recurrence_group=entry.recurrence_group
+            ).order_by("recurrence_index")
+        )
+
+        self.assertEqual(len(series_entries), 3)
+        self.assertEqual(
+            [occurrence.date for occurrence in series_entries],
+            [
+                datetime(2024, 1, 1).date(),
+                datetime(2024, 1, 8).date(),
+                datetime(2024, 1, 15).date(),
+            ],
+        )
+
+    def test_edit_series_updates_recurrence_settings(self) -> None:
+
+        recurrence_group = uuid.uuid4()
+        base_date = datetime(2024, 2, 5).date()
+
+        entries = [
+            ScheduleEntry.objects.create(
+                teacher=self.teacher,
+                classroom=self.classroom,
+                subject=self.subject,
+                course=self.course,
+                group=self.group,
+                date=base_date + timedelta(days=7 * index),
+                start_time=time(9, 0),
+                end_time=time(10, 0),
+                created_by=self.admin,
+                recurrence_group=recurrence_group,
+                recurrence_interval_days=7,
+                recurrence_total_occurrences=3,
+                recurrence_index=index + 1,
+            )
+            for index in range(3)
+        ]
+
+        response = self.client.post(
+            reverse("edit_schedule_entry", args=[entries[0].id]),
+            {
+                "teacher": str(self.teacher.id),
+                "classroom": str(self.classroom.id),
+                "subject": str(self.subject.id),
+                "course": str(self.course.id),
+                "group": str(self.group.id),
+                "date": base_date.strftime("%Y-%m-%d"),
+                "start_time": "09:00",
+                "end_time": "10:00",
+                "is_recurring": "on",
+                "recurrence_interval_days": "14",
+                "recurrence_total_occurrences": "2",
+                "recurrence_scope": "series",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        updated_entries = list(
+            ScheduleEntry.objects.filter(
+                recurrence_group=recurrence_group
+            ).order_by("recurrence_index")
+        )
+
+        self.assertEqual(len(updated_entries), 2)
+        self.assertTrue(all(entry.recurrence_interval_days == 14 for entry in updated_entries))
+        self.assertTrue(all(entry.recurrence_total_occurrences == 2 for entry in updated_entries))
+        self.assertEqual(
+            [entry.date for entry in updated_entries],
+            [
+                base_date,
+                base_date + timedelta(days=14),
+            ],
+        )
+
+    def test_edit_can_detach_single_occurrence_from_series(self) -> None:
+
+        recurrence_group = uuid.uuid4()
+        base_date = datetime(2024, 3, 1).date()
+
+        series = [
+            ScheduleEntry.objects.create(
+                teacher=self.teacher,
+                classroom=self.classroom,
+                subject=self.subject,
+                course=self.course,
+                group=self.group,
+                date=base_date + timedelta(days=7 * index),
+                start_time=time(10, 0),
+                end_time=time(11, 0),
+                created_by=self.admin,
+                recurrence_group=recurrence_group,
+                recurrence_interval_days=7,
+                recurrence_total_occurrences=3,
+                recurrence_index=index + 1,
+            )
+            for index in range(3)
+        ]
+
+        response = self.client.post(
+            reverse("edit_schedule_entry", args=[series[1].id]),
+            {
+                "teacher": str(self.teacher.id),
+                "classroom": str(self.classroom.id),
+                "subject": str(self.subject.id),
+                "course": str(self.course.id),
+                "group": str(self.group.id),
+                "date": (base_date + timedelta(days=7)).strftime("%Y-%m-%d"),
+                "start_time": "10:00",
+                "end_time": "11:00",
+                "recurrence_total_occurrences": "3",
+                "recurrence_interval_days": "7",
+                "recurrence_scope": "single",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        series[1].refresh_from_db()
+        self.assertIsNone(series[1].recurrence_group)
+
+        remaining = list(
+            ScheduleEntry.objects.filter(
+                recurrence_group=recurrence_group
+            ).order_by("recurrence_index")
+        )
+
+        self.assertEqual(len(remaining), 2)
+        self.assertTrue(all(entry.recurrence_total_occurrences == 2 for entry in remaining))
+        self.assertEqual([entry.recurrence_index for entry in remaining], [1, 2])
 
 class AuditLogTests(TestCase):
 
