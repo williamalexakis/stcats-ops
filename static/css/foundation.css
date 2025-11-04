@@ -296,8 +296,6 @@ a:hover {
 }
 
 .card:hover {
-    box-shadow: 0 20px 44px var(--shadow-hover);
-    transform: translateY(-4px);
     border-color: var(--border-hover);
 }
 
