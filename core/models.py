@@ -1,7 +1,9 @@
+import uuid
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-from typing import Optional
+from typing import Optional, List
 
 User = settings.AUTH_USER_MODEL
 
@@ -99,6 +101,27 @@ class Course(models.Model):
 
         return self.display_name
 
+class ClassGroup(models.Model):
+
+    name = models.CharField(max_length=100, unique=True)
+    display_name = models.CharField(max_length=100)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="class_groups_created"
+    )
+    creation_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+
+        ordering = ["name"]
+        verbose_name = "Group"
+        verbose_name_plural = "Groups"
+
+    def __str__(self) -> str:
+
+        return self.display_name
+
 class ScheduleEntryManager(models.Manager):
 
     def cleanup_past_entries(self) -> int:
@@ -140,6 +163,13 @@ class ScheduleEntry(models.Model):
         on_delete=models.PROTECT,
         related_name="schedule_entries"
     )
+    group = models.ForeignKey(
+        ClassGroup,
+        on_delete=models.PROTECT,
+        related_name="schedule_entries",
+        null=True,
+        blank=True
+    )
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -149,6 +179,10 @@ class ScheduleEntry(models.Model):
         related_name="schedule_entries_created"
     )
     creation_date = models.DateTimeField(auto_now_add=True)
+    recurrence_group = models.UUIDField(null=True, blank=True, editable=False)
+    recurrence_interval_days = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    recurrence_total_occurrences = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    recurrence_index = models.PositiveIntegerField(null=True, blank=True, editable=False)
     objects = ScheduleEntryManager()
 
     class Meta:
@@ -158,7 +192,9 @@ class ScheduleEntry(models.Model):
 
     def __str__(self) -> str:
 
-        return f"{self.subject.display_name} - {self.teacher.username} - {self.date} {self.start_time}"
+        group_label = f" - {self.group.display_name}" if self.group else ""
+
+        return f"{self.subject.display_name} - {self.teacher.username}{group_label} - {self.date} {self.start_time}"
 
     @property
     def room(self) -> Optional[str]:
@@ -181,6 +217,48 @@ class ScheduleEntry(models.Model):
         # Check if the current time is within
         # the entry's time range
         return self.start_time <= current_time <= self.end_time
+
+    @property
+    def is_recurring(self) -> bool:
+
+        return self.recurrence_group is not None
+
+    @classmethod
+    def update_recurrence_metadata(cls, recurrence_group: Optional[uuid.UUID]) -> None:
+
+        """Ensure recurrence metadata reflects the current set of entries."""
+
+        if not recurrence_group:
+
+            return
+
+        entries: List["ScheduleEntry"] = list(
+            cls.objects.filter(recurrence_group=recurrence_group).order_by("date", "start_time", "id")
+        )
+
+        total = len(entries)
+
+        if total == 0:
+
+            return
+
+        for index, entry in enumerate(entries, start=1):
+
+            updates = []
+
+            if entry.recurrence_index != index:
+
+                entry.recurrence_index = index
+                updates.append("recurrence_index")
+
+            if entry.recurrence_total_occurrences != total:
+
+                entry.recurrence_total_occurrences = total
+                updates.append("recurrence_total_occurrences")
+
+            if updates:
+
+                entry.save(update_fields=updates)
 
 class AuditLog(models.Model):
 

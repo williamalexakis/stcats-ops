@@ -40,7 +40,7 @@
 
                 {% for classroom in classrooms %}
 
-                    <div class="chip">
+                    <div class="chip chip--group">
                         <span class="tag tag--danger">{{ classroom.name }}</span>
                         <span class="chip__text">{{ classroom.display_name }}</span>
 
@@ -106,7 +106,7 @@
 
                 {% for subject in subjects %}
 
-                    <div class="chip">
+                    <div class="chip chip--group">
                         <span class="tag tag--success">{{ subject.name }}</span>
                         <span class="chip__text">{{ subject.display_name }}</span>
 
@@ -195,9 +195,75 @@
 
             </div>
 
+    {% else %}
+
+        <p class="text-secondary text-small italic">No courses yet.</p>
+
+    {% endif %}
+
+</div>
+
+    <div class="card admin-config-card">
+        <div class="admin-config-card__header">
+            <div class="admin-config-card__heading">
+                <i class="fa-solid fa-people-group icon-group" style="color: var(--member-info-button-fg);"></i>
+
+                <h3>Groups</h3>
+
+                <span class="tag tag--group">{{ groups|length }}</span>
+            </div>
+        </div>
+
+        <form method="post"
+              action="{% url 'add_group' %}"
+              class="admin-config-form"
+              data-ajax="json"
+              data-ajax-refresh="{% url 'admin_scheduler_config' %}?partial=1"
+              data-ajax-target="#admin-scheduler-config-content">
+
+            {% csrf_token %}
+
+            <div class="admin-config-form__fields">
+                <input type="text" name="name" placeholder="Code (e.g., G1)" required class="admin-config-input" />
+                <input type="text" name="display_name" placeholder="Display Name (e.g., Year 12 A)" required class="admin-config-input" />
+                <button type="submit" class="btn-compact">
+                    <i class="fa-solid fa-plus"></i> Add
+                </button>
+            </div>
+        </form>
+
+        {% if groups %}
+
+            <div class="admin-config-chips">
+
+                {% for group in groups %}
+
+                    <div class="chip">
+                        <span class="tag tag--group">{{ group.name }}</span>
+                        <span class="chip__text">{{ group.display_name }}</span>
+
+                        <form method="post"
+                              action="{% url 'delete_group' group.id %}"
+                              style="display:inline"
+                              data-ajax="json"
+                              data-ajax-refresh="{% url 'admin_scheduler_config' %}?partial=1"
+                              data-ajax-target="#admin-scheduler-config-content">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    onclick="return confirm('Delete {{ group.display_name|escapejs }}?');"
+                                    class="action-button action-button--danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
         {% else %}
 
-            <p class="text-secondary text-small italic">No courses yet.</p>
+            <p class="text-secondary text-small italic">No groups yet.</p>
 
         {% endif %}
 

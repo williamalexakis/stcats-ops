@@ -5,7 +5,7 @@ from django.contrib import messages as flash_messages
 from django.db.models import ProtectedError
 from django.views.decorators.http import require_POST
 from typing import Optional
-from .models import Classroom, Subject, Course
+from .models import Classroom, Subject, Course, ClassGroup
 
 FLASH_LEVEL_MAP = {
     "success": flash_messages.success,
@@ -51,11 +51,13 @@ def admin_scheduler_config(request: HttpRequest) -> HttpResponse:
     classrooms = Classroom.objects.all().order_by("name")
     subjects = Subject.objects.all().order_by("name")
     courses = Course.objects.all().order_by("name")
+    groups = ClassGroup.objects.all().order_by("name")
 
     context = {
         "classrooms": classrooms,
         "subjects": subjects,
         "courses": courses,
+        "groups": groups,
     }
 
     if request.GET.get("partial") == "1":
@@ -222,3 +224,56 @@ def delete_course(request: HttpRequest, course_id: int) -> HttpResponse:
         return ajax_or_redirect(request, False, f"Cannot delete '{course.display_name}' because it's being used in one or more existing entries.", "admin_scheduler_config", status_code=409)
 
     return ajax_or_redirect(request, True, f"Course '{course.display_name}' successfully deleted.", "admin_scheduler_config")
+
+@login_required
+@require_POST
+def add_group(request: HttpRequest) -> HttpResponse:
+
+    if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
+
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
+
+    name = request.POST.get("name", "").strip()
+    display_name = request.POST.get("display_name", "").strip()
+
+    if not name or not display_name:
+
+        return ajax_or_redirect(request, False, "Both name and display name are required.", "admin_scheduler_config", status_code=400)
+
+    if ClassGroup.objects.filter(name=name).exists():
+
+        return ajax_or_redirect(request, False, f"Group '{name}' already exists.", "admin_scheduler_config", status_code=400)
+
+    ClassGroup.objects.create(
+        name=name,
+        display_name=display_name,
+        created_by=request.user
+    )
+
+    return ajax_or_redirect(request, True, f"Group '{display_name}' successfully added.", "admin_scheduler_config")
+
+@login_required
+@require_POST
+def delete_group(request: HttpRequest, group_id: int) -> HttpResponse:
+
+    if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
+
+        return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
+
+    try:
+
+        class_group = ClassGroup.objects.get(id=group_id)
+
+    except ClassGroup.DoesNotExist:
+
+        return ajax_or_redirect(request, False, "Group not found.", "admin_scheduler_config", status_code=404)
+
+    try:
+
+        class_group.delete()
+
+    except ProtectedError:
+
+        return ajax_or_redirect(request, False, f"Cannot delete '{class_group.display_name}' because it's being used in one or more existing entries.", "admin_scheduler_config", status_code=409)
+
+    return ajax_or_redirect(request, True, f"Group '{class_group.display_name}' successfully deleted.", "admin_scheduler_config")

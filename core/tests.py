@@ -8,6 +8,7 @@ from core.middleware import AuditMiddleware, log_admin_action
 from core.models import (
     AuditLog,
     Classroom,
+    ClassGroup,
     Course,
     InviteCode,
     ScheduleEntry,
@@ -15,6 +16,7 @@ from core.models import (
 )
 from core.templatetags.core_extras import has_group, is_admin
 from datetime import datetime, time, timedelta
+import uuid
 from unittest import mock
 
 User = get_user_model()
@@ -311,6 +313,11 @@ class ScheduleEntryTests(TestCase):
             display_name="Calculus",
             created_by=self.creator
         )
+        self.group = ClassGroup.objects.create(
+            name="g1",
+            display_name="Group 1",
+            created_by=self.creator
+        )
 
     @mock.patch("django.utils.timezone.now")
     def test_cleanup_past_entries_removes_old_entries(self, mocked_now: mock.Mock) -> None:
@@ -325,6 +332,7 @@ class ScheduleEntryTests(TestCase):
             classroom=self.classroom,
             subject=self.subject,
             course=self.course,
+            group=self.group,
             date=reference.date() - timedelta(days=1),
             start_time=time(8, 0),
             end_time=time(9, 0),
@@ -335,6 +343,7 @@ class ScheduleEntryTests(TestCase):
             classroom=self.classroom,
             subject=self.subject,
             course=self.course,
+            group=self.group,
             date=reference.date(),
             start_time=time(9, 0),
             end_time=time(10, 0),
@@ -345,6 +354,7 @@ class ScheduleEntryTests(TestCase):
             classroom=self.classroom,
             subject=self.subject,
             course=self.course,
+            group=self.group,
             date=reference.date(),
             start_time=time(13, 0),
             end_time=time(14, 0),
@@ -355,6 +365,7 @@ class ScheduleEntryTests(TestCase):
             classroom=self.classroom,
             subject=self.subject,
             course=self.course,
+            group=self.group,
             date=reference.date() + timedelta(days=1),
             start_time=time(9, 0),
             end_time=time(10, 0),
@@ -382,6 +393,7 @@ class ScheduleEntryTests(TestCase):
             classroom=self.classroom,
             subject=self.subject,
             course=self.course,
+            group=self.group,
             date=reference.date(),
             start_time=time(10, 0),
             end_time=time(12, 0),
@@ -404,6 +416,7 @@ class ScheduleEntryTests(TestCase):
             classroom=self.classroom,
             subject=self.subject,
             course=self.course,
+            group=self.group,
             date=timezone.now().date(),
             start_time=time(8, 0),
             end_time=time(9, 0),
@@ -411,6 +424,44 @@ class ScheduleEntryTests(TestCase):
         )
 
         self.assertEqual(entry.room, "room-101")
+
+    def test_update_recurrence_metadata_reindexes_entries(self) -> None:
+
+        """Recalculate recurrence indexes and totals after entries are removed."""
+
+        group_id = uuid.uuid4()
+        base_date = timezone.now().date()
+
+        entries = [
+            ScheduleEntry.objects.create(
+                teacher=self.teacher,
+                classroom=self.classroom,
+                subject=self.subject,
+                course=self.course,
+                group=self.group,
+                date=base_date + timedelta(days=days),
+                start_time=time(8, 0),
+                end_time=time(9, 0),
+                created_by=self.creator,
+                recurrence_group=group_id,
+                recurrence_interval_days=7,
+                recurrence_total_occurrences=3,
+                recurrence_index=index + 1,
+            )
+            for index, days in enumerate([0, 7, 14])
+        ]
+
+        entries[1].delete()
+
+        ScheduleEntry.update_recurrence_metadata(group_id)
+
+        remaining = list(
+            ScheduleEntry.objects.filter(recurrence_group=group_id).order_by("date")
+        )
+
+        self.assertEqual(len(remaining), 2)
+        self.assertEqual([entry.recurrence_index for entry in remaining], [1, 2])
+        self.assertTrue(all(entry.recurrence_total_occurrences == 2 for entry in remaining))
 
 class AuditLogTests(TestCase):
 

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.http import HttpRequest
 from typing import Any, Iterable
-from .models import InviteCode, AuditLog, ScheduleEntry, Classroom, Subject, Course
+from .models import InviteCode, AuditLog, ScheduleEntry, Classroom, Subject, Course, ClassGroup
 from .middleware import log_admin_action
 
 class AuditedModelAdmin(admin.ModelAdmin):
@@ -73,9 +73,9 @@ class InviteCodeAdmin(AuditedModelAdmin):
 
 class ScheduleEntryAdmin(AuditedModelAdmin):
 
-    list_display = ("date", "start_time", "end_time", "teacher", "classroom", "subject", "course", "created_by")
-    list_filter = ("date", "classroom", "subject", "course")
-    search_fields = ("teacher__username", "subject", "course")
+    list_display = ("date", "start_time", "end_time", "teacher", "classroom", "subject", "course", "group", "created_by")
+    list_filter = ("date", "classroom", "subject", "course", "group")
+    search_fields = ("teacher__username", "subject__display_name", "course__display_name", "group__display_name")
     readonly_fields = ("created_by", "creation_date")
 
     def save_model(self, request, obj, form, change):
@@ -123,3 +123,4 @@ admin.site.register(AuditLog, AuditLogAdmin)
 admin.site.register(Classroom)
 admin.site.register(Subject)
 admin.site.register(Course)
+admin.site.register(ClassGroup)

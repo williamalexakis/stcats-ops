@@ -7,10 +7,12 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from datetime import datetime, timedelta, date
-from .models import InviteCode, ScheduleEntry, Classroom, Subject, Course, AuditLog
+from uuid import uuid4, UUID
+from .models import InviteCode, ScheduleEntry, Classroom, Subject, Course, ClassGroup, AuditLog
 from django.core.paginator import Paginator
-from django.db.models import ProtectedError, Sum, Q
-from typing import Optional
+from django.db.models import ProtectedError, Sum, Q, Count
+from django.db import transaction
+from typing import Optional, Dict
 import secrets
 import csv
 
@@ -77,7 +79,7 @@ def home(request: HttpRequest) -> HttpResponse:
                 teacher=request.user
             ).filter(
                 Q(date__gt=today) | Q(date=today, end_time__gte=current_time)
-            ).select_related("classroom", "subject", "course").order_by("date", "start_time")[:5]
+            ).select_related("classroom", "subject", "course", "group").order_by("date", "start_time")[:5]
         )
 
     if request.GET.get("partial") == "upcoming":
@@ -439,15 +441,16 @@ def scheduler(request: HttpRequest) -> HttpResponse:
     ScheduleEntry.objects.cleanup_past_entries()
 
     # Get all the schedule entries
-    entries_list = ScheduleEntry.objects.all().select_related('teacher', 'created_by', 'classroom', 'subject', 'course')
+    entries_list = ScheduleEntry.objects.all().select_related('teacher', 'created_by', 'classroom', 'subject', 'course', 'group')
 
     # Apply filters
     teacher_filter = request.GET.get('teacher')
     classroom_filter = request.GET.get('classroom')
     subject_filter = request.GET.get('subject')
     course_filter = request.GET.get('course')
+    group_filter = request.GET.get('group')
     date_filter = request.GET.get('date')
-    has_filters = any([teacher_filter, classroom_filter, subject_filter, course_filter, date_filter])
+    has_filters = any([teacher_filter, classroom_filter, subject_filter, course_filter, group_filter, date_filter])
 
     if teacher_filter:
 
@@ -465,6 +468,10 @@ def scheduler(request: HttpRequest) -> HttpResponse:
 
         entries_list = entries_list.filter(course_id=course_filter)
 
+    if group_filter:
+
+        entries_list = entries_list.filter(group_id=group_filter)
+
     if date_filter:
 
         entries_list = entries_list.filter(date=date_filter)
@@ -474,15 +481,32 @@ def scheduler(request: HttpRequest) -> HttpResponse:
     page_number = request.GET.get('page', 1)
     entries = paginator.get_page(page_number)
 
+    recurrence_groups = {
+        entry.recurrence_group
+        for entry in entries
+        if entry.recurrence_group
+    }
+
+    recurrence_counts: Dict[Optional[UUID], int] = {}
+
+    if recurrence_groups:
+
+        for row in ScheduleEntry.objects.filter(recurrence_group__in=recurrence_groups).values("recurrence_group").annotate(total=Count("id")):
+
+            recurrence_counts[row["recurrence_group"]] = row["total"]
+
     for entry in entries:
 
         entry.is_active = entry.is_active_now()  # Flag active entries so templates can highlight them
+        entry.recurrence_series_size = recurrence_counts.get(entry.recurrence_group, 1)
+        entry.has_recurrence_peers = entry.recurrence_group is not None and entry.recurrence_series_size > 1
 
     # Get filter options
     teachers = User.objects.all().order_by('username')
     classrooms = Classroom.objects.all().order_by('name')
     subjects = Subject.objects.all().order_by('name')
     courses = Course.objects.all().order_by('name')
+    groups = ClassGroup.objects.all().order_by('name')
 
     # Num of entries for the title badge thing
     entry_num = len(entries)
@@ -495,10 +519,12 @@ def scheduler(request: HttpRequest) -> HttpResponse:
         'classrooms' : classrooms,
         'subjects' : subjects,
         'courses' : courses,
+        'groups' : groups,
         'teacher_filter' : teacher_filter,
         'classroom_filter' : classroom_filter,
         'subject_filter' : subject_filter,
         'course_filter' : course_filter,
+        'group_filter' : group_filter,
         'date_filter' : date_filter,
         'has_filters' : has_filters,
     }
@@ -527,13 +553,19 @@ def create_schedule_entry(request: HttpRequest) -> HttpResponse:
         classroom_id = request.POST.get('classroom')
         subject_id = request.POST.get('subject')
         course_id = request.POST.get('course')
+        group_id = request.POST.get('group')
         date_value = request.POST.get('date')
         start_time_value = request.POST.get('start_time')
         end_time_value = request.POST.get('end_time')
 
+        is_recurring = request.POST.get('is_recurring') == 'on'
+        interval_value = request.POST.get('recurrence_interval_days')
+        occurrences_value = request.POST.get('recurrence_total_occurrences')
         errors = []
+        interval_days: Optional[int] = None
+        occurrences: Optional[int] = None
 
-        if not all([teacher_id, classroom_id, subject_id, course_id, date_value, start_time_value, end_time_value]):
+        if not all([teacher_id, classroom_id, subject_id, course_id, group_id, date_value, start_time_value, end_time_value]):
 
             errors.append("All fields are required.")
 
@@ -571,6 +603,32 @@ def create_schedule_entry(request: HttpRequest) -> HttpResponse:
 
             errors.append("End time must be after the start time.")
 
+        if is_recurring:
+
+            try:
+
+                interval_days = int(interval_value) if interval_value is not None else None
+
+            except (TypeError, ValueError):
+
+                interval_days = None
+
+            if interval_days is None or interval_days <= 0:
+
+                errors.append("Recurring entries require an interval in days greater than zero.")
+
+            try:
+
+                occurrences = int(occurrences_value) if occurrences_value is not None else None
+
+            except (TypeError, ValueError):
+
+                occurrences = None
+
+            if occurrences is None or occurrences < 2:
+
+                errors.append("Recurring entries must repeat at least twice.")
+
         if errors:
 
             for message_text in errors:
@@ -585,18 +643,55 @@ def create_schedule_entry(request: HttpRequest) -> HttpResponse:
             classroom = Classroom.objects.get(id=classroom_id)
             subject = Subject.objects.get(id=subject_id)
             course = Course.objects.get(id=course_id)
+            group = ClassGroup.objects.get(id=group_id)
 
-            ScheduleEntry.objects.create(
-                teacher=teacher,
-                classroom=classroom,
-                subject=subject,
-                course=course,
-                date=entry_date,
-                start_time=start_time,
-                end_time=end_time,
-                created_by=request.user
-            )
-            flash_messages.success(request, "Schedule entry successfully created.")
+            with transaction.atomic():
+
+                if is_recurring and interval_days and occurrences:
+
+                    recurrence_group = uuid4()
+
+                    for index in range(occurrences):
+
+                        occurrence_date = entry_date + timedelta(days=interval_days * index)
+
+                        ScheduleEntry.objects.create(
+                            teacher=teacher,
+                            classroom=classroom,
+                            subject=subject,
+                            course=course,
+                            group=group,
+                            date=occurrence_date,
+                            start_time=start_time,
+                            end_time=end_time,
+                            created_by=request.user,
+                            recurrence_group=recurrence_group,
+                            recurrence_interval_days=interval_days,
+                            recurrence_total_occurrences=occurrences,
+                            recurrence_index=index + 1
+                        )
+
+                    ScheduleEntry.update_recurrence_metadata(recurrence_group)
+
+                    flash_messages.success(
+                        request,
+                        f"Created {occurrences} recurring schedule entries."
+                    )
+
+                else:
+
+                    ScheduleEntry.objects.create(
+                        teacher=teacher,
+                        classroom=classroom,
+                        subject=subject,
+                        course=course,
+                        group=group,
+                        date=entry_date,
+                        start_time=start_time,
+                        end_time=end_time,
+                        created_by=request.user
+                    )
+                    flash_messages.success(request, "Schedule entry successfully created.")
 
             return redirect('scheduler')
 
@@ -604,7 +699,7 @@ def create_schedule_entry(request: HttpRequest) -> HttpResponse:
 
             flash_messages.error(request, "Selected teacher not found.")
 
-        except (Classroom.DoesNotExist, Subject.DoesNotExist, Course.DoesNotExist):
+        except (Classroom.DoesNotExist, Subject.DoesNotExist, Course.DoesNotExist, ClassGroup.DoesNotExist):
 
             flash_messages.error(request, "Selected item not found.")
 
@@ -617,12 +712,14 @@ def create_schedule_entry(request: HttpRequest) -> HttpResponse:
     classrooms = Classroom.objects.all().order_by('name')
     subjects = Subject.objects.all().order_by('name')
     courses = Course.objects.all().order_by('name')
+    groups = ClassGroup.objects.all().order_by('name')
 
     context = {
         'teachers': teachers,
         'classrooms': classrooms,
         'subjects': subjects,
         'courses': courses,
+        'groups': groups,
     }
 
     return render(request, "core/create_schedule_entry.html", context)
@@ -642,6 +739,11 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
     try:
 
         entry = ScheduleEntry.objects.get(id=entry_id)
+        recurrence_count = 1
+
+        if entry.recurrence_group:
+
+            recurrence_count = ScheduleEntry.objects.filter(recurrence_group=entry.recurrence_group).count()
 
         if request.method == 'POST':
 
@@ -649,9 +751,11 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
             classroom_id = request.POST.get('classroom')
             subject_id = request.POST.get('subject')
             course_id = request.POST.get('course')
+            group_id = request.POST.get('group')
             date_value = request.POST.get('date')
             start_time_value = request.POST.get('start_time')
             end_time_value = request.POST.get('end_time')
+            scope = request.POST.get('recurrence_scope', 'single')
 
             errors = []
 
@@ -677,7 +781,7 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
             start_time = parse_time(start_time_value)
             end_time = parse_time(end_time_value)
 
-            if not all([teacher_id, classroom_id, subject_id, course_id, date_value, start_time_value, end_time_value]):
+            if not all([teacher_id, classroom_id, subject_id, course_id, group_id, date_value, start_time_value, end_time_value]):
 
                 errors.append("All fields are required.")
 
@@ -703,16 +807,59 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
             try:
 
-                entry.teacher = User.objects.get(id=teacher_id)
-                entry.classroom = Classroom.objects.get(id=classroom_id)
-                entry.subject = Subject.objects.get(id=subject_id)
-                entry.course = Course.objects.get(id=course_id)
-                entry.date = entry_date
-                entry.start_time = start_time
-                entry.end_time = end_time
+                teacher = User.objects.get(id=teacher_id)
+                classroom = Classroom.objects.get(id=classroom_id)
+                subject = Subject.objects.get(id=subject_id)
+                course = Course.objects.get(id=course_id)
+                group = ClassGroup.objects.get(id=group_id)
+                apply_to_series = scope == 'series' and entry.recurrence_group and recurrence_count > 1
 
-                entry.save()
-                flash_messages.success(request, "Schedule entry successfully updated.")
+                with transaction.atomic():
+
+                    if apply_to_series:
+
+                        original_date = entry.date
+                        date_delta = entry_date - original_date
+                        recurrence_qs = ScheduleEntry.objects.filter(
+                            recurrence_group=entry.recurrence_group
+                        ).order_by("date", "start_time", "id")
+
+                        for series_entry in recurrence_qs:
+
+                            series_entry.teacher = teacher
+                            series_entry.classroom = classroom
+                            series_entry.subject = subject
+                            series_entry.course = course
+                            series_entry.group = group
+                            series_entry.start_time = start_time
+                            series_entry.end_time = end_time
+                            series_entry.date = series_entry.date + date_delta
+                            series_entry.save()
+
+                        ScheduleEntry.update_recurrence_metadata(entry.recurrence_group)
+
+                        flash_messages.success(
+                            request,
+                            f"Schedule series of {recurrence_count} entries successfully updated."
+                        )
+
+                    else:
+
+                        entry.teacher = teacher
+                        entry.classroom = classroom
+                        entry.subject = subject
+                        entry.course = course
+                        entry.group = group
+                        entry.date = entry_date
+                        entry.start_time = start_time
+                        entry.end_time = end_time
+                        entry.save()
+
+                        if entry.recurrence_group:
+
+                            ScheduleEntry.update_recurrence_metadata(entry.recurrence_group)
+
+                        flash_messages.success(request, "Schedule entry successfully updated.")
 
                 return redirect('scheduler')
 
@@ -720,7 +867,7 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
                 flash_messages.error(request, "Selected teacher not found.")
 
-            except (Classroom.DoesNotExist, Subject.DoesNotExist, Course.DoesNotExist):
+            except (Classroom.DoesNotExist, Subject.DoesNotExist, Course.DoesNotExist, ClassGroup.DoesNotExist):
 
                 flash_messages.error(request, "Selected item not found.")
 
@@ -729,6 +876,7 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
         classrooms = Classroom.objects.all().order_by('name')
         subjects = Subject.objects.all().order_by('name')
         courses = Course.objects.all().order_by('name')
+        groups = ClassGroup.objects.all().order_by('name')
 
         context = {
             'entry' : entry,
@@ -736,6 +884,9 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
             'classrooms': classrooms,
             'subjects': subjects,
             'courses': courses,
+            'groups': groups,
+            'recurrence_count': recurrence_count,
+            'has_recurrence_peers': entry.recurrence_group is not None and recurrence_count > 1,
         }
 
         return render(request, "core/edit_schedule_entry.html", context)
@@ -763,9 +914,34 @@ def delete_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
         return ajax_or_redirect(request, False, "Schedule entry not found.", "scheduler", status_code=404)
 
-    entry.delete()
+    scope = request.POST.get("scope", "single")
+    group_id = entry.recurrence_group
+    recurrence_count = 1
 
-    return ajax_or_redirect(request, True, "Schedule entry successfully deleted.", "scheduler")
+    if group_id:
+
+        recurrence_count = ScheduleEntry.objects.filter(recurrence_group=group_id).count()
+
+    delete_series = scope == "series" and group_id and recurrence_count > 1
+
+    with transaction.atomic():
+
+        if delete_series:
+
+            deleted, _ = ScheduleEntry.objects.filter(recurrence_group=group_id).delete()
+            message = f"Schedule series of {deleted} entries successfully deleted."
+
+        else:
+
+            entry.delete()
+
+            if group_id:
+
+                ScheduleEntry.update_recurrence_metadata(group_id)
+
+            message = "Schedule entry successfully deleted."
+
+    return ajax_or_redirect(request, True, message, "scheduler")
 
 @login_required
 def export_schedule_csv(request: HttpRequest) -> HttpResponse:
@@ -780,9 +956,10 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
     classroom_filter = request.GET.get('classroom')
     subject_filter = request.GET.get('subject')
     course_filter = request.GET.get('course')
+    group_filter = request.GET.get('group')
     date_filter = request.GET.get('date')
     qs = ScheduleEntry.objects.all().select_related(
-        'teacher', 'classroom', 'subject', 'course'
+        'teacher', 'classroom', 'subject', 'course', 'group'
     )
 
     if valid(teacher_filter):
@@ -801,6 +978,10 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
 
         qs = qs.filter(course_id=course_filter)
 
+    if valid(group_filter):
+
+        qs = qs.filter(group_id=group_filter)
+
     if valid(date_filter):
 
         qs = qs.filter(date=date_filter)
@@ -809,7 +990,7 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
     response["Content-Disposition"] = 'attachment; filename=\"schedule.csv\"'
 
     writer = csv.writer(response)
-    writer.writerow(["Date", "Start Time", "End Time", "Teacher", "Classroom", "Subject", "Course"])
+    writer.writerow(["Date", "Start Time", "End Time", "Teacher", "Classroom", "Subject", "Course", "Group"])
 
     for e in qs:
 
@@ -821,6 +1002,7 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
             getattr(e.classroom, "display_name", getattr(e.classroom, "name", "")),
             getattr(e.subject, "display_name", getattr(e.subject, "name", "")),
             getattr(e.course, "display_name", getattr(e.course, "name", "")),
+            getattr(e.group, "display_name", getattr(e.group, "name", "")) if e.group else "",
         ])
 
     return response

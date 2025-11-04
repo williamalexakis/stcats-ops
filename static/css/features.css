@@ -834,6 +834,11 @@
     color: var(--info-text);
 }
 
+.tag--group {
+    background: var(--member-info-button-hover-bg);
+    color: var(--member-info-button-fg);
+}
+
 .action-button {
     display: inline-flex;
     align-items: center;
@@ -1046,6 +1051,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
+}
+
+.recurrence-fields--hidden {
+    display: none !important;
 }
 
 .field-label {
@@ -1295,6 +1304,11 @@
 .pill--info {
     background: var(--info-bg);
     color: var(--info-text);
+}
+
+.pill--group {
+    background: var(--member-info-button-hover-bg);
+    color: var(--member-info-button-fg);
 }
 
 .status-badge {

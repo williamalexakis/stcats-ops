@@ -13,7 +13,8 @@ from core.views import (
 from core.views_auth import signup, logout_view, complete_sso_signup, legacy_signup
 from core.views_scheduler_config import (
     admin_scheduler_config, add_classroom, delete_classroom,
-    add_subject, delete_subject, add_course, delete_course
+    add_subject, delete_subject, add_course, delete_course,
+    add_group, delete_group
 )
 from django.contrib.auth import views as auth_views
 
@@ -47,6 +48,8 @@ urlpatterns = [
     path("panel/scheduler-config/subject/<int:subject_id>/delete/", delete_subject, name="delete_subject"),
     path("panel/scheduler-config/course/add/", add_course, name="add_course"),
     path("panel/scheduler-config/course/<int:course_id>/delete/", delete_course, name="delete_course"),
+    path("panel/scheduler-config/group/add/", add_group, name="add_group"),
+    path("panel/scheduler-config/group/<int:group_id>/delete/", delete_group, name="delete_group"),
     path("panel/audit-logs/", admin_audit_logs, name="admin_audit_logs"),
     path("healthcheck/", healthcheck, name="healthcheck")
 ]

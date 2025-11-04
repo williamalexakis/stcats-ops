@@ -107,6 +107,28 @@
         </div>
 
         <div>
+            <label for="group" class="field-label">
+                <i class="fa-solid fa-people-group icon-group"></i> Group
+            </label>
+
+            <select
+                id="group"
+                name="group"
+                required
+                class="select-control"
+            >
+                <option value="">Select group...</option>
+
+                {% for group in groups %}
+
+                    <option value="{{ group.id }}" {% if entry.group and group.id == entry.group.id %}selected{% endif %}>{{ group.display_name }}</option>
+
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <div>
             <label for="date" class="field-label">
                 <i class="fa-solid fa-calendar-days"></i> Date
             </label>
@@ -153,6 +175,54 @@
             </div>
         </div>
 
+        {% if entry.recurrence_group %}
+            <div class="mt-2 text-small text-secondary">
+                <i class="fa-solid fa-rotate-right"></i>
+                Recurring entry
+                {% if has_recurrence_peers %}
+                    ({{ entry.recurrence_index }} of {{ recurrence_count }})
+                {% endif %}
+                {% if entry.recurrence_interval_days %}
+                    • repeats every {{ entry.recurrence_interval_days }} day{{ entry.recurrence_interval_days|pluralize }}
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if has_recurrence_peers %}
+            <fieldset class="mt-16">
+                <legend class="field-label">
+                    <i class="fa-solid fa-pen-to-square"></i> Apply changes to
+                </legend>
+
+                <div>
+                    <label>
+                        <input
+                            type="radio"
+                            name="recurrence_scope"
+                            value="single"
+                            checked
+                        />
+                        This entry only
+                    </label>
+                </div>
+
+                <div class="mt-2">
+                    <label>
+                        <input
+                            type="radio"
+                            name="recurrence_scope"
+                            value="series"
+                        />
+                        All {{ recurrence_count }} entries in this series
+                    </label>
+                </div>
+
+                <p class="text-secondary text-small mt-2">
+                    Date changes shift each occurrence forward or backward by the same number of days.
+                </p>
+            </fieldset>
+        {% endif %}
+
         <div class="action-buttons">
             <button type="submit" class="chat-submit">
                 <i class="fa-solid fa-check"></i>
@@ -171,4 +241,39 @@
     </form>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('is_recurring');
+        const inputs = document.querySelectorAll('[data-recurring-input]');
+        const container = document.querySelector('[data-recurring-fields]');
+
+        if (!toggle) {
+            return;
+        }
+
+        const applyState = () => {
+            const show = toggle.checked;
+
+            if (container) {
+                container.hidden = !show;
+                container.classList.toggle('recurrence-fields--hidden', !show);
+                container.setAttribute('aria-hidden', String(!show));
+            }
+
+            inputs.forEach((input) => {
+                input.disabled = !show;
+                if (!show) {
+                    input.value = '';
+                }
+            });
+        };
+
+        applyState();
+        toggle.addEventListener('change', applyState);
+    });
+    </script>
 {% endblock %}

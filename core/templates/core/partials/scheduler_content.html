@@ -113,6 +113,27 @@
             </div>
 
             <div class="filter-form__field">
+                <label for="group" class="filter-label">
+                    <i class="fa-solid fa-people-group icon-group"></i> Group
+                </label>
+
+                <select
+                    id="group"
+                    name="group"
+                    class="select-control-sm"
+                    onchange="this.form.requestSubmit()">
+                    <option value="">All Groups</option>
+
+                    {% for group in groups %}
+
+                        <option value="{{ group.id }}" {% if group_filter == group.id|stringformat:"s" %}selected{% endif %}>{{ group.display_name }}</option>
+
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="filter-form__field">
                 <label for="date" class="filter-label">
                     <i class="fa-solid fa-calendar"></i> Date
                 </label>
@@ -167,6 +188,7 @@
                     <th class="table__head-cell">Room</th>
                     <th class="table__head-cell">Subject</th>
                     <th class="table__head-cell">Course</th>
+                    <th class="table__head-cell">Group</th>
 
                     {% if is_admin %}
 
@@ -185,6 +207,16 @@
                             <i class="fa-solid fa-calendar-days icon-teacher icon-leading"></i>
 
                             {{ entry.date|date:"d/m/Y" }}
+
+                            {% if entry.recurrence_group %}
+                                <div class="text-small text-secondary mt-2">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                    Recurring entry
+                                    {% if entry.has_recurrence_peers %}
+                                        ({{ entry.recurrence_index }} of {{ entry.recurrence_series_size }})
+                                    {% endif %}
+                                </div>
+                            {% endif %}
 
                         </td>
 
@@ -239,6 +271,12 @@
                             </span>
                         </td>
 
+                        <td class="table__cell">
+                            <span class="pill pill--group">
+                                {{ entry.group.display_name }}
+                            </span>
+                        </td>
+
                         {% if is_admin %}
 
                             <td class="table__cell text-center">
@@ -256,13 +294,32 @@
                                           data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
                                           data-ajax-target="#scheduler-content">
                                         {% csrf_token %}
+                                        <input type="hidden" name="scope" value="single" />
                                         <button type="submit"
-                                                onclick="return confirm('Delete this schedule entry?');"
+                                                onclick="return confirm('{% if entry.has_recurrence_peers %}Delete only this occurrence?{% else %}Delete this schedule entry?{% endif %}');"
                                                 class="chat-action chat-action--danger"
-                                                title="Delete entry">
+                                                title="{% if entry.has_recurrence_peers %}Delete this occurrence{% else %}Delete entry{% endif %}">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
+
+                                    {% if entry.has_recurrence_peers %}
+                                        <form method="post"
+                                              action="{% url 'delete_schedule_entry' entry.id %}"
+                                              style="display:inline"
+                                              data-ajax="json"
+                                              data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
+                                              data-ajax-target="#scheduler-content">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="scope" value="series" />
+                                            <button type="submit"
+                                                    onclick="return confirm('Delete all entries in this series?');"
+                                                    class="chat-action chat-action--danger"
+                                                    title="Delete entire series">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </td>
 
@@ -282,17 +339,17 @@
 
             {% if entries.has_previous %}
 
-                <a href="?page=1{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}"
+                <a href="?page=1{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
                    class="pagination__button"
                    data-ajax-link="true"
                    data-ajax-target="#scheduler-content">
                     <i class="fa-solid fa-angles-left"></i>
                 </a>
 
-                <a href="?page={{ entries.previous_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}"
+                <a href="?page={{ entries.previous_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
                    class="pagination__button"
                    data-ajax-link="true"
-                   data-ajax-target="#scheduler-content">
+                    data-ajax-target="#scheduler-content">
                     <i class="fa-solid fa-angle-left"></i>
                 </a>
 
@@ -308,7 +365,7 @@
 
                 {% elif num > entries.number|add:'-3' and num < entries.number|add:'3' %}
 
-                    <a href="?page={{ num }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}"
+                    <a href="?page={{ num }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
                        class="pagination__button"
                        data-ajax-link="true"
                        data-ajax-target="#scheduler-content">{{ num }}</a>
@@ -319,14 +376,14 @@
 
             {% if entries.has_next %}
 
-                <a href="?page={{ entries.next_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}"
+                <a href="?page={{ entries.next_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
                    class="pagination__button"
                    data-ajax-link="true"
                    data-ajax-target="#scheduler-content">
                     <i class="fa-solid fa-angle-right"></i>
                 </a>
 
-                <a href="?page={{ entries.paginator.num_pages }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}"
+                <a href="?page={{ entries.paginator.num_pages }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
                    class="pagination__button"
                    data-ajax-link="true"
                    data-ajax-target="#scheduler-content">
