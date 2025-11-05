@@ -8,6 +8,10 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from datetime import datetime, timedelta, date
 from uuid import uuid4, UUID
+from collections import defaultdict
+from urllib.parse import urlencode
+from django.urls import reverse
+import calendar
 from .models import InviteCode, ScheduleEntry, Classroom, Subject, Course, ClassGroup, AuditLog
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError, Sum, Q, Count
@@ -476,14 +480,58 @@ def scheduler(request: HttpRequest) -> HttpResponse:
 
         entries_list = entries_list.filter(date=date_filter)
 
-    # We allow up to 10 entries per page
-    paginator = Paginator(entries_list, 10)
-    page_number = request.GET.get('page', 1)
-    entries = paginator.get_page(page_number)
+    entries_list = entries_list.order_by('date', 'start_time', 'id')
+    total_entries = entries_list.count()
+
+    today = timezone.localdate()
+    fallback_date = today
+
+    if date_filter:
+
+        try:
+
+            fallback_date = datetime.strptime(date_filter, "%Y-%m-%d").date()
+
+        except (TypeError, ValueError):
+
+            fallback_date = today
+
+    show_weekends = request.GET.get('weekends', '0') == '1'
+
+    # Resolve the requested calendar month
+    month_param = request.GET.get('month')
+    year_param = request.GET.get('year')
+
+    try:
+
+        month_value = int(month_param) if month_param else fallback_date.month
+        year_value = int(year_param) if year_param else fallback_date.year
+
+        if month_value < 1 or month_value > 12:
+
+            raise ValueError("Month out of range.")
+
+    except (TypeError, ValueError):
+
+        month_value = fallback_date.month
+        year_value = fallback_date.year
+
+    current_month_start = date(year_value, month_value, 1)
+
+    _, month_days = calendar.monthrange(year_value, month_value)
+    current_month_end = current_month_start + timedelta(days=month_days - 1)
+
+    # Align calendar to start on Monday and end on Sunday
+    calendar_start = current_month_start - timedelta(days=current_month_start.weekday())
+    calendar_end = current_month_end + timedelta(days=(6 - current_month_end.weekday()))
+
+    # Fetch entries required for the rendered window
+    month_entries_qs = entries_list.filter(date__gte=calendar_start, date__lte=calendar_end)
+    month_entries = list(month_entries_qs)
 
     recurrence_groups = {
         entry.recurrence_group
-        for entry in entries
+        for entry in month_entries
         if entry.recurrence_group
     }
 
@@ -495,11 +543,153 @@ def scheduler(request: HttpRequest) -> HttpResponse:
 
             recurrence_counts[row["recurrence_group"]] = row["total"]
 
-    for entry in entries:
+    entries_by_date: Dict[date, list[ScheduleEntry]] = defaultdict(list)
 
-        entry.is_active = entry.is_active_now()  # Flag active entries so templates can highlight them
+    for entry in month_entries:
+
+        entry.is_active = entry.is_active_now()
         entry.recurrence_series_size = recurrence_counts.get(entry.recurrence_group, 1)
         entry.has_recurrence_peers = entry.recurrence_group is not None and entry.recurrence_series_size > 1
+        entries_by_date[entry.date].append(entry)
+
+    # Pre-compute monthly counts for navigation badges
+    monthly_counts = {
+        (row["date__year"], row["date__month"]): row["total"]
+        for row in entries_list.values("date__year", "date__month").annotate(total=Count("id"))
+    }
+
+    def get_month_offset(year: int, month: int, offset: int) -> tuple[int, int]:
+
+        total_months = (year * 12 + (month - 1)) + offset
+        target_year = total_months // 12
+        target_month = (total_months % 12) + 1
+
+        return target_year, target_month
+
+    prev_year, prev_month = get_month_offset(year_value, month_value, -1)
+    next_year, next_month = get_month_offset(year_value, month_value, 1)
+
+    nearby_months = []
+
+    for offset in range(-2, 3):
+
+        badge_year, badge_month = get_month_offset(year_value, month_value, offset)
+        badge_key = (badge_year, badge_month)
+        badge_count = monthly_counts.get(badge_key, 0)
+
+        nearby_months.append({
+            "label": date(badge_year, badge_month, 1).strftime("%b %Y"),
+            "month": badge_month,
+            "year": badge_year,
+            "count": badge_count,
+            "has_entries": badge_count > 0,
+            "is_current": offset == 0,
+            "offset": offset,
+        })
+
+    day_names = []
+
+    for weekday in range(0, 7):
+
+        is_weekend = weekday >= 5
+
+        if not show_weekends and is_weekend:
+
+            continue
+
+        day_names.append({
+            "label": calendar.day_abbr[weekday],
+            "full": calendar.day_name[weekday],
+            "is_weekend": is_weekend,
+        })
+
+    calendar_weeks = []
+    pointer = calendar_start
+
+    while pointer <= calendar_end:
+
+        week_days = []
+
+        for day_index in range(7):
+
+            current_date = pointer + timedelta(days=day_index)
+            day_entries = entries_by_date.get(current_date, [])
+
+            is_weekend = current_date.weekday() >= 5
+
+            if not show_weekends and is_weekend:
+
+                continue
+
+            week_days.append({
+                "date": current_date,
+                "is_current_month": current_date.month == month_value,
+                "is_today": current_date == today,
+                "entries": day_entries,
+                "is_weekend": is_weekend,
+            })
+
+        calendar_weeks.append({
+            "week_number": pointer.isocalendar()[1],
+            "days": week_days,
+        })
+
+        pointer += timedelta(days=7)
+
+    base_query_params = {
+        "teacher": teacher_filter,
+        "classroom": classroom_filter,
+        "subject": subject_filter,
+        "course": course_filter,
+        "group": group_filter,
+        "date": date_filter,
+        "weekends": "1" if show_weekends else None,
+    }
+
+    active_query_params = {key: value for key, value in base_query_params.items() if value}
+
+    def build_query(month: int, year: int, include_partial: bool = False) -> str:
+
+        params = active_query_params.copy()
+        params["month"] = month
+        params["year"] = year
+
+        if include_partial:
+
+            params["partial"] = "1"
+
+        return f"?{urlencode(params)}"
+
+    month_label = current_month_start.strftime("%B %Y")
+    current_month_key = (year_value, month_value)
+    current_month_entry_count = monthly_counts.get(current_month_key, 0)
+
+    export_params = active_query_params.copy()
+    export_params["month"] = month_value
+    export_params["year"] = year_value
+    export_querystring = urlencode(export_params)
+
+    month_param_map = {"month": month_value, "year": year_value}
+
+    if show_weekends:
+
+        month_param_map["weekends"] = "1"
+
+    clear_filters_partial_link = urlencode({**month_param_map, "partial": "1"})
+    clear_filters_link = urlencode(month_param_map)
+
+    weekend_toggle_params = active_query_params.copy()
+
+    if show_weekends:
+
+        weekend_toggle_params.pop("weekends", None)
+
+    else:
+
+        weekend_toggle_params["weekends"] = "1"
+
+    weekend_toggle_query = urlencode({**weekend_toggle_params, "month": month_value, "year": year_value, "partial": "1"})
+    weekend_toggle_plain = urlencode({**weekend_toggle_params, "month": month_value, "year": year_value})
 
     # Get filter options
     teachers = User.objects.all().order_by('username')
@@ -509,10 +699,10 @@ def scheduler(request: HttpRequest) -> HttpResponse:
     groups = ClassGroup.objects.all().order_by('name')
 
     # Num of entries for the title badge thing
-    entry_num = len(entries)
+    entry_num = total_entries
 
     context = {
-        'entries' : entries,
+        'entries': month_entries,
         'entry_num' : entry_num,
         'is_admin' : request.user.is_superuser or request.user.groups.filter(name='admin').exists(),
         'teachers' : teachers,
@@ -527,6 +717,45 @@ def scheduler(request: HttpRequest) -> HttpResponse:
         'group_filter' : group_filter,
         'date_filter' : date_filter,
         'has_filters' : has_filters,
+        'calendar_weeks': calendar_weeks,
+        'day_names': day_names,
+        'month_label': month_label,
+        'current_month': month_value,
+        'current_year': year_value,
+        'month_navigation': {
+            'prev': {
+                'month': prev_month,
+                'year': prev_year,
+                'url': build_query(prev_month, prev_year, include_partial=True),
+                'plain_url': build_query(prev_month, prev_year, include_partial=False),
+                'label': date(prev_year, prev_month, 1).strftime("%b %Y"),
+            },
+            'next': {
+                'month': next_month,
+                'year': next_year,
+                'url': build_query(next_month, next_year, include_partial=True),
+                'plain_url': build_query(next_month, next_year, include_partial=False),
+                'label': date(next_year, next_month, 1).strftime("%b %Y"),
+            },
+        },
+        'month_badges': [
+            {
+                **badge,
+                "url": build_query(badge["month"], badge["year"], include_partial=True),
+                "plain_url": build_query(badge["month"], badge["year"], include_partial=False),
+            }
+            for badge in nearby_months
+        ],
+        'clear_filters_partial_link': f"?{clear_filters_partial_link}",
+        'clear_filters_link': f"?{clear_filters_link}",
+        'export_querystring': export_querystring,
+        'current_month_link': build_query(month_value, year_value, include_partial=True),
+        'current_month_plain_link': build_query(month_value, year_value, include_partial=False),
+        'month_entry_count': current_month_entry_count,
+        'has_any_entries': total_entries > 0,
+        'show_weekends': show_weekends,
+        'weekend_toggle_partial_link': f"?{weekend_toggle_query}",
+        'weekend_toggle_link': f"?{weekend_toggle_plain}",
     }
 
     if request.GET.get("partial") == "1":
@@ -1153,6 +1382,9 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
     course_filter = request.GET.get('course')
     group_filter = request.GET.get('group')
     date_filter = request.GET.get('date')
+    month_param = request.GET.get('month')
+    year_param = request.GET.get('year')
+
     qs = ScheduleEntry.objects.all().select_related(
         'teacher', 'classroom', 'subject', 'course', 'group'
     )
@@ -1181,23 +1413,111 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
 
         qs = qs.filter(date=date_filter)
 
+    today = timezone.localdate()
+    fallback_date = today
+
+    if valid(date_filter):
+
+        try:
+
+            fallback_date = datetime.strptime(date_filter, "%Y-%m-%d").date()
+
+        except (TypeError, ValueError):
+
+            fallback_date = today
+
+    try:
+
+        month_value = int(month_param) if month_param else fallback_date.month
+        year_value = int(year_param) if year_param else fallback_date.year
+
+        if month_value < 1 or month_value > 12:
+
+            raise ValueError("month out of range")
+
+    except (TypeError, ValueError):
+
+        month_value = fallback_date.month
+        year_value = fallback_date.year
+
+    month_start = date(year_value, month_value, 1)
+    _, month_days = calendar.monthrange(year_value, month_value)
+    month_end = month_start + timedelta(days=month_days - 1)
+
+    calendar_start = month_start - timedelta(days=month_start.weekday())
+    calendar_end = month_end + timedelta(days=(6 - month_end.weekday()))
+
+    qs = qs.filter(date__gte=calendar_start, date__lte=calendar_end).order_by('date', 'start_time', 'id')
+
+    show_weekends = request.GET.get('weekends', '0') == '1'
+
+    if not show_weekends:
+
+        qs = qs.exclude(date__week_day__in=[1, 7])
+
+    if not qs.exists():
+
+        flash_messages.warning(request, "No schedule entries available to export for the selected month.")
+
+        redirect_url = reverse('scheduler')
+
+        if request.GET:
+
+            redirect_url = f"{redirect_url}?{request.GET.urlencode()}"
+
+        return redirect(redirect_url)
+
     response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename=\"schedule.csv\"'
+    filename = f"schedule_{year_value:04d}-{month_value:02d}.csv"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
     writer = csv.writer(response)
-    writer.writerow(["Date", "Start Time", "End Time", "Teacher", "Classroom", "Subject", "Course", "Group"])
+    writer.writerow([
+        "Week",
+        "Date",
+        "Day",
+        "Start Time",
+        "End Time",
+        "Subject",
+        "Course",
+        "Teacher",
+        "Classroom",
+        "Group",
+        "Recurring Series",
+        "Interval (days)",
+    ])
 
     for e in qs:
 
+        classroom_name = getattr(e.classroom, "display_name", getattr(e.classroom, "name", ""))
+        subject_name = getattr(e.subject, "display_name", getattr(e.subject, "name", ""))
+        course_name = getattr(e.course, "display_name", getattr(e.course, "name", ""))
+        group_name = getattr(e.group, "display_name", getattr(e.group, "name", "")) if e.group else ""
+
+        recurrence_label = ""
+        interval_label = ""
+
+        if e.recurrence_group and e.recurrence_total_occurrences:
+
+            recurrence_label = f"{e.recurrence_index} of {e.recurrence_total_occurrences}"
+
+        if e.recurrence_interval_days:
+
+            interval_label = str(e.recurrence_interval_days)
+
         writer.writerow([
+            e.date.isocalendar()[1],
             e.date.strftime("%Y-%m-%d"),
+            e.date.strftime("%A"),
             e.start_time.strftime("%H:%M"),
             e.end_time.strftime("%H:%M"),
+            subject_name,
+            course_name,
             e.teacher.username,
-            getattr(e.classroom, "display_name", getattr(e.classroom, "name", "")),
-            getattr(e.subject, "display_name", getattr(e.subject, "name", "")),
-            getattr(e.course, "display_name", getattr(e.course, "name", "")),
-            getattr(e.group, "display_name", getattr(e.group, "name", "")) if e.group else "",
+            classroom_name,
+            group_name,
+            recurrence_label,
+            interval_label,
         ])
 
     return response

@@ -28,6 +28,8 @@
 
     <div class="card card--compact mb-16">
         <form method="get" class="filter-form" data-ajax="partial" data-ajax-target="#scheduler-content">
+            <input type="hidden" name="month" value="{{ current_month }}">
+            <input type="hidden" name="year" value="{{ current_year }}">
             <div class="filter-form__field">
                 <label for="teacher" class="filter-label">
                     <i class="fa-solid fa-chalkboard-user"></i> Teacher
@@ -151,7 +153,7 @@
 
                 {% if has_filters %}
 
-                <a href="{% url 'scheduler' %}"
+                <a href="{% url 'scheduler' %}{{ clear_filters_partial_link }}"
                    class="btn-outline-sm"
                    data-ajax-link="true"
                    data-ajax-target="#scheduler-content">
@@ -164,7 +166,7 @@
                 {% endif %}
 
                 <a id="export-csv-btn"
-                   href="{% url 'export_schedule_csv' %}"
+                   href="{% url 'export_schedule_csv' %}?{{ export_querystring }}"
                    class="btn-success">
                     <i class="fa-solid fa-file-csv"></i>
 
@@ -176,241 +178,188 @@
     </div>
 </div>
 
-{% if entries %}
+{% if has_any_entries %}
 
-    <div class="card card--table">
-        <table class="table">
-            <thead>
-                <tr class="table__head-row">
-                    <th class="table__head-cell">Date</th>
-                    <th class="table__head-cell">Time</th>
-                    <th class="table__head-cell">Teacher</th>
-                    <th class="table__head-cell">Room</th>
-                    <th class="table__head-cell">Subject</th>
-                    <th class="table__head-cell">Course</th>
-                    <th class="table__head-cell">Group</th>
-
-                    {% if is_admin %}
-
-                        <th class="table__head-cell text-center">Actions</th>
-
-                    {% endif %}
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% for entry in entries %}
-
-                    <tr class="table__row {% if entry.is_active %}table__row--active{% endif %}">
-                        <td class="table__cell">
-                            <i class="fa-solid fa-calendar-days icon-teacher icon-leading"></i>
-
-                            {{ entry.date|date:"d/m/Y" }}
-
-                            {% if entry.recurrence_group %}
-                                <div class="text-small text-secondary mt-2">
-                                    <i class="fa-solid fa-rotate-right"></i>
-                                    Recurring entry
-                                    {% if entry.has_recurrence_peers %}
-                                        ({{ entry.recurrence_index }} of {{ entry.recurrence_series_size }})
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-
-                        </td>
-
-                        <td class="table__cell">
-                            <div class="time-cell">
-                                <span>
-                                    <i class="fa-solid fa-clock icon-teacher icon-leading"></i>
-
-                                    {{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}
-
-                                </span>
-
-                                {% if entry.is_active %}
-
-                                    <span class="status-badge">
-                                        <i class="fa-solid fa-circle status-badge__dot"></i>
-
-                                        Active
-
-                                    </span>
-
-                                {% endif %}
-
-                            </div>
-                        </td>
-
-                        <td class="table__cell">
-                            <div class="table-person">
-                                <div class="avatar {% if entry.teacher|is_admin %}avatar--admin{% else %}avatar--default{% endif %}">
-                                    {{ entry.teacher.username|first|upper }}
-                                </div>
-
-                                <span class="font-medium">{{ entry.teacher.username }}</span>
-                            </div>
-                        </td>
-
-                        <td class="table__cell">
-                            <span class="pill pill--danger">
-                                {{ entry.classroom.name }}
-                            </span>
-                        </td>
-
-                        <td class="table__cell">
-                            <span class="pill pill--success">
-                                {{ entry.subject.display_name }}
-                            </span>
-                        </td>
-
-                        <td class="table__cell">
-                            <span class="pill pill--info">
-                                {{ entry.course.display_name }}
-                            </span>
-                        </td>
-
-                        <td class="table__cell">
-
-                            {% if entry.group.display_name %}
-
-                                <span class="pill pill--group">
-                                    {{ entry.group.display_name }}
-                                </span>
-
-                            {% else %}
-
-                                <span class="pill pill--group">
-                                    N/A
-                                </span>
-
-                            {% endif %}
-
-                        </td>
-
-                        {% if is_admin %}
-
-                            <td class="table__cell text-center">
-                                <div class="action-links">
-                                    <a href="{% url 'edit_schedule_entry' entry.id %}"
-                                       class="chat-action chat-action--muted"
-                                       title="Edit entry">
-                                        <i class="fa-solid fa-pen"></i>
-                                    </a>
-
-                                    <form method="post"
-                                          action="{% url 'delete_schedule_entry' entry.id %}"
-                                          style="display:inline"
-                                          data-ajax="json"
-                                          data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
-                                          data-ajax-target="#scheduler-content">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="scope" value="single" />
-                                        <button type="submit"
-                                                onclick="return confirm('{% if entry.has_recurrence_peers %}Delete only this occurrence?{% else %}Delete this schedule entry?{% endif %}');"
-                                                class="chat-action chat-action--danger"
-                                                title="{% if entry.has_recurrence_peers %}Delete this occurrence{% else %}Delete entry{% endif %}">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
-
-                                    {% if entry.has_recurrence_peers %}
-                                        <form method="post"
-                                              action="{% url 'delete_schedule_entry' entry.id %}"
-                                              style="display:inline"
-                                              data-ajax="json"
-                                              data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
-                                              data-ajax-target="#scheduler-content">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="scope" value="series" />
-                                            <button type="submit"
-                                                    onclick="return confirm('Delete all entries in this series?');"
-                                                    class="chat-action chat-action--danger"
-                                                    title="Delete entire series">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                            </td>
-
-                        {% endif %}
-
-                    </tr>
-
-                {% endfor %}
-
-            </tbody>
-        </table>
-    </div>
-
-    {% if entries.has_other_pages %}
-
-        <div class="pagination">
-
-            {% if entries.has_previous %}
-
-                <a href="?page=1{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
-                   class="pagination__button"
+    {% with day_count=day_names|length %}
+    <div class="card scheduler-calendar{% if not show_weekends %} scheduler-calendar--weekends-hidden{% endif %}"
+         data-day-count="{{ day_count }}">
+        <div class="scheduler-calendar__toolbar">
+            <div class="scheduler-calendar__title-group">
+                <h2 class="scheduler-calendar__title">{{ month_label }}</h2>
+                <span class="scheduler-calendar__count">
+                    {{ month_entry_count }} entr{{ month_entry_count|pluralize:"y,ies" }} in view
+                </span>
+            </div>
+            <div class="month-switcher">
+                <a href="{% url 'scheduler' %}{{ month_navigation.prev.url }}"
+                   class="month-switcher__button"
+                   aria-label="Previous month"
                    data-ajax-link="true"
                    data-ajax-target="#scheduler-content">
-                    <i class="fa-solid fa-angles-left"></i>
+                    <i class="fa-solid fa-chevron-left"></i>
                 </a>
 
-                <a href="?page={{ entries.previous_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
-                   class="pagination__button"
-                   data-ajax-link="true"
-                    data-ajax-target="#scheduler-content">
-                    <i class="fa-solid fa-angle-left"></i>
-                </a>
+                <div class="month-switcher__glimpse">
+                    {% for badge in month_badges %}
+                        <a href="{% url 'scheduler' %}{{ badge.url }}"
+                           class="month-glimpse__badge{% if badge.is_current %} month-glimpse__badge--current{% endif %}{% if badge.has_entries %} month-glimpse__badge--active{% else %} month-glimpse__badge--empty{% endif %}"
+                           data-offset="{{ badge.offset }}"
+                           data-ajax-link="true"
+                           data-ajax-target="#scheduler-content">
+                            <span class="month-glimpse__label">{{ badge.label }}</span>
+                            <span class="month-glimpse__count">{{ badge.count }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
 
-            {% endif %}
-
-            {% for num in entries.paginator.page_range %}
-
-                {% if entries.number == num %}
-
-                    <span class="pagination__button pagination__button--active">
-                        {{ num }}
-                    </span>
-
-                {% elif num > entries.number|add:'-3' and num < entries.number|add:'3' %}
-
-                    <a href="?page={{ num }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
-                       class="pagination__button"
-                       data-ajax-link="true"
-                       data-ajax-target="#scheduler-content">{{ num }}</a>
-
-                {% endif %}
-
-            {% endfor %}
-
-            {% if entries.has_next %}
-
-                <a href="?page={{ entries.next_page_number }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
-                   class="pagination__button"
+                <a href="{% url 'scheduler' %}{{ month_navigation.next.url }}"
+                   class="month-switcher__button"
+                   aria-label="Next month"
                    data-ajax-link="true"
                    data-ajax-target="#scheduler-content">
-                    <i class="fa-solid fa-angle-right"></i>
+                    <i class="fa-solid fa-chevron-right"></i>
                 </a>
-
-                <a href="?page={{ entries.paginator.num_pages }}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if classroom_filter %}&classroom={{ classroom_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if group_filter %}&group={{ group_filter }}{% endif %}"
-                   class="pagination__button"
-                   data-ajax-link="true"
-                   data-ajax-target="#scheduler-content">
-                    <i class="fa-solid fa-angles-right"></i>
-                </a>
-
-            {% endif %}
-
+            </div>
+            <a href="{% url 'scheduler' %}{{ weekend_toggle_partial_link }}"
+               class="btn-outline-sm weekend-toggle"
+               data-ajax-link="true"
+               data-ajax-target="#scheduler-content">
+                <i class="fa-solid {% if show_weekends %}fa-eye-slash{% else %}fa-eye{% endif %}"></i>
+                {% if show_weekends %}Hide weekends{% else %}Show weekends{% endif %}
+            </a>
         </div>
 
-    {% endif %}
+        <div class="scheduler-calendar__grid" data-day-count="{{ day_count }}">
+            <div class="scheduler-calendar__head"
+                 data-day-count="{{ day_count }}"
+                 style="grid-template-columns: 88px repeat({{ day_count }}, minmax(0, 1fr));">
+                <div class="scheduler-calendar__week-label">Week</div>
+                {% for day_name in day_names %}
+                    <div class="scheduler-calendar__day-name{% if day_name.is_weekend %} scheduler-calendar__day-name--weekend{% endif %}" title="{{ day_name.full }}">
+                        {{ day_name.label }}
+                    </div>
+                {% endfor %}
+            </div>
 
-    <div class="pagination__summary">
-        Page {{ entries.number }} of {{ entries.paginator.num_pages }} • {{ entries.paginator.count }} total entries
+            <div class="scheduler-calendar__body">
+                {% for week in calendar_weeks %}
+                    <div class="scheduler-calendar__row"
+                         data-day-count="{{ day_count }}"
+                         style="grid-template-columns: 88px repeat({{ day_count }}, minmax(0, 1fr));">
+                        <div class="scheduler-calendar__week-number">
+                            Week {{ week.week_number }}
+                        </div>
+                        {% for day in week.days %}
+                            <div class="calendar-day{% if not day.is_current_month %} calendar-day--muted{% endif %}{% if day.is_today %} calendar-day--today{% endif %}{% if day.is_weekend %} calendar-day--weekend{% endif %}">
+                                <div class="calendar-day__header">
+                                    <span class="calendar-day__date">{{ day.date.day }}</span>
+                                    <span class="calendar-day__subtitle">{{ day.date|date:"M" }}</span>
+                                </div>
+                                <div class="calendar-day__entries">
+                                    {% for entry in day.entries %}
+                                        <article class="calendar-entry{% if entry.is_active %} calendar-entry--active{% endif %}">
+                                            <div class="calendar-entry__time">
+                                                <i class="fa-solid fa-clock"></i>
+                                                {{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}
+                                            </div>
+
+                                            <div class="calendar-entry__section calendar-entry__section--teacher">
+                                                <span class="calendar-entry__label">Teacher</span>
+                                                <span class="calendar-entry__value calendar-entry__value--teacher">
+                                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                                    {{ entry.teacher.username }}
+                                                </span>
+                                            </div>
+
+                                            <div class="calendar-entry__badges">
+                                                <div class="calendar-entry__badge">
+                                                    <span class="calendar-entry__label">Subject</span>
+                                                    <span class="calendar-entry__badge-value pill pill--success calendar-entry__pill">
+                                                        {{ entry.subject.name }}
+                                                    </span>
+                                                </div>
+                                                <div class="calendar-entry__badge">
+                                                    <span class="calendar-entry__label">Room</span>
+                                                    <span class="calendar-entry__badge-value pill pill--danger calendar-entry__pill">
+                                                        {{ entry.classroom.name }}
+                                                    </span>
+                                                </div>
+                                                <div class="calendar-entry__badge">
+                                                    <span class="calendar-entry__label">Course</span>
+                                                    <span class="calendar-entry__badge-value pill pill--info calendar-entry__pill">
+                                                        {{ entry.course.display_name }}
+                                                    </span>
+                                                </div>
+                                                {% if entry.group %}
+                                                    <div class="calendar-entry__badge">
+                                                        <span class="calendar-entry__label">Group</span>
+                                                        <span class="calendar-entry__badge-value pill pill--group calendar-entry__pill">
+                                                            {{ entry.group.display_name }}
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            {% if entry.has_recurrence_peers %}
+                                                <div class="calendar-entry__section calendar-entry__section--recurrence">
+                                                    <span class="calendar-entry__label">Series</span>
+                                                    <span class="calendar-entry__value calendar-entry__value--meta">
+                                                        <i class="fa-solid fa-rotate-right"></i>
+                                                        Series {{ entry.recurrence_index }} of {{ entry.recurrence_series_size }}
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+
+                                            {% if is_admin %}
+                                                <div class="calendar-entry__actions">
+                                                    <a href="{% url 'edit_schedule_entry' entry.id %}"
+                                                       class="chat-action chat-action--muted"
+                                                       title="Edit entry">
+                                                        <i class="fa-solid fa-pen"></i>
+                                                    </a>
+                                                    <form method="post"
+                                                          action="{% url 'delete_schedule_entry' entry.id %}"
+                                                          data-ajax="json"
+                                                          data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
+                                                          data-ajax-target="#scheduler-content">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="scope" value="single" />
+                                                        <button type="submit"
+                                                                class="chat-action chat-action--danger"
+                                                                onclick="return confirm('{% if entry.has_recurrence_peers %}Delete only this occurrence?{% else %}Delete this schedule entry?{% endif %}');"
+                                                                title="{% if entry.has_recurrence_peers %}Delete this occurrence{% else %}Delete entry{% endif %}">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                    {% if entry.has_recurrence_peers %}
+                                                        <form method="post"
+                                                              action="{% url 'delete_schedule_entry' entry.id %}"
+                                                              data-ajax="json"
+                                                              data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
+                                                              data-ajax-target="#scheduler-content">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="scope" value="series" />
+                                                            <button type="submit"
+                                                                    class="chat-action chat-action--danger"
+                                                                    onclick="return confirm('Delete all entries in this series?');"
+                                                                    title="Delete entire series">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </article>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
+    {% endwith %}
 
 {% else %}
 
@@ -421,7 +370,7 @@
 
             <p class="empty-state__text">No entries match your filters.</p>
 
-            <a href="{% url 'scheduler' %}"
+            <a href="{% url 'scheduler' %}{{ clear_filters_partial_link }}"
                class="btn button-icon"
                data-ajax-link="true"
                data-ajax-target="#scheduler-content">
@@ -433,21 +382,20 @@
 
         {% else %}
 
-            <p class="empty-state__text">No entries available.</p>
+            <p class="empty-state__text">Looks like there are no schedule entries yet.</p>
 
             {% if is_admin %}
 
-                <a href="{% url 'create_schedule_entry' %}" class="btn button-icon mt-16">
+                <a href="{% url 'create_schedule_entry' %}" class="btn button-icon">
                     <i class="fa-solid fa-plus"></i>
 
-                    Add Entry
+                    Create one
 
                 </a>
 
             {% endif %}
 
         {% endif %}
-
     </div>
 
 {% endif %}

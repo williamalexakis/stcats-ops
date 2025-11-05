@@ -19,6 +19,7 @@ from core.templatetags.core_extras import has_group, is_admin
 from datetime import datetime, date, time, timedelta
 import uuid
 from unittest import mock
+import csv
 
 User = get_user_model()
 
@@ -676,6 +677,300 @@ class EditScheduleEntryViewTests(TestCase):
         self.assertEqual(len(remaining), 2)
         self.assertTrue(all(entry.recurrence_total_occurrences == 2 for entry in remaining))
         self.assertEqual([entry.recurrence_index for entry in remaining], [1, 2])
+
+class SchedulerCalendarViewTests(TestCase):
+
+    """Ensure the scheduler view builds the calendar-friendly context."""
+
+    def setUp(self) -> None:
+
+        self.viewer = User.objects.create_user(
+            username="viewer",
+            password="Testpass123!"
+        )
+        self.teacher = User.objects.create_user(
+            username="cal-teacher",
+            password="Testpass123!"
+        )
+        self.classroom = Classroom.objects.create(
+            name="cal-room",
+            display_name="Calendar Room",
+            created_by=self.viewer
+        )
+        self.subject = Subject.objects.create(
+            name="cal-subject",
+            display_name="Calendar Subject",
+            created_by=self.viewer
+        )
+        self.course = Course.objects.create(
+            name="cal-course",
+            display_name="Calendar Course",
+            created_by=self.viewer
+        )
+        self.group = ClassGroup.objects.create(
+            name="cal-group",
+            display_name="Calendar Group",
+            created_by=self.viewer
+        )
+        self.client.force_login(self.viewer)
+
+    def test_scheduler_calendar_includes_entries_for_month(self) -> None:
+
+        target_date = timezone.now().date() + timedelta(days=5)
+        target_month = target_date.month
+        target_year = target_date.year
+
+        ScheduleEntry.objects.create(
+            teacher=self.teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=target_date,
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            created_by=self.viewer
+        )
+
+        response = self.client.get(
+            reverse("scheduler"),
+            {"month": str(target_month), "year": str(target_year)}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        calendar_weeks = response.context["calendar_weeks"]
+        self.assertEqual(len(response.context["day_names"]), 5)
+
+        entry_found = any(
+            day["date"] == target_date and day["entries"]
+            for week in calendar_weeks
+            for day in week["days"]
+        )
+
+        self.assertTrue(entry_found)
+
+        current_badge = next(badge for badge in response.context["month_badges"] if badge["is_current"])
+        self.assertEqual(current_badge["count"], 1)
+
+    def test_scheduler_calendar_handles_empty_state(self) -> None:
+
+        response = self.client.get(reverse("scheduler"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["has_any_entries"])
+
+    def test_scheduler_calendar_shows_weekends_when_requested(self) -> None:
+
+        target_date = timezone.localdate()
+
+        ScheduleEntry.objects.create(
+            teacher=self.teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=target_date,
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            created_by=self.viewer
+        )
+
+        response = self.client.get(
+            reverse("scheduler"),
+            {
+                "month": str(target_date.month),
+                "year": str(target_date.year),
+                "weekends": "1",
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["day_names"]), 7)
+
+class ExportScheduleCsvTests(TestCase):
+
+    """Validate CSV export respects calendar month and applied filters."""
+
+    def setUp(self) -> None:
+
+        self.user = User.objects.create_user(
+            username="calendar-user",
+            password="Testpass123!"
+        )
+        self.teacher = User.objects.create_user(
+            username="csv-teacher",
+            password="Testpass123!"
+        )
+        self.other_teacher = User.objects.create_user(
+            username="csv-other",
+            password="Testpass123!"
+        )
+        self.classroom = Classroom.objects.create(
+            name="csv-room",
+            display_name="CSV Room",
+            created_by=self.user
+        )
+        self.subject = Subject.objects.create(
+            name="csv-subject",
+            display_name="CSV Subject",
+            created_by=self.user
+        )
+        self.course = Course.objects.create(
+            name="csv-course",
+            display_name="CSV Course",
+            created_by=self.user
+        )
+        self.group = ClassGroup.objects.create(
+            name="csv-group",
+            display_name="CSV Group",
+            created_by=self.user
+        )
+
+        self.client.force_login(self.user)
+
+    def test_export_filters_to_visible_month(self) -> None:
+
+        today = timezone.localdate()
+        target_month = today.month
+        target_year = today.year
+        month_start = date(target_year, target_month, 1)
+        calendar_start = month_start - timedelta(days=month_start.weekday())
+
+        primary_entry = ScheduleEntry.objects.create(
+            teacher=self.teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=month_start + timedelta(days=4),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            created_by=self.user,
+            recurrence_group=uuid.uuid4(),
+            recurrence_interval_days=7,
+            recurrence_total_occurrences=3,
+            recurrence_index=1,
+        )
+
+        leading_entry = ScheduleEntry.objects.create(
+            teacher=self.teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=calendar_start,
+            start_time=time(12, 0),
+            end_time=time(13, 0),
+            created_by=self.user
+        )
+
+        weekend_entry = ScheduleEntry.objects.create(
+            teacher=self.teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=month_start + timedelta(days=5),
+            start_time=time(11, 0),
+            end_time=time(12, 0),
+            created_by=self.user
+        )
+
+        ScheduleEntry.objects.create(
+            teacher=self.other_teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=month_start + timedelta(days=10),
+            start_time=time(15, 0),
+            end_time=time(16, 0),
+            created_by=self.user
+        )
+
+        response = self.client.get(
+            reverse("export_schedule_csv"),
+            {
+                "month": str(target_month),
+                "year": str(target_year),
+                "teacher": str(self.teacher.id),
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Disposition"],
+            f'attachment; filename="schedule_{target_year:04d}-{target_month:02d}.csv"'
+        )
+
+        decoded = response.content.decode("utf-8").splitlines()
+        reader = csv.reader(decoded)
+        rows = list(reader)
+
+        self.assertEqual(len(rows), 1 + 2)
+        header = rows[0]
+        self.assertIn("Week", header)
+        self.assertIn("Recurring Series", header)
+
+        exported_dates = {row[1] for row in rows[1:]}
+        self.assertIn(primary_entry.date.strftime("%Y-%m-%d"), exported_dates)
+        self.assertIn(leading_entry.date.strftime("%Y-%m-%d"), exported_dates)
+        self.assertNotIn(weekend_entry.date.strftime("%Y-%m-%d"), exported_dates)
+
+        recurring_row = next(row for row in rows[1:] if row[1] == primary_entry.date.strftime("%Y-%m-%d"))
+        self.assertEqual(recurring_row[10], "1 of 3")
+        self.assertEqual(recurring_row[11], "7")
+
+    def test_export_with_no_entries_redirects_with_message(self) -> None:
+
+        today = timezone.localdate()
+        response = self.client.get(
+            reverse("export_schedule_csv"),
+            {
+                "month": str(today.month),
+                "year": str(today.year),
+            },
+            follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.redirect_chain)
+
+        messages = list(response.context["messages"])
+        self.assertTrue(any("No schedule entries available to export" in message.message for message in messages))
+
+    def test_export_includes_weekends_when_requested(self) -> None:
+
+        today = timezone.localdate()
+        days_until_saturday = (5 - today.weekday()) % 7
+        saturday = today + timedelta(days=days_until_saturday)
+
+        entry = ScheduleEntry.objects.create(
+            teacher=self.teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=saturday,
+            start_time=time(10, 0),
+            end_time=time(11, 0),
+            created_by=self.user
+        )
+
+        response = self.client.get(
+            reverse("export_schedule_csv"),
+            {
+                "month": str(saturday.month),
+                "year": str(saturday.year),
+                "weekends": "1",
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        decoded = response.content.decode("utf-8").splitlines()
+        rows = list(csv.reader(decoded))
+        exported_dates = {row[1] for row in rows[1:]}
+        self.assertIn(entry.date.strftime("%Y-%m-%d"), exported_dates)
 
 class AuditLogTests(TestCase):
 
