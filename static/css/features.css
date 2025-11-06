@@ -1130,64 +1130,36 @@
     border-radius: 999px;
     font-size: 12px;
     text-decoration: none;
-    border: 1px solid rgba(16, 103, 255, 0.12);
+    border: 1px solid transparent;
     background: var(--card-muted);
-    color: var(--text-tertiary, var(--text-secondary));
-    transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
-    animation: month-glimpse-in 0.35s ease;
-}
-
-@keyframes month-glimpse-in {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-.month-glimpse__badge--current {
-    border: 0;
-    background: linear-gradient(135deg, #4a6bff 0%, #5fc2ff 55%, #3a8dff 100%);
-    color: #ffffff;
-    transform: scale(1.08);
-    box-shadow: 0 10px 26px rgba(64, 123, 255, 0.35);
-}
-
-.month-glimpse__badge--current:hover {
-    transform: translateY(-2px) scale(1.12);
-}
-
-.month-glimpse__badge--active {
-    color: rgba(16, 103, 255, 0.8);
-    border-color: rgba(16, 103, 255, 0.26);
-    background: rgba(16, 103, 255, 0.12);
-    box-shadow: 0 2px 12px rgba(16, 103, 255, 0.12);
-}
-
-.month-glimpse__badge--empty {
-    opacity: 0.38;
+    color: var(--text-secondary);
+    transition: border-color 0.2s ease, color 0.2s ease;
 }
 
 .month-glimpse__badge:hover {
     border-color: var(--link-hover);
     color: var(--link-hover);
-    transform: translateY(-2px) scale(1.02);
 }
 
-.month-glimpse__badge[data-offset="-1"],
-.month-glimpse__badge[data-offset="1"] {
-    transform: scale(0.88);
-    opacity: 0.68;
+.month-glimpse__label,
+.month-glimpse__count {
+    color: inherit;
 }
 
-.month-glimpse__badge[data-offset="-2"],
-.month-glimpse__badge[data-offset="2"] {
-    transform: scale(0.8);
-    opacity: 0.48;
+.month-glimpse__count {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.month-glimpse__badge--current {
+    border-color: var(--link-color);
+    color: var(--link-color);
+    background: var(--card-muted);
+}
+
+.month-glimpse__badge--current:hover {
+    color: var(--link-hover);
+    border-color: var(--link-hover);
 }
 
 .scheduler-calendar__grid {

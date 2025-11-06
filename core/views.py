@@ -553,10 +553,11 @@ def scheduler(request: HttpRequest) -> HttpResponse:
         entries_by_date[entry.date].append(entry)
 
     # Pre-compute monthly counts for navigation badges
-    monthly_counts = {
-        (row["date__year"], row["date__month"]): row["total"]
-        for row in entries_list.values("date__year", "date__month").annotate(total=Count("id"))
-    }
+    monthly_counts: Dict[tuple[int, int], int] = defaultdict(int)
+
+    for year_part, month_part in entries_list.values_list("date__year", "date__month"):
+
+        monthly_counts[(year_part, month_part)] += 1
 
     def get_month_offset(year: int, month: int, offset: int) -> tuple[int, int]:
 
@@ -636,6 +637,13 @@ def scheduler(request: HttpRequest) -> HttpResponse:
 
         pointer += timedelta(days=7)
 
+    visible_entry_count = sum(
+        len(day["entries"])
+        for week in calendar_weeks
+        for day in week["days"]
+        if day["is_current_month"]
+    )
+
     base_query_params = {
         "teacher": teacher_filter,
         "classroom": classroom_filter,
@@ -661,8 +669,7 @@ def scheduler(request: HttpRequest) -> HttpResponse:
         return f"?{urlencode(params)}"
 
     month_label = current_month_start.strftime("%B %Y")
-    current_month_key = (year_value, month_value)
-    current_month_entry_count = monthly_counts.get(current_month_key, 0)
+    current_month_entry_count = visible_entry_count
 
     export_params = active_query_params.copy()
     export_params["month"] = month_value

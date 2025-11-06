@@ -202,8 +202,7 @@
                 <div class="month-switcher__glimpse">
                     {% for badge in month_badges %}
                         <a href="{% url 'scheduler' %}{{ badge.url }}"
-                           class="month-glimpse__badge{% if badge.is_current %} month-glimpse__badge--current{% endif %}{% if badge.has_entries %} month-glimpse__badge--active{% else %} month-glimpse__badge--empty{% endif %}"
-                           data-offset="{{ badge.offset }}"
+                           class="month-glimpse__badge{% if badge.is_current %} month-glimpse__badge--current{% endif %}"
                            data-ajax-link="true"
                            data-ajax-target="#scheduler-content">
                             <span class="month-glimpse__label">{{ badge.label }}</span>
