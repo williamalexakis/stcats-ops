@@ -787,6 +787,36 @@ class SchedulerCalendarViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context["day_names"]), 7)
 
+    def test_scheduler_updates_endpoint_detects_changes(self) -> None:
+
+        initial_response = self.client.get(reverse("scheduler"))
+        token = initial_response.context["calendar_state_token"]
+
+        no_change = self.client.get(reverse("scheduler_updates"), {"token": token})
+        self.assertEqual(no_change.status_code, 200)
+        self.assertFalse(no_change.json()["changed"])
+        self.assertEqual(no_change.json()["token"], token)
+
+        target_date = timezone.localdate()
+
+        ScheduleEntry.objects.create(
+            teacher=self.teacher,
+            classroom=self.classroom,
+            subject=self.subject,
+            course=self.course,
+            group=self.group,
+            date=target_date,
+            start_time=time(11, 0),
+            end_time=time(12, 0),
+            created_by=self.viewer
+        )
+
+        updated = self.client.get(reverse("scheduler_updates"), {"token": token})
+        self.assertEqual(updated.status_code, 200)
+        self.assertTrue(updated.json()["changed"])
+        self.assertNotEqual(updated.json()["token"], token)
+        self.assertIn("html", updated.json())
+
 class ExportScheduleCsvTests(TestCase):
 
     """Validate CSV export respects calendar month and applied filters."""
@@ -864,13 +894,16 @@ class ExportScheduleCsvTests(TestCase):
             created_by=self.user
         )
 
+        first_saturday_offset = (5 - month_start.weekday()) % 7
+        weekend_date = month_start + timedelta(days=first_saturday_offset)
+
         weekend_entry = ScheduleEntry.objects.create(
             teacher=self.teacher,
             classroom=self.classroom,
             subject=self.subject,
             course=self.course,
             group=self.group,
-            date=month_start + timedelta(days=5),
+            date=weekend_date,
             start_time=time(11, 0),
             end_time=time(12, 0),
             created_by=self.user

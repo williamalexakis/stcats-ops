@@ -22,8 +22,15 @@
 
             </a>
 
-        {% endif %}
+{% endif %}
 
+</div>
+
+</div>
+
+</div>
+
+</div>
     </div>
 
     <div class="card card--compact mb-16">
@@ -177,6 +184,12 @@
         </form>
     </div>
 </div>
+<div class="scheduler-state"
+     data-state-token="{{ calendar_state_token }}"
+     data-updates-url="{{ scheduler_updates_url }}"
+     hidden></div>
+
+<div class="scheduler-calendar-wrapper">
 
 {% if has_any_entries %}
 
@@ -192,7 +205,7 @@
             </div>
             <div class="month-switcher">
                 <a href="{% url 'scheduler' %}{{ month_navigation.prev.url }}"
-                   class="month-switcher__button"
+                   class="month-switcher__button{% if real_month_direction == 'prev' %} month-switcher__button--hint{% endif %}"
                    aria-label="Previous month"
                    data-ajax-link="true"
                    data-ajax-target="#scheduler-content">
@@ -202,7 +215,7 @@
                 <div class="month-switcher__glimpse">
                     {% for badge in month_badges %}
                         <a href="{% url 'scheduler' %}{{ badge.url }}"
-                           class="month-glimpse__badge{% if badge.is_current %} month-glimpse__badge--current{% endif %}"
+                           class="month-glimpse__badge{% if badge.is_current %} month-glimpse__badge--current{% endif %}{% if badge.is_current_month %} month-glimpse__badge--today{% endif %}"
                            data-ajax-link="true"
                            data-ajax-target="#scheduler-content">
                             <span class="month-glimpse__label">{{ badge.label }}</span>
@@ -212,7 +225,7 @@
                 </div>
 
                 <a href="{% url 'scheduler' %}{{ month_navigation.next.url }}"
-                   class="month-switcher__button"
+                   class="month-switcher__button{% if real_month_direction == 'next' %} month-switcher__button--hint{% endif %}"
                    aria-label="Next month"
                    data-ajax-link="true"
                    data-ajax-target="#scheduler-content">
@@ -262,6 +275,10 @@
                                                 {{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}
                                             </div>
 
+                                            <div class="calendar-entry__title">
+                                                {{ entry.subject.display_name }}
+                                            </div>
+
                                             <div class="calendar-entry__section calendar-entry__section--teacher">
                                                 <span class="calendar-entry__label">Teacher</span>
                                                 <span class="calendar-entry__value calendar-entry__value--teacher">
@@ -273,8 +290,8 @@
                                             <div class="calendar-entry__badges">
                                                 <div class="calendar-entry__badge">
                                                     <span class="calendar-entry__label">Subject</span>
-                                                    <span class="calendar-entry__badge-value pill pill--success calendar-entry__pill">
-                                                        {{ entry.subject.name }}
+                                                    <span class="calendar-entry__badge-value pill pill--subject calendar-entry__pill">
+                                                        {{ entry.subject.display_name }}
                                                     </span>
                                                 </div>
                                                 <div class="calendar-entry__badge">
@@ -398,3 +415,7 @@
     </div>
 
 {% endif %}
+
+</div>
+
+</div>

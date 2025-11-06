@@ -7,7 +7,10 @@
 
 <div id="scheduler-content"
      data-partial-url="{% url 'scheduler' %}"
-     data-partial-follows-location="true">
+     data-partial-follows-location="true"
+     data-state-token="{{ calendar_state_token }}"
+     data-updates-url="{{ scheduler_updates_url }}"
+     data-poll-interval="15000">
     {% include "core/partials/scheduler_content.html" %}
 </div>
 

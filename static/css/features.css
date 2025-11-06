@@ -1162,12 +1162,37 @@
     border-color: var(--link-hover);
 }
 
+.month-glimpse__badge--today {
+    border-color: rgba(16, 103, 255, 0.35);
+}
+
+.month-glimpse__badge--today.month-glimpse__badge--current {
+    border-color: var(--link-color);
+}
+
+.month-switcher__button--hint {
+    border-color: rgba(16, 103, 255, 0.35);
+    box-shadow: 0 0 0 2px rgba(16, 103, 255, 0.12);
+}
+
+.month-switcher__button--hint:hover {
+    border-color: var(--link-hover);
+}
+
 .scheduler-calendar__grid {
     display: flex;
     flex-direction: column;
     gap: 12px;
     overflow-x: auto;
     padding-bottom: 12px;
+}
+
+.scheduler-calendar-wrapper {
+    transition: opacity 0.25s ease;
+}
+
+#scheduler-content.scheduler-content--updating .scheduler-calendar-wrapper {
+    opacity: 0.55;
 }
 
 .scheduler-calendar__head {
@@ -1309,11 +1334,47 @@
     flex-direction: column;
     gap: 12px;
     font-size: 13px;
+    position: relative;
 }
 
 .calendar-entry--active {
     border-color: var(--success-border);
+    border-width: 2px;
     box-shadow: 0 4px 12px rgba(0, 170, 105, 0.25);
+    animation: calendar-entry-pulse 2.2s ease-in-out infinite;
+}
+
+.calendar-entry--active::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 14px;
+    border: 0 solid rgba(0, 170, 105, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    animation: calendar-entry-glow 2.2s ease-in-out infinite;
+}
+
+@keyframes calendar-entry-pulse {
+    0%,
+    100% {
+        border-color: var(--success-border);
+    }
+    50% {
+        border-color: rgba(0, 170, 105, 0.85);
+    }
+}
+
+@keyframes calendar-entry-glow {
+    0%,
+    100% {
+        opacity: 0;
+        border-width: 0;
+    }
+    50% {
+        opacity: 0.55;
+        border-width: 3px;
+    }
 }
 
 .calendar-entry__time {
@@ -1679,6 +1740,11 @@
 .pill--info {
     background: var(--info-bg);
     color: var(--info-text);
+}
+
+.pill--subject {
+    background: var(--badge-subject-bg, var(--link-color));
+    color: var(--badge-subject-fg, var(--text-on-dark, #fff));
 }
 
 .pill--group {

@@ -5,13 +5,15 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages as flash_messages
 from django.contrib.auth.models import Group
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
+from django.template.loader import render_to_string
 from datetime import datetime, timedelta, date
 from uuid import uuid4, UUID
 from collections import defaultdict
 from urllib.parse import urlencode
 from django.urls import reverse
 import calendar
+import hashlib
 from .models import InviteCode, ScheduleEntry, Classroom, Subject, Course, ClassGroup, AuditLog
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError, Sum, Q, Count
@@ -437,12 +439,14 @@ def remove_user(request: HttpRequest, user_id: int) -> HttpResponse:
     return ajax_or_redirect(request, True, f"User '{username}' has been removed.", "members")
 
 @login_required
-def scheduler(request: HttpRequest) -> HttpResponse:
+def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = True) -> dict:
 
-    """List schedule entries with filtering, pagination, and active entry flags."""
+    """Prepare scheduler context data shared between HTML and JSON responses."""
 
-    # Cleanup any expired entries
-    ScheduleEntry.objects.cleanup_past_entries()
+    # Cleanup any expired entries if requested
+    if perform_cleanup:
+
+        ScheduleEntry.objects.cleanup_past_entries()
 
     # Get all the schedule entries
     entries_list = ScheduleEntry.objects.all().select_related('teacher', 'created_by', 'classroom', 'subject', 'course', 'group')
@@ -585,6 +589,7 @@ def scheduler(request: HttpRequest) -> HttpResponse:
             "count": badge_count,
             "has_entries": badge_count > 0,
             "is_current": offset == 0,
+            "is_current_month": (badge_year == today.year and badge_month == today.month),
             "offset": offset,
         })
 
@@ -644,6 +649,30 @@ def scheduler(request: HttpRequest) -> HttpResponse:
         if day["is_current_month"]
     )
 
+    state_basis = [
+        ":".join([
+            str(entry.id),
+            entry.date.isoformat(),
+            entry.start_time.isoformat(),
+            entry.end_time.isoformat(),
+            str(entry.teacher_id),
+            entry.teacher.username,
+            str(entry.classroom_id),
+            entry.classroom.name,
+            str(entry.subject_id),
+            entry.subject.display_name,
+            str(entry.course_id),
+            entry.course.display_name,
+            str(entry.group_id or ""),
+            entry.group.display_name if entry.group else "",
+            str(int(entry.is_active)),
+            str(entry.recurrence_series_size),
+            str(entry.recurrence_index),
+        ])
+        for entry in month_entries
+    ]
+    calendar_state_token = hashlib.sha256("|".join(state_basis).encode("utf-8")).hexdigest() if state_basis else "0"
+
     base_query_params = {
         "teacher": teacher_filter,
         "classroom": classroom_filter,
@@ -697,6 +726,24 @@ def scheduler(request: HttpRequest) -> HttpResponse:
 
     weekend_toggle_query = urlencode({**weekend_toggle_params, "month": month_value, "year": year_value, "partial": "1"})
     weekend_toggle_plain = urlencode({**weekend_toggle_params, "month": month_value, "year": year_value})
+
+    current_index = year_value * 12 + month_value
+    today_index = today.year * 12 + today.month
+    visible_offsets = [badge["offset"] for badge in nearby_months]
+    min_visible = current_index + (min(visible_offsets) if visible_offsets else 0)
+    max_visible = current_index + (max(visible_offsets) if visible_offsets else 0)
+    real_month_visible = any(badge["is_current_month"] for badge in nearby_months)
+    real_month_direction: Optional[str] = None
+
+    if not real_month_visible:
+
+        if today_index < min_visible:
+
+            real_month_direction = "prev"
+
+        elif today_index > max_visible:
+
+            real_month_direction = "next"
 
     # Get filter options
     teachers = User.objects.all().order_by('username')
@@ -763,13 +810,50 @@ def scheduler(request: HttpRequest) -> HttpResponse:
         'show_weekends': show_weekends,
         'weekend_toggle_partial_link': f"?{weekend_toggle_query}",
         'weekend_toggle_link': f"?{weekend_toggle_plain}",
+        'calendar_state_token': calendar_state_token,
+        'scheduler_updates_url': f"{reverse('scheduler_updates')}{build_query(month_value, year_value, include_partial=False)}",
+        'real_month_direction': real_month_direction,
     }
+
+    return context
+
+
+def scheduler(request: HttpRequest) -> HttpResponse:
+
+    """List schedule entries with filtering, pagination, and active entry flags."""
+
+    context = _build_scheduler_context(request)
 
     if request.GET.get("partial") == "1":
 
         return render(request, "core/partials/scheduler_content.html", context)
 
     return render(request, "core/scheduler.html", context)
+
+
+@require_GET
+def scheduler_updates(request: HttpRequest) -> JsonResponse:
+
+    """Return a lightweight JSON payload indicating whether the scheduler changed."""
+
+    client_token = request.GET.get("token")
+    context = _build_scheduler_context(request, perform_cleanup=False)
+    current_token = context.get("calendar_state_token", "0")
+
+    if client_token == current_token:
+
+        return JsonResponse({
+            "changed": False,
+            "token": current_token,
+        })
+
+    html = render_to_string("core/partials/scheduler_content.html", context, request=request)
+
+    return JsonResponse({
+        "changed": True,
+        "token": current_token,
+        "html": html,
+    })
 
 @login_required
 def create_schedule_entry(request: HttpRequest) -> HttpResponse:
@@ -1379,90 +1463,18 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
 
     """Export the filtered schedule entries as a CSV attachment."""
 
-    def valid(val: Optional[str]) -> bool:
+    context = _build_scheduler_context(request, perform_cleanup=False)
+    calendar_weeks = context["calendar_weeks"]
 
-        return val and val != "None"
+    visible_entries: list[ScheduleEntry] = []
 
-    teacher_filter = request.GET.get('teacher')
-    classroom_filter = request.GET.get('classroom')
-    subject_filter = request.GET.get('subject')
-    course_filter = request.GET.get('course')
-    group_filter = request.GET.get('group')
-    date_filter = request.GET.get('date')
-    month_param = request.GET.get('month')
-    year_param = request.GET.get('year')
+    for week in calendar_weeks:
 
-    qs = ScheduleEntry.objects.all().select_related(
-        'teacher', 'classroom', 'subject', 'course', 'group'
-    )
+        for day in week["days"]:
 
-    if valid(teacher_filter):
+            visible_entries.extend(day["entries"])
 
-        qs = qs.filter(teacher_id=teacher_filter)
-
-    if valid(classroom_filter):
-
-        qs = qs.filter(classroom_id=classroom_filter)
-
-    if valid(subject_filter):
-
-        qs = qs.filter(subject_id=subject_filter)
-
-    if valid(course_filter):
-
-        qs = qs.filter(course_id=course_filter)
-
-    if valid(group_filter):
-
-        qs = qs.filter(group_id=group_filter)
-
-    if valid(date_filter):
-
-        qs = qs.filter(date=date_filter)
-
-    today = timezone.localdate()
-    fallback_date = today
-
-    if valid(date_filter):
-
-        try:
-
-            fallback_date = datetime.strptime(date_filter, "%Y-%m-%d").date()
-
-        except (TypeError, ValueError):
-
-            fallback_date = today
-
-    try:
-
-        month_value = int(month_param) if month_param else fallback_date.month
-        year_value = int(year_param) if year_param else fallback_date.year
-
-        if month_value < 1 or month_value > 12:
-
-            raise ValueError("month out of range")
-
-    except (TypeError, ValueError):
-
-        month_value = fallback_date.month
-        year_value = fallback_date.year
-
-    month_start = date(year_value, month_value, 1)
-    _, month_days = calendar.monthrange(year_value, month_value)
-    month_end = month_start + timedelta(days=month_days - 1)
-
-    calendar_start = month_start - timedelta(days=month_start.weekday())
-    calendar_end = month_end + timedelta(days=(6 - month_end.weekday()))
-
-    qs = qs.filter(date__gte=calendar_start, date__lte=calendar_end).order_by('date', 'start_time', 'id')
-
-    show_weekends = request.GET.get('weekends', '0') == '1'
-
-    if not show_weekends:
-
-        qs = qs.exclude(date__week_day__in=[1, 7])
-
-    if not qs.exists():
+    if not visible_entries:
 
         flash_messages.warning(request, "No schedule entries available to export for the selected month.")
 
@@ -1473,6 +1485,9 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
             redirect_url = f"{redirect_url}?{request.GET.urlencode()}"
 
         return redirect(redirect_url)
+
+    month_value = context["current_month"]
+    year_value = context["current_year"]
 
     response = HttpResponse(content_type="text/csv")
     filename = f"schedule_{year_value:04d}-{month_value:02d}.csv"
@@ -1494,7 +1509,7 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
         "Interval (days)",
     ])
 
-    for e in qs:
+    for e in visible_entries:
 
         classroom_name = getattr(e.classroom, "display_name", getattr(e.classroom, "name", ""))
         subject_name = getattr(e.subject, "display_name", getattr(e.subject, "name", ""))

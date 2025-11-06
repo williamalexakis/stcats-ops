@@ -82,6 +82,114 @@
         return response.text();
     }
 
+    /** Sync scheduler metadata from hidden state markers */
+    function hydrateSchedulerState(container) {
+        if (!container || !container.querySelectorAll) {
+            return;
+        }
+
+        const markers = container.querySelectorAll('.scheduler-state');
+        if (!markers.length) {
+            return;
+        }
+
+        markers.forEach((node) => {
+            if (node.dataset.stateToken) {
+                container.dataset.stateToken = node.dataset.stateToken;
+            }
+            if (node.dataset.updatesUrl) {
+                container.dataset.updatesUrl = node.dataset.updatesUrl;
+            }
+            node.remove();
+        });
+    }
+
+    /** Poll the server for scheduler changes and update when necessary */
+    async function pollSchedulerUpdates(container) {
+        if (!container || container.dataset.schedulerPolling === 'true') {
+            return;
+        }
+
+        hydrateSchedulerState(container);
+
+        const updatesUrl = container.dataset.updatesUrl;
+        if (!updatesUrl) {
+            return;
+        }
+
+        const currentToken = container.dataset.stateToken || '';
+        const requestUrl = new URL(updatesUrl, window.location.origin);
+
+        if (currentToken) {
+            requestUrl.searchParams.set('token', currentToken);
+        }
+
+        container.dataset.schedulerPolling = 'true';
+
+        try {
+            const response = await fetch(requestUrl.toString(), {
+                credentials: 'same-origin',
+                headers: REQUEST_HEADER
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const payload = await response.json();
+            if (!payload || typeof payload.token !== 'string') {
+                return;
+            }
+
+            container.dataset.stateToken = payload.token;
+
+            if (!payload.changed || !payload.html) {
+                return;
+            }
+
+            container.classList.add('scheduler-content--updating');
+            container.innerHTML = payload.html;
+            hydrateSchedulerState(container);
+            afterPartialUpdate(container);
+            window.requestAnimationFrame(() => {
+                container.classList.remove('scheduler-content--updating');
+            });
+        } catch (error) {
+            // Swallow errors silently to avoid spamming the UI
+        } finally {
+            container.dataset.schedulerPolling = 'false';
+        }
+    }
+
+    /** Ensure the scheduler container polls incrementally for updates */
+    function ensureSchedulerLiveUpdates(container) {
+        if (!container) {
+            return;
+        }
+
+        hydrateSchedulerState(container);
+
+        const updatesUrl = container.dataset.updatesUrl;
+        if (!updatesUrl) {
+            return;
+        }
+
+        if (container.dataset.schedulerPollHandle) {
+            return;
+        }
+
+        const interval = parseInt(container.dataset.pollInterval || '15000', 10);
+        if (!Number.isFinite(interval) || interval <= 0) {
+            return;
+        }
+
+        const handle = window.setInterval(() => {
+            pollSchedulerUpdates(container);
+        }, interval);
+
+        container.dataset.schedulerPollHandle = String(handle);
+    }
+
     /** Update the scheduler export button so it mirrors the current filters */
     function updateSchedulerExport(scope) {
         const btn = scope.querySelector ? scope.querySelector('#export-csv-btn') : document.getElementById('export-csv-btn');
@@ -106,6 +214,10 @@
 
         updateSchedulerExport(container);
         setupAutoRefresh(container);
+
+        if (container.id === 'scheduler-content') {
+            ensureSchedulerLiveUpdates(container);
+        }
     }
 
     /** Refresh a partial container with new markup retrieved over AJAX */
@@ -356,5 +468,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         updateSchedulerExport(document);
         setupAutoRefresh();
+
+        const schedulerContainer = document.getElementById('scheduler-content');
+        if (schedulerContainer) {
+            ensureSchedulerLiveUpdates(schedulerContainer);
+        }
     });
 })();

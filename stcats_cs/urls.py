@@ -6,7 +6,7 @@ from core.views import (
     admin_audit_logs, delete_invite_code,
     promote_user, demote_user,
     remove_user, code_editor,
-    scheduler,
+    scheduler, scheduler_updates,
     create_schedule_entry, edit_schedule_entry,
     delete_schedule_entry, export_schedule_csv
 )
@@ -38,6 +38,7 @@ urlpatterns = [
     path("members/<int:user_id>/remove/", remove_user, name="remove_user"),
     path("scheduler/", scheduler, name="scheduler"),
     path("scheduler/create/", create_schedule_entry, name="create_schedule_entry"),
+    path("scheduler/updates/", scheduler_updates, name="scheduler_updates"),
     path("scheduler/<int:entry_id>/edit/", edit_schedule_entry, name="edit_schedule_entry"),
     path("scheduler/<int:entry_id>/delete/", delete_schedule_entry, name="delete_schedule_entry"),
     path("schedule/export/", export_schedule_csv, name="export_schedule_csv"),
