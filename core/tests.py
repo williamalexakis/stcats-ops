@@ -947,7 +947,10 @@ class ExportScheduleCsvTests(TestCase):
 
         exported_dates = {row[1] for row in rows[1:]}
         self.assertIn(primary_entry.date.strftime("%Y-%m-%d"), exported_dates)
-        self.assertIn(leading_entry.date.strftime("%Y-%m-%d"), exported_dates)
+        self.assertEqual(exported_dates, {
+            primary_entry.date.strftime("%Y-%m-%d"),
+            leading_entry.date.strftime("%Y-%m-%d"),
+        })
         self.assertNotIn(weekend_entry.date.strftime("%Y-%m-%d"), exported_dates)
 
         recurring_row = next(row for row in rows[1:] if row[1] == primary_entry.date.strftime("%Y-%m-%d"))

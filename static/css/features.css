@@ -1655,6 +1655,16 @@
     box-shadow: 0 12px 28px rgba(16, 185, 129, 0.35);
 }
 
+.btn-success.btn-disabled,
+.btn-success[disabled],
+.btn-success[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none;
+    box-shadow: none;
+}
+
 .table {
     width: 100%;
     border-collapse: collapse;
@@ -2207,6 +2217,11 @@
     border-color: var(--button-bg);
     box-shadow: 0 0 0 3px var(--focus-ring);
     background: var(--bg-primary);
+}
+
+.btn-success.disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .btn-compact {

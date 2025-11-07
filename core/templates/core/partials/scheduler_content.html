@@ -165,14 +165,28 @@
 
                 {% endif %}
 
-                <a id="export-csv-btn"
-                   href="{% url 'export_schedule_csv' %}?{{ export_querystring }}"
-                   class="btn-success">
-                    <i class="fa-solid fa-file-csv"></i>
+                {% if can_export_entries %}
+                    <a id="export-csv-btn"
+                       href="{% url 'export_schedule_csv' %}?{{ export_querystring }}"
+                       data-base-href="{% url 'export_schedule_csv' %}"
+                       class="btn-success">
+                        <i class="fa-solid fa-file-csv"></i>
 
-                    Export CSV
+                        Export CSV
 
-                </a>
+                    </a>
+                {% else %}
+                    <button type="button"
+                            class="btn-success btn-disabled"
+                            aria-disabled="true"
+                            disabled
+                            title="No entries available to export in this view">
+                        <i class="fa-solid fa-file-csv"></i>
+
+                        Export CSV
+
+                    </button>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -280,7 +294,7 @@
                                                 <div class="calendar-entry__badge">
                                                     <span class="calendar-entry__label">Subject</span>
                                                     <span class="calendar-entry__badge-value pill pill--subject calendar-entry__pill">
-                                                        {{ entry.subject.display_name }}
+                                                        {{ entry.subject.name }}
                                                     </span>
                                                 </div>
                                                 <div class="calendar-entry__badge">
@@ -292,14 +306,14 @@
                                                 <div class="calendar-entry__badge">
                                                     <span class="calendar-entry__label">Course</span>
                                                     <span class="calendar-entry__badge-value pill pill--info calendar-entry__pill">
-                                                        {{ entry.course.display_name }}
+                                                        {{ entry.course.name }}
                                                     </span>
                                                 </div>
                                                 {% if entry.group %}
                                                     <div class="calendar-entry__badge">
                                                         <span class="calendar-entry__label">Group</span>
                                                         <span class="calendar-entry__badge-value pill pill--group calendar-entry__pill">
-                                                            {{ entry.group.display_name }}
+                                                            {{ entry.group.name }}
                                                         </span>
                                                     </div>
                                                 {% endif %}

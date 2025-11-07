@@ -10,7 +10,6 @@
 
                 <div class="home-panel-item__content">
                     <div class="home-panel-item__header">
-                        <strong>{{ entry.course.display_name }}</strong>
                         <span class="home-panel-item__meta">{{ entry.date|date:"M j, Y" }}</span>
                     </div>
 
@@ -19,13 +18,14 @@
                         <span class="home-panel-chip home-panel-chip--success">{{ entry.subject.display_name }}</span>
                         <span class="home-panel-chip home-panel-chip--accent">{{ entry.classroom.display_name }}</span>
                         {% if entry.group %}
-                            <span class="home-panel-chip home-panel-chip--group">{{ entry.group.display_name }}</span>
+                            <span class="home-panel-chip home-panel-chip--info">{{ entry.group.display_name }}</span>
                         {% endif %}
                     </div>
                 </div>
             </li>
 
         {% endfor %}
+
     </ul>
 
 {% else %}

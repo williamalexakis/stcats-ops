@@ -68,6 +68,26 @@
         return url;
     }
 
+    /** Ensure scheduler export button uses the current querystring before follow */
+    function ensureLiveExportLink(event) {
+        const btn = event.target.closest && event.target.closest('#export-csv-btn');
+        if (!btn) {
+            return;
+        }
+
+        if (!btn.dataset.baseHref) {
+            btn.dataset.baseHref = (btn.getAttribute('data-base-href') || btn.getAttribute('href') || '').split('?')[0];
+        }
+
+        const baseHref = btn.dataset.baseHref || btn.getAttribute('href');
+        if (!baseHref) {
+            return;
+        }
+
+        const search = window.location.search || '';
+        btn.setAttribute('href', search ? `${baseHref}${search}` : baseHref);
+    }
+
     /** Fetch HTML content with the expected AJAX headers */
     async function fetchHtml(url) {
         const response = await fetch(url, {
@@ -190,29 +210,12 @@
         container.dataset.schedulerPollHandle = String(handle);
     }
 
-    /** Update the scheduler export button so it mirrors the current filters */
-    function updateSchedulerExport(scope) {
-        const btn = scope.querySelector ? scope.querySelector('#export-csv-btn') : document.getElementById('export-csv-btn');
-        if (!btn) {
-            return;
-        }
-
-        if (!btn.dataset.baseHref) {
-            btn.dataset.baseHref = btn.getAttribute('href');
-        }
-
-        const baseHref = btn.dataset.baseHref.split('?')[0];
-        const search = window.location.search;
-        btn.setAttribute('href', search ? `${baseHref}${search}` : baseHref);
-    }
-
     /** Apply post-refresh behaviors after a partial update completes */
     function afterPartialUpdate(container) {
         if (!container) {
             return;
         }
 
-        updateSchedulerExport(container);
         setupAutoRefresh(container);
 
         if (container.id === 'scheduler-content') {
@@ -390,7 +393,6 @@
         const historyUrl = new URL(action, window.location.origin);
         historyUrl.search = params.toString();
         window.history.pushState({}, '', historyUrl.pathname + historyUrl.search);
-        updateSchedulerExport(document);
     }
 
     // Handle delegated submit events for AJAX-enabled forms
@@ -466,12 +468,13 @@
 
     // Apply initial enhancements once the DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
-        updateSchedulerExport(document);
         setupAutoRefresh();
 
         const schedulerContainer = document.getElementById('scheduler-content');
         if (schedulerContainer) {
             ensureSchedulerLiveUpdates(schedulerContainer);
         }
+
+        document.addEventListener('click', ensureLiveExportLink, true);
     });
 })();

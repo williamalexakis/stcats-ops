@@ -806,6 +806,7 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
         'current_month_link': build_query(month_value, year_value, include_partial=True),
         'current_month_plain_link': build_query(month_value, year_value, include_partial=False),
         'month_entry_count': current_month_entry_count,
+        'can_export_entries': current_month_entry_count > 0,
         'has_any_entries': total_entries > 0,
         'show_weekends': show_weekends,
         'weekend_toggle_partial_link': f"?{weekend_toggle_query}",
@@ -1463,37 +1464,125 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
 
     """Export the filtered schedule entries as a CSV attachment."""
 
-    context = _build_scheduler_context(request, perform_cleanup=False)
-    calendar_weeks = context["calendar_weeks"]
+    def valid(value: Optional[str]) -> bool:
 
-    visible_entries: list[ScheduleEntry] = []
+        return bool(value and value != "None")
 
-    for week in calendar_weeks:
+    teacher_filter = request.GET.get("teacher")
+    classroom_filter = request.GET.get("classroom")
+    subject_filter = request.GET.get("subject")
+    course_filter = request.GET.get("course")
+    group_filter = request.GET.get("group")
+    date_filter = request.GET.get("date")
+    month_param = request.GET.get("month")
+    year_param = request.GET.get("year")
 
-        for day in week["days"]:
+    queryset = ScheduleEntry.objects.all().select_related(
+        "teacher", "classroom", "subject", "course", "group"
+    )
 
-            visible_entries.extend(day["entries"])
+    if valid(teacher_filter):
 
-    if not visible_entries:
+        queryset = queryset.filter(teacher_id=teacher_filter)
 
-        flash_messages.warning(request, "No schedule entries available to export for the selected month.")
+    if valid(classroom_filter):
 
-        redirect_url = reverse('scheduler')
+        queryset = queryset.filter(classroom_id=classroom_filter)
 
-        if request.GET:
+    if valid(subject_filter):
 
-            redirect_url = f"{redirect_url}?{request.GET.urlencode()}"
+        queryset = queryset.filter(subject_id=subject_filter)
 
-        return redirect(redirect_url)
+    if valid(course_filter):
 
-    month_value = context["current_month"]
-    year_value = context["current_year"]
+        queryset = queryset.filter(course_id=course_filter)
 
+    if valid(group_filter):
+
+        queryset = queryset.filter(group_id=group_filter)
+
+    if valid(date_filter):
+
+        queryset = queryset.filter(date=date_filter)
+
+    today = timezone.localdate()
+    fallback_date = today
+
+    if valid(date_filter):
+
+        try:
+
+            fallback_date = datetime.strptime(date_filter, "%Y-%m-%d").date()
+
+        except (TypeError, ValueError):
+
+            fallback_date = today
+
+    try:
+
+        month_value = int(month_param) if month_param else fallback_date.month
+        year_value = int(year_param) if year_param else fallback_date.year
+
+        if month_value < 1 or month_value > 12:
+
+            raise ValueError("Month out of range.")
+
+    except (TypeError, ValueError):
+
+        month_value = fallback_date.month
+        year_value = fallback_date.year
+
+    month_start = date(year_value, month_value, 1)
+    _, month_days = calendar.monthrange(year_value, month_value)
+    month_end = date(year_value, month_value, month_days)
+
+    queryset = queryset.filter(date__gte=month_start, date__lte=month_end)
+
+    show_weekends = request.GET.get("weekends", "0") == "1"
+
+    if not show_weekends:
+
+        queryset = queryset.exclude(date__week_day__in=[1, 7])
+
+    queryset = queryset.order_by("date", "start_time", "id")
+    month_entry_count = queryset.count()
+    total_entry_count = ScheduleEntry.objects.count()
+
+    if total_entry_count == 0:
+
+        flash_messages.error(
+            request,
+            "No schedule entries exist yet, so there is nothing to export."
+        )
+        html = render_to_string("core/partials/scheduler_content.html", {
+            "has_any_entries": False,
+        }, request=request)
+        return JsonResponse({
+            "html": html,
+            "target": "#scheduler-content"
+        })
+
+    if month_entry_count == 0:
+
+        flash_messages.warning(
+            request,
+            "No schedule entries available to export for the selected month."
+        )
+        html = render_to_string("core/partials/scheduler_content.html", {
+            "has_any_entries": False,
+        }, request=request)
+        return JsonResponse({
+            "html": html,
+            "target": "#scheduler-content"
+        })
+
+    entries = list(queryset)
     response = HttpResponse(content_type="text/csv")
     filename = f"schedule_{year_value:04d}-{month_value:02d}.csv"
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
     writer = csv.writer(response)
+
     writer.writerow([
         "Week",
         "Date",
@@ -1509,33 +1598,32 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
         "Interval (days)",
     ])
 
-    for e in visible_entries:
+    for entry in entries:
 
-        classroom_name = getattr(e.classroom, "display_name", getattr(e.classroom, "name", ""))
-        subject_name = getattr(e.subject, "display_name", getattr(e.subject, "name", ""))
-        course_name = getattr(e.course, "display_name", getattr(e.course, "name", ""))
-        group_name = getattr(e.group, "display_name", getattr(e.group, "name", "")) if e.group else ""
+        classroom_name = getattr(entry.classroom, "display_name", getattr(entry.classroom, "name", ""))
+        subject_name = getattr(entry.subject, "display_name", getattr(entry.subject, "name", ""))
+        course_name = getattr(entry.course, "display_name", getattr(entry.course, "name", ""))
+        group_name = getattr(entry.group, "display_name", getattr(entry.group, "name", "")) if entry.group else ""
+        recurrence_label = "N/A"
+        interval_label = "N/A"
 
-        recurrence_label = ""
-        interval_label = ""
+        if entry.recurrence_group and entry.recurrence_total_occurrences:
 
-        if e.recurrence_group and e.recurrence_total_occurrences:
+            recurrence_label = f"{entry.recurrence_index} of {entry.recurrence_total_occurrences}"
 
-            recurrence_label = f"{e.recurrence_index} of {e.recurrence_total_occurrences}"
+        if entry.recurrence_interval_days:
 
-        if e.recurrence_interval_days:
-
-            interval_label = str(e.recurrence_interval_days)
+            interval_label = str(entry.recurrence_interval_days)
 
         writer.writerow([
-            e.date.isocalendar()[1],
-            e.date.strftime("%Y-%m-%d"),
-            e.date.strftime("%A"),
-            e.start_time.strftime("%H:%M"),
-            e.end_time.strftime("%H:%M"),
+            entry.date.isocalendar()[1],
+            entry.date.strftime("%Y-%m-%d"),
+            entry.date.strftime("%A"),
+            entry.start_time.strftime("%H:%M"),
+            entry.end_time.strftime("%H:%M"),
             subject_name,
             course_name,
-            e.teacher.username,
+            entry.teacher.username,
             classroom_name,
             group_name,
             recurrence_label,
