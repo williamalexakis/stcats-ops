@@ -837,7 +837,7 @@ def scheduler_updates(request: HttpRequest) -> JsonResponse:
     """Return a lightweight JSON payload indicating whether the scheduler changed."""
 
     client_token = request.GET.get("token")
-    context = _build_scheduler_context(request, perform_cleanup=False)
+    context = _build_scheduler_context(request, perform_cleanup=True)
     current_token = context.get("calendar_state_token", "0")
 
     if client_token == current_token:

@@ -22,15 +22,8 @@
 
             </a>
 
-{% endif %}
+        {% endif %}
 
-</div>
-
-</div>
-
-</div>
-
-</div>
     </div>
 
     <div class="card card--compact mb-16">
@@ -273,10 +266,6 @@
                                             <div class="calendar-entry__time">
                                                 <i class="fa-solid fa-clock"></i>
                                                 {{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}
-                                            </div>
-
-                                            <div class="calendar-entry__title">
-                                                {{ entry.subject.display_name }}
                                             </div>
 
                                             <div class="calendar-entry__section calendar-entry__section--teacher">
