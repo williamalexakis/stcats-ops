@@ -1,3 +1,5 @@
+# Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file.
+
 from django.contrib import admin
 from django.http import HttpRequest
 from typing import Any, Iterable

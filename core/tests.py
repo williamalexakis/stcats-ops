@@ -1,3 +1,5 @@
+# Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file.
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.messages import get_messages

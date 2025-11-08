@@ -1,3 +1,5 @@
+# Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file.
+
 import json
 from typing import Any, Dict
 

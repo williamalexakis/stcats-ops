@@ -1,3 +1,5 @@
+# Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file.
+
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required

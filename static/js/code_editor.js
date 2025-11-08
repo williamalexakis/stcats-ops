@@ -1,3 +1,5 @@
+/* Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. */
+
 /** Bootstraps the client-side code editor backed by Monaco and Pyodide */
 (function () {
     const initialCodeElement = document.getElementById("initial-code-data");

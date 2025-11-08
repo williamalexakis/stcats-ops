@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file.
+
 import os
 import sys
 

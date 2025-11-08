@@ -1,3 +1,5 @@
+# Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file.
+
 from django.core.management.base import BaseCommand
 from core.models import InviteCode
 

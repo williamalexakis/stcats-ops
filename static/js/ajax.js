@@ -1,3 +1,5 @@
+/* Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. */
+
 /** Provide shared AJAX utilities for partial updates and flash messages */
 (function () {
     const REQUEST_HEADER = { 'X-Requested-With': 'XMLHttpRequest' };

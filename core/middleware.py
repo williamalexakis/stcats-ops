@@ -1,3 +1,5 @@
+# Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file.
+
 from typing import Any, Callable, Dict, Optional
 from django.http import HttpRequest, HttpResponse
 from .models import AuditLog

@@ -54,7 +54,7 @@ An internal web platform that supports management and coordination for the St. C
     python manage.py runserver
     ```
 
-4. Visit <http://127.0.0.1:8000/admin/> and log in with your superuser credentials.
+4. Visit <http://localhost:8000/admin/> and log in with your superuser credentials.
 
 ## Management Commands
 

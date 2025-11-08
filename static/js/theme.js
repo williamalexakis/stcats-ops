@@ -1,3 +1,5 @@
+/* Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. */
+
 /** Toggle between light and dark modes while persisting the preference */
 function toggleTheme() {
     const html = document.documentElement;
