@@ -166,9 +166,7 @@ class ScheduleEntry(models.Model):
     group = models.ForeignKey(
         ClassGroup,
         on_delete=models.PROTECT,
-        related_name="schedule_entries",
-        null=True,
-        blank=True
+        related_name="schedule_entries"
     )
     date = models.DateField()
     start_time = models.TimeField()

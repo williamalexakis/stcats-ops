@@ -819,6 +819,7 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
     return context
 
 
+@login_required
 def scheduler(request: HttpRequest) -> HttpResponse:
 
     """List schedule entries with filtering, pagination, and active entry flags."""
@@ -832,6 +833,7 @@ def scheduler(request: HttpRequest) -> HttpResponse:
     return render(request, "core/scheduler.html", context)
 
 
+@login_required
 @require_GET
 def scheduler_updates(request: HttpRequest) -> JsonResponse:
 

@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser, Group
+from django.contrib.messages import get_messages
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
@@ -940,24 +941,23 @@ class ExportScheduleCsvTests(TestCase):
         reader = csv.reader(decoded)
         rows = list(reader)
 
-        self.assertEqual(len(rows), 1 + 2)
+        self.assertEqual(len(rows), 1 + 1)
         header = rows[0]
         self.assertIn("Week", header)
         self.assertIn("Recurring Series", header)
 
         exported_dates = {row[1] for row in rows[1:]}
-        self.assertIn(primary_entry.date.strftime("%Y-%m-%d"), exported_dates)
         self.assertEqual(exported_dates, {
             primary_entry.date.strftime("%Y-%m-%d"),
-            leading_entry.date.strftime("%Y-%m-%d"),
         })
+        self.assertNotIn(leading_entry.date.strftime("%Y-%m-%d"), exported_dates)
         self.assertNotIn(weekend_entry.date.strftime("%Y-%m-%d"), exported_dates)
 
         recurring_row = next(row for row in rows[1:] if row[1] == primary_entry.date.strftime("%Y-%m-%d"))
         self.assertEqual(recurring_row[10], "1 of 3")
         self.assertEqual(recurring_row[11], "7")
 
-    def test_export_with_no_entries_redirects_with_message(self) -> None:
+    def test_export_with_no_entries_returns_json_message(self) -> None:
 
         today = timezone.localdate()
         response = self.client.get(
@@ -965,15 +965,18 @@ class ExportScheduleCsvTests(TestCase):
             {
                 "month": str(today.month),
                 "year": str(today.year),
-            },
-            follow=True
+            }
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.redirect_chain)
+        payload = response.json()
+        self.assertEqual(payload["target"], "#scheduler-content")
+        self.assertIn("html", payload)
 
-        messages = list(response.context["messages"])
-        self.assertTrue(any("No schedule entries available to export" in message.message for message in messages))
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(
+            any("No schedule entries exist yet" in message.message for message in messages)
+        )
 
     def test_export_includes_weekends_when_requested(self) -> None:
 
