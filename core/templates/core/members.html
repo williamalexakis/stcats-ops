@@ -124,7 +124,9 @@
 {% endblock %}
 
 {% block scripts %}
+
     {{ block.super }}
+
     <script>
         const memberModal = document.getElementById('member-info-modal');
         const memberUsername = document.getElementById('member-info-username');
@@ -185,4 +187,5 @@
             }
         });
     </script>
+
 {% endblock %}
