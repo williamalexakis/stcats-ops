@@ -223,6 +223,14 @@
         if (container.id === 'scheduler-content') {
             ensureSchedulerLiveUpdates(container);
         }
+
+        if (typeof window.updateSchedulerExport === 'function') {
+            window.updateSchedulerExport(container);
+        }
+
+        document.dispatchEvent(new CustomEvent('partial:updated', {
+            detail: { container }
+        }));
     }
 
     /** Refresh a partial container with new markup retrieved over AJAX */
@@ -465,7 +473,9 @@
             });
         });
 
-        updateSchedulerExport(document);
+        if (typeof window.updateSchedulerExport === 'function') {
+            window.updateSchedulerExport(document);
+        }
     });
 
     // Apply initial enhancements once the DOM is ready

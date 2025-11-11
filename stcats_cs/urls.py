@@ -10,7 +10,8 @@ from core.views import (
     remove_user, code_editor,
     scheduler, scheduler_updates,
     create_schedule_entry, edit_schedule_entry,
-    delete_schedule_entry, export_schedule_csv
+    delete_schedule_entry, export_schedule_csv,
+    update_schedule_entry_note
 )
 from core.views_auth import signup, logout_view, complete_sso_signup, legacy_signup
 from core.views_scheduler_config import (
@@ -43,6 +44,7 @@ urlpatterns = [
     path("scheduler/updates/", scheduler_updates, name="scheduler_updates"),
     path("scheduler/<int:entry_id>/edit/", edit_schedule_entry, name="edit_schedule_entry"),
     path("scheduler/<int:entry_id>/delete/", delete_schedule_entry, name="delete_schedule_entry"),
+    path("scheduler/note/", update_schedule_entry_note, name="update_schedule_entry_note"),
     path("schedule/export/", export_schedule_csv, name="export_schedule_csv"),
     path("panel/scheduler-config/", admin_scheduler_config, name="admin_scheduler_config"),
     path("panel/scheduler-config/classroom/add/", add_classroom, name="add_classroom"),

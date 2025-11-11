@@ -681,6 +681,12 @@
     color: var(--info-text);
 }
 
+.member-card__avatar--inline {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+}
+
 .member-card__info {
     flex: 1;
     min-width: 0;
@@ -1339,6 +1345,22 @@
     position: relative;
 }
 
+.calendar-entry--interactive {
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.calendar-entry--interactive:hover,
+.calendar-entry--interactive:focus-visible {
+    box-shadow: 0 10px 20px var(--shadow-hover);
+    transform: translateY(-2px);
+}
+
+.calendar-entry--interactive:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+}
+
 .calendar-entry--active {
     border-color: var(--success-border);
     border-width: 2px;
@@ -1377,6 +1399,12 @@
         opacity: 0.55;
         border-width: 3px;
     }
+}
+
+.calendar-entry__status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .calendar-entry__time {
@@ -1443,6 +1471,57 @@
 .calendar-entry__pill {
     font-size: 11px;
     padding: 4px 10px;
+}
+
+.entry-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+}
+
+.entry-status__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.entry-status--upcoming {
+    background: var(--info-bg);
+    border-color: var(--info-border);
+    color: var(--info-text);
+}
+
+.entry-status--active {
+    background: var(--success-bg);
+    border-color: var(--success-border);
+    color: var(--success-text);
+}
+
+.entry-status--finished {
+    background: var(--warning-bg);
+    border-color: var(--warning-border);
+    color: var(--warning-text);
+}
+
+.entry-status--upcoming .entry-status__dot {
+    background: var(--info-border);
+}
+
+.entry-status--active .entry-status__dot {
+    background: var(--success-border);
+}
+
+.entry-status--finished .entry-status__dot {
+    background: var(--warning-border);
 }
 
 .calendar-entry__section--recurrence .calendar-entry__value--meta {
@@ -2711,4 +2790,201 @@
 
 .auth-card__footer-link {
     font-weight: 500;
+}
+
+.entry-sidecard {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+}
+
+.entry-sidecard__overlay {
+    flex: 1;
+    background: rgba(2, 6, 23, 0.45);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.entry-sidecard__panel {
+    width: min(420px, 90%);
+    max-width: 480px;
+    height: 100%;
+    background: var(--card-bg);
+    border-left: 1px solid var(--glass-border);
+    box-shadow: -12px 0 30px var(--shadow);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.entry-sidecard--open {
+    pointer-events: auto;
+}
+
+.entry-sidecard--open .entry-sidecard__overlay {
+    opacity: 1;
+}
+
+.entry-sidecard--open .entry-sidecard__panel {
+    transform: translateX(0);
+}
+
+.entry-sidecard__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.entry-sidecard__eyebrow {
+    margin: 0;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text-tertiary);
+}
+
+.entry-sidecard__title {
+    margin: 4px 0 0;
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+.entry-sidecard__close {
+    border: none;
+    background: none;
+    color: var(--text-tertiary);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 6px;
+    line-height: 1;
+}
+
+.entry-sidecard__close:hover {
+    color: var(--text-primary);
+}
+
+.entry-sidecard__status {
+    display: flex;
+}
+
+.entry-sidecard__details {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+}
+
+.entry-sidecard__detail dt {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+}
+
+.entry-sidecard__detail dd {
+    margin: 4px 0 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.entry-sidecard__badges {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.entry-sidecard__badge {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.entry-sidecard__badge-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}
+
+.entry-sidecard__badge-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.entry-sidecard__recurrence {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.entry-sidecard__label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+}
+
+.entry-sidecard__value {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.entry-sidecard__notes textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    padding: 12px;
+    background: var(--card-muted);
+    color: var(--text-primary);
+    resize: vertical;
+    min-height: 120px;
+}
+
+.entry-sidecard__notes textarea:focus-visible {
+    outline: 2px solid var(--focus-ring);
+}
+
+.entry-sidecard__teacher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.entry-sidecard__note-help {
+    margin: 4px 0 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.entry-sidecard__note-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.entry-sidecard__feedback {
+    font-size: 13px;
+    min-height: 18px;
+    margin-top: 8px;
+}
+
+.entry-sidecard__feedback--success {
+    color: var(--success-text);
+}
+
+.entry-sidecard__feedback--error {
+    color: var(--error-text);
+}
+
+body.sidecard-open {
+    overflow: hidden;
 }

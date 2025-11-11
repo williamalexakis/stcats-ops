@@ -2,10 +2,12 @@
 
 import uuid
 
-from django.db import models
-from django.conf import settings
-from django.utils import timezone
+from datetime import date, time
 from typing import Optional, List
+
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
 
 User = settings.AUTH_USER_MODEL
 
@@ -145,6 +147,16 @@ class ScheduleEntryManager(models.Manager):
 
 class ScheduleEntry(models.Model):
 
+    STATUS_UPCOMING = "upcoming"
+    STATUS_ACTIVE = "active"
+    STATUS_FINISHED = "finished"
+
+    STATUS_CHOICES = (
+        (STATUS_UPCOMING, "Upcoming"),
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_FINISHED, "Finished"),
+    )
+
     teacher = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -183,6 +195,7 @@ class ScheduleEntry(models.Model):
     recurrence_interval_days = models.PositiveIntegerField(null=True, blank=True, editable=False)
     recurrence_total_occurrences = models.PositiveIntegerField(null=True, blank=True, editable=False)
     recurrence_index = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    private_note = models.TextField(blank=True, default="")
     objects = ScheduleEntryManager()
 
     class Meta:
@@ -222,6 +235,31 @@ class ScheduleEntry(models.Model):
     def is_recurring(self) -> bool:
 
         return self.recurrence_group is not None
+
+    def get_status(
+        self,
+        *,
+        reference_date: Optional[date] = None,
+        reference_time: Optional[time] = None
+    ) -> str:
+
+        """Return the current status for the entry relative to the provided clock."""
+
+        if reference_date is None or reference_time is None:
+
+            now = timezone.localtime(timezone.now())
+            reference_date = reference_date or now.date()
+            reference_time = reference_time or now.time()
+
+        if self.date > reference_date or (self.date == reference_date and self.start_time > reference_time):
+
+            return self.STATUS_UPCOMING
+
+        if self.date < reference_date or (self.date == reference_date and self.end_time < reference_time):
+
+            return self.STATUS_FINISHED
+
+        return self.STATUS_ACTIVE
 
     @classmethod
     def update_recurrence_metadata(cls, recurrence_group: Optional[uuid.UUID]) -> None:

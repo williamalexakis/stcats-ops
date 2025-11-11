@@ -138,6 +138,29 @@
             </div>
 
             <div class="filter-form__field">
+                <label for="status" class="filter-label">
+                    <i class="fa-solid fa-bolt"></i> Status
+                </label>
+
+                <select
+                    id="status"
+                    name="status"
+                    class="select-control-sm"
+                    onchange="this.form.requestSubmit()">
+                    <option value="">All Statuses</option>
+
+                    {% for value, label in status_choices %}
+
+                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="filter-actions">
+
+            <div class="filter-form__field">
                 <label for="date" class="filter-label">
                     <i class="fa-solid fa-calendar"></i> Date
                 </label>
@@ -150,8 +173,6 @@
                     class="select-control-sm"
                     onchange="this.form.requestSubmit()" />
             </div>
-
-            <div class="filter-actions">
 
                 {% if has_filters %}
 
@@ -271,6 +292,7 @@
                             Week {{ week.week_number }}
                         </div>
                         {% for day in week.days %}
+                            {% if not day.is_hidden %}
                             <div class="calendar-day{% if not day.is_current_month %} calendar-day--muted{% endif %}{% if day.is_today %} calendar-day--today{% endif %}{% if day.is_weekend %} calendar-day--weekend{% endif %}">
                                 <div class="calendar-day__header">
                                     <span class="calendar-day__date">{{ day.date.day }}</span>
@@ -279,6 +301,12 @@
                                 <div class="calendar-day__entries">
                                     {% for entry in day.entries %}
                                         <article class="calendar-entry{% if entry.is_active %} calendar-entry--active{% endif %}">
+                                            <div class="calendar-entry__status-row">
+                                                    <span class="entry-status entry-status--{{ entry.status_code }}">
+                                                    <span class="entry-status__dot"></span>
+                                                    <span class="entry-status__label">{{ entry.status_label }}</span>
+                                                </span>
+                                            </div>
                                             <div class="calendar-entry__time">
                                                 <i class="fa-solid fa-clock"></i>
                                                 {{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}
@@ -287,7 +315,12 @@
                                             <div class="calendar-entry__section calendar-entry__section--teacher">
                                                 <span class="calendar-entry__label">Teacher</span>
                                                 <span class="calendar-entry__value calendar-entry__value--teacher">
-                                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                                    {% with teacher_is_admin=entry.teacher|is_admin %}
+                                                        <span class="member-card__avatar member-card__avatar--inline {% if teacher_is_admin %}member-card__avatar--admin{% else %}member-card__avatar--teacher{% endif %}"
+                                                              aria-hidden="true">
+                                                            {{ entry.teacher.username|first|upper }}
+                                                        </span>
+                                                    {% endwith %}
                                                     {{ entry.teacher.username }}
                                                 </span>
                                             </div>
@@ -321,59 +354,83 @@
                                                 {% endif %}
                                             </div>
 
-                                            {% if entry.has_recurrence_peers %}
+                                            {% if entry.recurrence_label %}
                                                 <div class="calendar-entry__section calendar-entry__section--recurrence">
                                                     <span class="calendar-entry__label">Series</span>
                                                     <span class="calendar-entry__value calendar-entry__value--meta">
                                                         <i class="fa-solid fa-rotate-right"></i>
-                                                        Series {{ entry.recurrence_index }} of {{ entry.recurrence_series_size }}
+                                                        {{ entry.recurrence_label }}
                                                     </span>
                                                 </div>
                                             {% endif %}
 
-                                            {% if is_admin %}
                                                 <div class="calendar-entry__actions">
-                                                    <a href="{% url 'edit_schedule_entry' entry.id %}"
-                                                       class="chat-action chat-action--muted"
-                                                       title="Edit entry">
-                                                        <i class="fa-solid fa-pen"></i>
-                                                    </a>
-                                                    <form method="post"
-                                                          action="{% url 'delete_schedule_entry' entry.id %}"
-                                                          data-ajax="json"
-                                                          data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
-                                                          data-ajax-target="#scheduler-content">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="scope" value="single" />
-                                                        <button type="submit"
-                                                                class="chat-action chat-action--danger"
-                                                                onclick="return confirm('{% if entry.has_recurrence_peers %}Delete only this occurrence?{% else %}Delete this schedule entry?{% endif %}');"
-                                                                title="{% if entry.has_recurrence_peers %}Delete this occurrence{% else %}Delete entry{% endif %}">
-                                                            <i class="fa-solid fa-trash"></i>
+                                                    {% if entry.is_owned_by_user %}
+                                                        <button type="button"
+                                                                class="chat-action chat-action--info calendar-entry__info-trigger"
+                                                                data-entry-trigger="true"
+                                                                aria-label="View entry details for {{ entry.subject_display }}"
+                                                                data-entry-id="{{ entry.id }}"
+                                                                data-entry-date-label="{{ entry.date|date:'l, F j, Y' }}"
+                                                                data-entry-time-range="{{ entry.start_time|time:'H:i' }} – {{ entry.end_time|time:'H:i' }}"
+                                                                data-entry-teacher="{{ entry.teacher.username|escape }}"
+                                                                data-entry-classroom="{{ entry.classroom_display|escape }}"
+                                                                data-entry-subject="{{ entry.subject_display|escape }}"
+                                                                data-entry-course="{{ entry.course_display|escape }}"
+                                                                {% if entry.group %}
+                                                                    data-entry-group="{{ entry.group_display|escape }}"
+                                                                {% endif %}
+                                                                data-entry-status-code="{{ entry.status_code }}"
+                                                                data-entry-status-label="{{ entry.status_label|escape }}"
+                                                                data-entry-series="{{ entry.recurrence_label }}"
+                                                                data-entry-teacher-role="{% if entry.teacher|is_admin %}admin{% else %}teacher{% endif %}"
+                                                                data-entry-note="{{ entry.private_note|default_if_none:''|escape }}">
+                                                            <i class="fa-solid fa-circle-info"></i>
                                                         </button>
-                                                    </form>
-                                                    {% if entry.has_recurrence_peers %}
+                                                    {% endif %}
+                                                    {% if is_admin %}
+                                                        <a href="{% url 'edit_schedule_entry' entry.id %}"
+                                                        class="chat-action chat-action--muted"
+                                                        title="Edit entry">
+                                                            <i class="fa-solid fa-pen"></i>
+                                                        </a>
                                                         <form method="post"
-                                                              action="{% url 'delete_schedule_entry' entry.id %}"
-                                                              data-ajax="json"
-                                                              data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
-                                                              data-ajax-target="#scheduler-content">
+                                                            action="{% url 'delete_schedule_entry' entry.id %}"
+                                                            data-ajax="json"
+                                                            data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
+                                                            data-ajax-target="#scheduler-content">
                                                             {% csrf_token %}
-                                                            <input type="hidden" name="scope" value="series" />
+                                                            <input type="hidden" name="scope" value="single" />
                                                             <button type="submit"
                                                                     class="chat-action chat-action--danger"
-                                                                    onclick="return confirm('Delete all entries in this series?');"
-                                                                    title="Delete entire series">
-                                                                <i class="fa-solid fa-trash-can"></i>
+                                                                    onclick="return confirm('{% if entry.has_recurrence_peers %}Delete only this occurrence?{% else %}Delete this schedule entry?{% endif %}');"
+                                                                    title="{% if entry.has_recurrence_peers %}Delete this occurrence{% else %}Delete entry{% endif %}">
+                                                                <i class="fa-solid fa-trash"></i>
                                                             </button>
                                                         </form>
+                                                        {% if entry.has_recurrence_peers %}
+                                                            <form method="post"
+                                                                action="{% url 'delete_schedule_entry' entry.id %}"
+                                                                data-ajax="json"
+                                                                data-ajax-refresh="{% url 'scheduler' %}?partial=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}"
+                                                                data-ajax-target="#scheduler-content">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="scope" value="series" />
+                                                                <button type="submit"
+                                                                        class="chat-action chat-action--danger"
+                                                                        onclick="return confirm('Delete all entries in this series?');"
+                                                                        title="Delete entire series">
+                                                                    <i class="fa-solid fa-trash-can"></i>
+                                                                </button>
+                                                            </form>
+                                                        {% endif %}
                                                     {% endif %}
                                                 </div>
-                                            {% endif %}
                                         </article>
                                     {% endfor %}
                                 </div>
                             </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 {% endfor %}
@@ -423,4 +480,84 @@
 
 </div>
 
+</div>
+
+<div id="entry-sidecard" class="entry-sidecard" aria-hidden="true" hidden>
+    <div class="entry-sidecard__overlay" data-sidecard-dismiss></div>
+    <aside class="entry-sidecard__panel" role="dialog" aria-modal="true" aria-labelledby="entry-sidecard-title">
+        <div class="entry-sidecard__header">
+            <div>
+                <h2 class="entry-sidecard__title" id="entry-sidecard-title" data-sidecard-field="date"></h2>
+            </div>
+            <button type="button" class="entry-sidecard__close" data-sidecard-dismiss aria-label="Close details">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="entry-sidecard__status">
+            <span class="entry-status" data-sidecard-status>
+                <span class="entry-status__dot"></span>
+                <span class="entry-status__label" data-sidecard-field="status-label"></span>
+            </span>
+        </div>
+
+        <dl class="entry-sidecard__details">
+            <div class="entry-sidecard__detail">
+                <dt>Teacher</dt>
+                <dd class="entry-sidecard__teacher">
+                    <span class="member-card__avatar member-card__avatar--inline"
+                          aria-hidden="true"
+                          data-sidecard-field="teacher-initial"></span>
+                    <span data-sidecard-field="teacher"></span>
+                </dd>
+            </div>
+            <div class="entry-sidecard__detail">
+                <dt>Time</dt>
+                <dd data-sidecard-field="time"></dd>
+            </div>
+        </dl>
+
+        <div class="entry-sidecard__badges">
+            <div class="entry-sidecard__badge">
+                <span class="entry-sidecard__badge-label">Subject</span>
+                <span class="entry-sidecard__badge-value pill pill--subject" data-sidecard-field="badge-subject"></span>
+            </div>
+            <div class="entry-sidecard__badge">
+                <span class="entry-sidecard__badge-label">Classroom</span>
+                <span class="entry-sidecard__badge-value pill pill--danger" data-sidecard-field="badge-classroom"></span>
+            </div>
+            <div class="entry-sidecard__badge">
+                <span class="entry-sidecard__badge-label">Course</span>
+                <span class="entry-sidecard__badge-value pill pill--info" data-sidecard-field="badge-course"></span>
+            </div>
+            <div class="entry-sidecard__badge" data-sidecard-section="group">
+                <span class="entry-sidecard__badge-label">Group</span>
+                <span class="entry-sidecard__badge-value pill pill--group" data-sidecard-field="badge-group"></span>
+            </div>
+        </div>
+
+        <div class="entry-sidecard__recurrence" data-sidecard-section="recurrence">
+            <span class="entry-sidecard__label">Series</span>
+            <span class="entry-sidecard__value" data-sidecard-field="series"></span>
+        </div>
+
+        <form class="entry-sidecard__notes" method="post" action="{% url 'update_schedule_entry_note' %}" data-sidecard-note-form>
+            {% csrf_token %}
+            <input type="hidden" name="entry_id" value="">
+            <label for="sidecard-note" class="entry-sidecard__label">Notes</label>
+            <textarea id="sidecard-note"
+                      name="note"
+                      rows="4"
+                      placeholder="Write anything you need to remember..."></textarea>
+            <div class="entry-sidecard__feedback" data-sidecard-feedback role="status" aria-live="polite"></div>
+            <div class="entry-sidecard__note-actions">
+                <button type="submit" class="btn-success" data-sidecard-save>
+                    <i class="fa-solid fa-floppy-disk"></i>
+
+                    Save Notes
+
+                </button>
+            </div>
+        </form>
+    </aside>
 </div>

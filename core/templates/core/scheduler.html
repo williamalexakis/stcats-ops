@@ -1,7 +1,7 @@
 <!-- Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. -->
 
 {% extends "base.html" %}
-{% load core_extras %}
+{% load static core_extras %}
 
 {% block title %}Schedule - CS Dept Platform{% endblock %}
 
@@ -16,4 +16,9 @@
     {% include "core/partials/scheduler_content.html" %}
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/scheduler.js' %}" defer></script>
 {% endblock %}

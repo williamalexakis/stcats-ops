@@ -441,14 +441,9 @@ def remove_user(request: HttpRequest, user_id: int) -> HttpResponse:
     return ajax_or_redirect(request, True, f"User '{username}' has been removed.", "members")
 
 @login_required
-def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = True) -> dict:
+def _build_scheduler_context(request: HttpRequest) -> dict:
 
     """Prepare scheduler context data shared between HTML and JSON responses."""
-
-    # Cleanup any expired entries if requested
-    if perform_cleanup:
-
-        ScheduleEntry.objects.cleanup_past_entries()
 
     # Get all the schedule entries
     entries_list = ScheduleEntry.objects.all().select_related('teacher', 'created_by', 'classroom', 'subject', 'course', 'group')
@@ -460,7 +455,22 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
     course_filter = request.GET.get('course')
     group_filter = request.GET.get('group')
     date_filter = request.GET.get('date')
-    has_filters = any([teacher_filter, classroom_filter, subject_filter, course_filter, group_filter, date_filter])
+    status_filter = request.GET.get('status')
+
+    valid_status_codes = {code for code, _ in ScheduleEntry.STATUS_CHOICES}
+    if status_filter not in valid_status_codes:
+
+        status_filter = None
+
+    has_filters = any([
+        teacher_filter,
+        classroom_filter,
+        subject_filter,
+        course_filter,
+        group_filter,
+        date_filter,
+        status_filter
+    ])
 
     if teacher_filter:
 
@@ -486,10 +496,35 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
 
         entries_list = entries_list.filter(date=date_filter)
 
+    now = timezone.localtime()
+    today = now.date()
+    current_time = now.time()
+
+    if status_filter == ScheduleEntry.STATUS_ACTIVE:
+
+        entries_list = entries_list.filter(
+            date=today,
+            start_time__lte=current_time,
+            end_time__gte=current_time
+        )
+
+    elif status_filter == ScheduleEntry.STATUS_UPCOMING:
+
+        entries_list = entries_list.filter(
+            Q(date__gt=today) |
+            Q(date=today, start_time__gt=current_time)
+        )
+
+    elif status_filter == ScheduleEntry.STATUS_FINISHED:
+
+        entries_list = entries_list.filter(
+            Q(date__lt=today) |
+            Q(date=today, end_time__lt=current_time)
+        )
+
     entries_list = entries_list.order_by('date', 'start_time', 'id')
     total_entries = entries_list.count()
 
-    today = timezone.localdate()
     fallback_date = today
 
     if date_filter:
@@ -551,11 +586,27 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
 
     entries_by_date: Dict[date, list[ScheduleEntry]] = defaultdict(list)
 
+    status_label_map = dict(ScheduleEntry.STATUS_CHOICES)
+
     for entry in month_entries:
 
-        entry.is_active = entry.is_active_now()
+        status_code = entry.get_status(reference_date=today, reference_time=current_time)
+        entry.status_code = status_code
+        entry.status_label = status_label_map.get(status_code, status_code.title())
+        entry.is_active = (status_code == ScheduleEntry.STATUS_ACTIVE)
+        entry.is_owned_by_user = (entry.teacher_id == request.user.id)
+        entry.subject_display = getattr(entry.subject, "display_name", None) or entry.subject.name
+        entry.course_display = getattr(entry.course, "display_name", None) or entry.course.name
+        entry.classroom_display = getattr(entry.classroom, "display_name", None) or entry.classroom.name
+        entry.group_display = getattr(entry.group, "display_name", None) if entry.group else ""
+
         entry.recurrence_series_size = recurrence_counts.get(entry.recurrence_group, 1)
         entry.has_recurrence_peers = entry.recurrence_group is not None and entry.recurrence_series_size > 1
+        entry.recurrence_label = ""
+        if entry.recurrence_group and entry.recurrence_series_size and entry.recurrence_index:
+
+            entry.recurrence_label = f"Series {entry.recurrence_index} of {entry.recurrence_series_size}"
+
         entries_by_date[entry.date].append(entry)
 
     # Pre-compute monthly counts for navigation badges
@@ -624,10 +675,7 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
             day_entries = entries_by_date.get(current_date, [])
 
             is_weekend = current_date.weekday() >= 5
-
-            if not show_weekends and is_weekend:
-
-                continue
+            is_hidden = (not show_weekends and is_weekend)
 
             week_days.append({
                 "date": current_date,
@@ -635,6 +683,7 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
                 "is_today": current_date == today,
                 "entries": day_entries,
                 "is_weekend": is_weekend,
+                "is_hidden": is_hidden,
             })
 
         calendar_weeks.append({
@@ -670,6 +719,7 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
             str(int(entry.is_active)),
             str(entry.recurrence_series_size),
             str(entry.recurrence_index),
+            entry.status_code,
         ])
         for entry in month_entries
     ]
@@ -682,6 +732,7 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
         "course": course_filter,
         "group": group_filter,
         "date": date_filter,
+        "status": status_filter,
         "weekends": "1" if show_weekends else None,
     }
 
@@ -772,6 +823,7 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
         'course_filter' : course_filter,
         'group_filter' : group_filter,
         'date_filter' : date_filter,
+        'status_filter' : status_filter,
         'has_filters' : has_filters,
         'calendar_weeks': calendar_weeks,
         'day_names': day_names,
@@ -816,6 +868,7 @@ def _build_scheduler_context(request: HttpRequest, *, perform_cleanup: bool = Tr
         'calendar_state_token': calendar_state_token,
         'scheduler_updates_url': f"{reverse('scheduler_updates')}{build_query(month_value, year_value, include_partial=False)}",
         'real_month_direction': real_month_direction,
+        'status_choices': ScheduleEntry.STATUS_CHOICES,
     }
 
     return context
@@ -842,7 +895,7 @@ def scheduler_updates(request: HttpRequest) -> JsonResponse:
     """Return a lightweight JSON payload indicating whether the scheduler changed."""
 
     client_token = request.GET.get("token")
-    context = _build_scheduler_context(request, perform_cleanup=True)
+    context = _build_scheduler_context(request)
     current_token = context.get("calendar_state_token", "0")
 
     if client_token == current_token:
@@ -1463,6 +1516,42 @@ def delete_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
     return ajax_or_redirect(request, True, message, "scheduler")
 
+
+@login_required
+@require_POST
+def update_schedule_entry_note(request: HttpRequest) -> HttpResponse:
+
+    """Persist a teacher's private note for a schedule entry."""
+
+    entry_id = request.POST.get("entry_id")
+
+    try:
+
+        entry_pk = int(entry_id)
+
+    except (TypeError, ValueError):
+
+        return ajax_or_redirect(request, False, "Invalid entry identifier.", "scheduler", status_code=400)
+
+    try:
+
+        entry = ScheduleEntry.objects.get(pk=entry_pk)
+
+    except ScheduleEntry.DoesNotExist:
+
+        return ajax_or_redirect(request, False, "Schedule entry not found.", "scheduler", status_code=404)
+
+    if entry.teacher_id != request.user.id:
+
+        return ajax_or_redirect(request, False, "You can only add notes to your own entries.", "scheduler", status_code=403)
+
+    note_text = (request.POST.get("note") or "").strip()
+    entry.private_note = note_text
+    entry.save(update_fields=["private_note"])
+
+    return ajax_or_redirect(request, True, "Notes saved.", "scheduler")
+
+
 @login_required
 def export_schedule_csv(request: HttpRequest) -> HttpResponse:
 
@@ -1478,8 +1567,15 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
     course_filter = request.GET.get("course")
     group_filter = request.GET.get("group")
     date_filter = request.GET.get("date")
+    status_filter = request.GET.get("status")
     month_param = request.GET.get("month")
     year_param = request.GET.get("year")
+
+    valid_status_codes = {code for code, _ in ScheduleEntry.STATUS_CHOICES}
+
+    if status_filter not in valid_status_codes:
+
+        status_filter = None
 
     queryset = ScheduleEntry.objects.all().select_related(
         "teacher", "classroom", "subject", "course", "group"
@@ -1509,8 +1605,32 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
 
         queryset = queryset.filter(date=date_filter)
 
-    today = timezone.localdate()
+    now = timezone.localtime()
+    today = now.date()
+    current_time = now.time()
     fallback_date = today
+
+    if status_filter == ScheduleEntry.STATUS_ACTIVE:
+
+        queryset = queryset.filter(
+            date=today,
+            start_time__lte=current_time,
+            end_time__gte=current_time
+        )
+
+    elif status_filter == ScheduleEntry.STATUS_UPCOMING:
+
+        queryset = queryset.filter(
+            Q(date__gt=today) |
+            Q(date=today, start_time__gt=current_time)
+        )
+
+    elif status_filter == ScheduleEntry.STATUS_FINISHED:
+
+        queryset = queryset.filter(
+            Q(date__lt=today) |
+            Q(date=today, end_time__lt=current_time)
+        )
 
     if valid(date_filter):
 
@@ -1600,7 +1720,11 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
         "Group",
         "Recurring Series",
         "Interval (days)",
+        "Status",
+        "Personal Note",
     ])
+
+    status_label_map = dict(ScheduleEntry.STATUS_CHOICES)
 
     for entry in entries:
 
@@ -1610,6 +1734,9 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
         group_name = getattr(entry.group, "display_name", getattr(entry.group, "name", "")) if entry.group else ""
         recurrence_label = "N/A"
         interval_label = "N/A"
+        status_code = entry.get_status(reference_date=today, reference_time=current_time)
+        status_label = status_label_map.get(status_code, status_code.title())
+        personal_note = entry.private_note if entry.teacher_id == request.user.id else ""
 
         if entry.recurrence_group and entry.recurrence_total_occurrences:
 
@@ -1632,6 +1759,8 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
             group_name,
             recurrence_label,
             interval_label,
+            status_label,
+            personal_note,
         ])
 
     return response
