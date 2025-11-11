@@ -1,7 +1,7 @@
 <!-- Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. -->
 
 {% extends "base.html" %}
-{% load core_extras %}
+{% load static core_extras %}
 
 {% block title %}Members - CS Dept Platform{% endblock %}
 
@@ -96,29 +96,31 @@
     {% include "core/partials/members_content.html" %}
 </div>
 
-<div id="member-info-modal" class="member-info-modal" hidden>
-    <div class="member-info-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="member-info-title">
-        <button type="button" class="member-info-modal__close" aria-label="Close member details">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
+<div id="member-sidecard" class="entry-sidecard" aria-hidden="true" hidden>
+    <div class="entry-sidecard__overlay" data-member-sidecard-dismiss></div>
+    <aside class="entry-sidecard__panel" role="dialog" aria-modal="true" aria-labelledby="member-sidecard-title">
+        <div class="entry-sidecard__header">
+            <div class="entry-sidecard__identity">
+                <span class="member-card__avatar member-card__avatar--inline member-card__avatar--teacher"
+                      aria-hidden="true"
+                      data-member-field="initial"></span>
+                <div class="entry-sidecard__title-group">
+                    <p class="entry-sidecard__eyebrow" data-member-field="role"></p>
+                    <h2 class="entry-sidecard__title" id="member-sidecard-title" data-member-field="name"></h2>
+                </div>
+            </div>
+            <button type="button" class="entry-sidecard__close" data-member-sidecard-dismiss aria-label="Close member details">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
 
-        <h3 id="member-info-title" class="member-info-modal__title">Member Details</h3>
-
-        <dl class="member-info-modal__details">
-            <div>
-                <dt>Username</dt>
-                <dd id="member-info-username"></dd>
+        <div class="member-sidecard__summary">
+            <div class="member-sidecard__contact">
+                <span class="member-sidecard__contact-label">Email</span>
+                <a href="#" class="member-sidecard__email" data-member-field="email">N/A</a>
             </div>
-            <div>
-                <dt>Email</dt>
-                <dd id="member-info-email"></dd>
-            </div>
-            <div>
-                <dt>Role</dt>
-                <dd id="member-info-role"></dd>
-            </div>
-        </dl>
-    </div>
+        </div>
+    </aside>
 </div>
 
 {% endblock %}
@@ -126,66 +128,6 @@
 {% block scripts %}
 
     {{ block.super }}
-
-    <script>
-        const memberModal = document.getElementById('member-info-modal');
-        const memberUsername = document.getElementById('member-info-username');
-        const memberEmail = document.getElementById('member-info-email');
-        const memberRole = document.getElementById('member-info-role');
-
-        function setRoleDetails(trigger) {
-            memberRole.replaceChildren();
-
-            const iconClass = trigger.dataset.memberRoleIcon || '';
-            if (iconClass) {
-                const icon = document.createElement('i');
-                icon.className = iconClass;
-                icon.setAttribute('aria-hidden', 'true');
-                memberRole.appendChild(icon);
-            }
-
-            const label = document.createElement('span');
-            label.textContent = trigger.dataset.memberRole || 'N/A';
-            memberRole.appendChild(label);
-        }
-
-        function closeMemberModal() {
-            if (!memberModal.hasAttribute('hidden')) {
-                memberModal.setAttribute('hidden', '');
-            }
-
-            document.querySelectorAll('[data-member-info]').forEach((button) => {
-                button.setAttribute('aria-expanded', 'false');
-            });
-        }
-
-        document.addEventListener('click', (event) => {
-            if (event.target.closest('.member-info-modal__close') || event.target === memberModal) {
-                closeMemberModal();
-                return;
-            }
-
-            const trigger = event.target.closest('[data-member-info]');
-            if (!trigger) {
-                return;
-            }
-
-            memberUsername.textContent = trigger.dataset.memberUsername || 'N/A';
-            memberEmail.textContent = trigger.dataset.memberEmail || 'N/A';
-            setRoleDetails(trigger);
-
-            memberModal.removeAttribute('hidden');
-            document.querySelectorAll('[data-member-info]').forEach((button) => {
-                button.setAttribute('aria-expanded', 'false');
-            });
-            trigger.setAttribute('aria-expanded', 'true');
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                closeMemberModal();
-            }
-        });
-    </script>
+    <script src="{% static 'js/members.js' %}" defer></script>
 
 {% endblock %}

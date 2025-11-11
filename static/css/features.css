@@ -2840,7 +2840,20 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
+}
+
+.entry-sidecard__identity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+}
+
+.entry-sidecard__title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .entry-sidecard__eyebrow {
@@ -2987,4 +3000,42 @@
 
 body.sidecard-open {
     overflow: hidden;
+}
+
+.member-sidecard__summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.entry-sidecard__identity .member-card__avatar,
+.member-sidecard__summary .member-card__avatar {
+    font-size: 22px;
+    width: 56px;
+    height: 56px;
+}
+
+.member-sidecard__contact {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.member-sidecard__contact-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}
+
+.member-sidecard__email {
+    font-weight: 600;
+    color: var(--link-color);
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.member-sidecard__email:hover {
+    text-decoration: underline;
 }

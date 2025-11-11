@@ -76,6 +76,7 @@
                                             data-member-email="{{ user.email|default:'N/A'|escape }}"
                                             data-member-role="{% if user.is_superuser %}Superuser{% else %}Admin{% endif %}"
                                             data-member-role-icon="{% if user.is_superuser %}fa-solid fa-crown{% else %}fa-solid fa-user-shield{% endif %}"
+                                            data-member-role-scheme="admin"
                                             aria-expanded="false"
                                             aria-label="View details for {{ user.username|escape }}">
                                         <i class="fa-solid fa-circle-info"></i>
@@ -165,6 +166,7 @@
                                             data-member-email="{{ user.email|default:'N/A'|escape }}"
                                             data-member-role="{% if user.is_superuser %}Superuser{% else %}Teacher{% endif %}"
                                             data-member-role-icon="{% if user.is_superuser %}fa-solid fa-crown{% else %}fa-solid fa-chalkboard-user{% endif %}"
+                                            data-member-role-scheme="{% if user.is_superuser %}admin{% else %}teacher{% endif %}"
                                             aria-expanded="false"
                                             aria-label="View details for {{ user.username|escape }}">
                                         <i class="fa-solid fa-circle-info"></i>
