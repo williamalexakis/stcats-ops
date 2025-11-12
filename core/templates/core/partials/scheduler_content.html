@@ -513,7 +513,10 @@
             </div>
             <div class="entry-sidecard__detail">
                 <dt>Time</dt>
-                <dd data-sidecard-field="time"></dd>
+                <div style="display: flex; align-items: center;">
+                    <i class="fa-solid fa-clock" style="margin-right: 9px;"></i>
+                    <dd data-sidecard-field="time"></dd>
+                </div>
             </div>
         </dl>
 
@@ -538,7 +541,11 @@
 
         <div class="entry-sidecard__recurrence" data-sidecard-section="recurrence">
             <span class="entry-sidecard__label">Series</span>
-            <span class="entry-sidecard__value" data-sidecard-field="series"></span>
+
+            <div style="display: flex; align-items: center;">
+                <i class="fa-solid fa-rotate-right" style="margin-right: 9px; color: var(--text-secondary);"></i>
+                <span class="entry-sidecard__value" data-sidecard-field="series"></span>
+            </div>
         </div>
 
         <form class="entry-sidecard__notes" method="post" action="{% url 'update_schedule_entry_note' %}" data-sidecard-note-form>
@@ -547,8 +554,7 @@
             <label for="sidecard-note" class="entry-sidecard__label">Notes</label>
             <textarea id="sidecard-note"
                       name="note"
-                      rows="4"
-                      placeholder="Write anything you need to remember..."></textarea>
+                      rows="4"></textarea>
             <div class="entry-sidecard__feedback" data-sidecard-feedback role="status" aria-live="polite"></div>
             <div class="entry-sidecard__note-actions">
                 <button type="submit" class="btn-success" data-sidecard-save>
