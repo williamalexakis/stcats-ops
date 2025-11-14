@@ -1,0 +1,33 @@
+<!-- Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. -->
+
+{% load static %}
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block error_title %}Error{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body class="error-page">
+    <main class="error-page__panel" role="main">
+        <p class="error-page__code">{% block error_code %}000{% endblock %}</p>
+        <p class="error-page__message">{% block error_message %}ERROR{% endblock %}</p>
+        <div class="error-page__actions">
+            <button type="button" class="error-page__button error-page__button--primary" onclick="window.location.reload()">Refresh</button>
+            <a href="{% url 'home' %}" class="error-page__button error-page__button--ghost">Home</a>
+        </div>
+        <div class="error-page__report">
+            <span class="error-page__report-label">Report issues</span>
+            <a href="mailto:william.alexakis@stcatherines.gr" class="error-page__report-link">School: william.alexakis@stcatherines.gr</a>
+            <a href="mailto:w.alexakis@icloud.com" class="error-page__report-link">Personal: w.alexakis@icloud.com</a>
+        </div>
+    </main>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon-light">☀️</span>
+        <span class="theme-icon-dark">🌙</span>
+    </button>
+    <script src="{% static 'js/theme.js' %}"></script>
+</body>
+</html>

@@ -1,19 +1,9 @@
 <!-- Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. -->
 
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>500 - INTERNAL SERVER ERROR</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-</head>
-<body class="error-page">
-    <div class="error-page__container">
-        <h1 class="error-page__code">500</h1>
-        <h2 class="error-page__title">INTERNAL SERVER ERROR</h2>
-        <a href="/" class="error-page__cta">Back To Home</a>
-    </div>
-</body>
-</html>
+{% extends 'error_base.html' %}
+
+{% block error_title %}500 • Server Error{% endblock %}
+
+{% block error_code %}500{% endblock %}
+
+{% block error_message %}SERVER ERROR{% endblock %}

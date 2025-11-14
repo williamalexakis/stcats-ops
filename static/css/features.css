@@ -2113,52 +2113,142 @@
 }
 
 .error-page {
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    background: #f9fafb;
-    color: #111827;
-    padding: 20px;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 32px 20px;
+    background: var(--body-gradient);
+    color: var(--text-primary);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    position: relative;
+    overflow: hidden;
 }
 
-.error-page__container {
+.error-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(59, 130, 246, 0.18), transparent 55%), radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.16), transparent 50%);
+    opacity: 0.8;
+}
+
+.error-page__panel {
+    width: min(520px, 100%);
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
     text-align: center;
-    max-width: 500px;
+    padding: 48px 36px;
+    box-shadow: 0 25px 60px var(--shadow);
+    backdrop-filter: blur(16px) saturate(160%);
+    position: relative;
+    z-index: 1;
 }
 
 .error-page__code {
-    font-size: 120px;
+    font-size: clamp(72px, 16vw, 136px);
     font-weight: 700;
-    color: #dc2626;
-    margin-bottom: 20px;
-}
-
-.error-page__title {
-    font-size: 24px;
-    margin-bottom: 12px;
+    margin: 0 0 12px;
+    line-height: 1;
+    letter-spacing: -6px;
+    background: linear-gradient(135deg, var(--link-color), var(--button-hover));
+    -webkit-background-clip: text;
+    color: transparent;
 }
 
 .error-page__message {
-    color: #6b7280;
-    margin-bottom: 30px;
-    font-size: 16px;
+    font-size: 1.4rem;
+    margin: 0;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
-.error-page__cta {
-    display: inline-block;
-    background: #2563eb;
-    color: white;
-    padding: 12px 24px;
+.error-page__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 32px 0 28px;
+}
+
+@media (min-width: 480px) {
+    .error-page__actions {
+        flex-direction: row;
+    }
+}
+
+.error-page__button {
+    border: 1px solid transparent;
+    border-radius: 16px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     text-decoration: none;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: background 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    width: 100%;
+    flex: 1;
 }
 
-.error-page__cta:hover {
-    background: #1d4ed8;
+.error-page__button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.error-page__button--primary {
+    background: var(--button-bg);
+    color: var(--button-text);
+    border-color: var(--button-bg);
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.35);
+}
+
+.error-page__button--primary:hover {
+    background: var(--button-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 18px 40px rgba(59, 130, 246, 0.45);
+}
+
+.error-page__button--ghost {
+    background: transparent;
+    color: var(--text-primary);
+    border-color: var(--glass-border);
+}
+
+.error-page__button--ghost:hover {
+    color: var(--link-color);
+    border-color: var(--link-color);
+    transform: translateY(-1px);
+}
+
+.error-page__report {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.error-page__report-label {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+}
+
+.error-page__report-link {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.error-page__report-link:hover {
+    color: var(--link-hover);
 }
 .stats-grid {
     display: grid;
