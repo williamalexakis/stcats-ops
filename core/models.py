@@ -228,6 +228,8 @@ class ScheduleEntry(models.Model):
 
     def is_active_now(self) -> bool:
 
+        """Return True when the entry is currently underway."""
+
         from django.utils import timezone
 
         now = timezone.localtime(timezone.now())
@@ -339,6 +341,8 @@ class AuditLog(models.Model):
 
     def get_action_display(self) -> str:
 
+        """Translate an internal action code into a readable label."""
+
         action_map = {
             "admin.add": "Created",
             "admin.change": "Modified",
@@ -350,6 +354,8 @@ class AuditLog(models.Model):
         return action_map.get(self.action, self.action.replace("_", " ").title())
 
     def get_target_display(self) -> str:
+
+        """Summarize the target field for admin display."""
 
         if not self.target:
             return "N/A"
@@ -379,6 +385,8 @@ class AuditLog(models.Model):
         return self.target
 
     def get_object_repr(self) -> Optional[str]:
+
+        """Return the stored object representation when one is available."""
 
         if self.extra and "object" in self.extra:
 

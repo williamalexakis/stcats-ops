@@ -328,6 +328,8 @@ def admin_audit_logs(request: HttpRequest) -> HttpResponse:
 @require_POST
 def delete_invite_code(request: HttpRequest, code_id: int) -> HttpResponse:
 
+    """Delete the specified invite code after verifying admin access."""
+
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
         return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
@@ -347,6 +349,8 @@ def delete_invite_code(request: HttpRequest, code_id: int) -> HttpResponse:
 @login_required
 @require_POST
 def promote_user(request: HttpRequest, user_id: int) -> HttpResponse:
+
+    """Move a user into the admin group when the caller has permission."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -382,6 +386,8 @@ def promote_user(request: HttpRequest, user_id: int) -> HttpResponse:
 @login_required
 @require_POST
 def demote_user(request: HttpRequest, user_id: int) -> HttpResponse:
+
+    """Reassign an admin back to the teacher group."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name='admin').exists()):
 
@@ -421,6 +427,9 @@ def demote_user(request: HttpRequest, user_id: int) -> HttpResponse:
 @login_required
 @require_POST
 def remove_user(request: HttpRequest, user_id: int) -> HttpResponse:
+
+    """Remove a non-superuser account when the caller is authorized."""
+
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
         return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "members", status_code=403)
@@ -742,6 +751,7 @@ def _build_scheduler_context(request: HttpRequest) -> dict:
         if day["is_current_month"]
     )
 
+    # Derive a hash token so clients can detect when the calendar data changed
     state_basis = [
         ":".join([
             str(entry.id),
@@ -1517,6 +1527,8 @@ def edit_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 @require_POST
 def delete_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
+    """Delete a single entry or an entire series based on the submitted scope."""
+
     # Check if user is admin or superuser
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -1538,6 +1550,7 @@ def delete_schedule_entry(request: HttpRequest, entry_id: int) -> HttpResponse:
 
         recurrence_count = ScheduleEntry.objects.filter(recurrence_group=group_id).count()
 
+    # We remove the entire series when requested and peers also exist
     delete_series = scope == "series" and group_id and recurrence_count > 1
 
     with transaction.atomic():

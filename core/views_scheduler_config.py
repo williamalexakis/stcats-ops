@@ -46,6 +46,8 @@ def ajax_or_redirect(
 @login_required
 def admin_scheduler_config(request: HttpRequest) -> HttpResponse:
 
+    """Render the scheduler configuration lists for authorized admins."""
+
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
         return ajax_or_redirect(request, False, "You do not have permission to access this page.", "home", status_code=403)
@@ -71,6 +73,8 @@ def admin_scheduler_config(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def add_classroom(request: HttpRequest) -> HttpResponse:
+
+    """Create a classroom definition after validating admin access."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -99,6 +103,8 @@ def add_classroom(request: HttpRequest) -> HttpResponse:
 @require_POST
 def delete_classroom(request: HttpRequest, classroom_id: int) -> HttpResponse:
 
+    """Delete a classroom once dependencies and permissions allow it."""
+
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
         return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
@@ -124,6 +130,8 @@ def delete_classroom(request: HttpRequest, classroom_id: int) -> HttpResponse:
 @login_required
 @require_POST
 def add_subject(request: HttpRequest) -> HttpResponse:
+
+    """Create a subject entry for use in scheduler filters."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -152,6 +160,8 @@ def add_subject(request: HttpRequest) -> HttpResponse:
 @require_POST
 def delete_subject(request: HttpRequest, subject_id: int) -> HttpResponse:
 
+    """Delete a subject once it is safe to remove."""
+
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
         return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
@@ -177,6 +187,8 @@ def delete_subject(request: HttpRequest, subject_id: int) -> HttpResponse:
 @login_required
 @require_POST
 def add_course(request: HttpRequest) -> HttpResponse:
+
+    """Create a course entry for schedule assignment."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -205,6 +217,8 @@ def add_course(request: HttpRequest) -> HttpResponse:
 @require_POST
 def delete_course(request: HttpRequest, course_id: int) -> HttpResponse:
 
+    """Delete a course definition after dependency and permission checks."""
+
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
         return ajax_or_redirect(request, False, "You do not have permission to perform this action.", "home", status_code=403)
@@ -230,6 +244,8 @@ def delete_course(request: HttpRequest, course_id: int) -> HttpResponse:
 @login_required
 @require_POST
 def add_group(request: HttpRequest) -> HttpResponse:
+
+    """Create a class group record for schedule organization."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 
@@ -257,6 +273,8 @@ def add_group(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def delete_group(request: HttpRequest, group_id: int) -> HttpResponse:
+
+    """Delete a class group when it no longer has dependencies."""
 
     if not (request.user.is_superuser or request.user.groups.filter(name="admin").exists()):
 

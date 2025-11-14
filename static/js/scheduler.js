@@ -1,5 +1,6 @@
 /* Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. */
 
+/** We manage the scheduler entry sidecard UI and persist teacher notes via AJAX */
 (function () {
     let sidecard = null;
     let noteForm = null;
@@ -101,6 +102,7 @@
         return Boolean(sidecard && sidecard.classList.contains('entry-sidecard--open'));
     }
 
+    /** Populate and display the sidecard for the selected entry thing */
     function openSidecard(entry) {
         if (!sidecard || !noteForm || !noteField || !entryIdInput) {
             return;
@@ -228,6 +230,7 @@
         }
     }
 
+    /** Save the teacher's private note through the scheduler note endpoint */
     async function handleNoteSubmit(event) {
         event.preventDefault();
 

@@ -17,6 +17,8 @@ class InviteCodeFormMixin:
 
     def clean_invite_code(self) -> str:
 
+        """Validate invite code and ensure it still has remaining uses."""
+
         code = self.cleaned_data["invite_code"].strip()
 
         try:
@@ -39,6 +41,8 @@ class InviteCodeFormMixin:
 
     def _consume_invite(self) -> None:
 
+        """Decrement invite usage and discard expired or depleted codes."""
+
         code = self.cleaned_data.get("invite_code")
 
         if not code:
@@ -49,7 +53,7 @@ class InviteCodeFormMixin:
 
         try:
 
-            invite = InviteCode.objects.select_for_update().get(code=code)
+            invite = InviteCode.objects.select_for_update().get(code=code)  # Lock the invite row to avoid race conditions
 
         except InviteCode.DoesNotExist:
 
@@ -80,6 +84,8 @@ class InviteCodeFormMixin:
             invite.save(update_fields=["remaining_uses"])
 
     def _assign_teacher_group(self, user: User) -> None:
+
+        """Add the created user to the teacher group when one exists."""
 
         teacher_group = Group.objects.filter(name="teacher").first()
 
@@ -121,6 +127,8 @@ class SSOSignupForm(InviteCodeFormMixin, forms.Form):
     username = forms.CharField(max_length=150)
 
     def clean_username(self) -> str:
+
+        """Reject usernames that have already been claimed."""
 
         username = self.cleaned_data["username"]
 

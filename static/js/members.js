@@ -1,5 +1,6 @@
 /* Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file. */
 
+/** Handle the members sidecard UI and support inline editing of display names */
 (function () {
     const sidecard = document.getElementById('member-sidecard');
     if (!sidecard) {
@@ -85,6 +86,7 @@
         displayFeedback.classList.add(isSuccess ? 'member-sidecard__feedback--success' : 'member-sidecard__feedback--error');
     }
 
+    /** We load the clicked member's metadata into the sidecard and reveal it */
     function openSidecard(trigger) {
         activeTrigger = trigger;
         const username = trigger.dataset.memberUsername || 'N/A';
@@ -149,6 +151,7 @@
         });
     }
 
+    /** We make the edited display name persistent via its endpoint */
     async function handleDisplaySubmit(event) {
         event.preventDefault();
 

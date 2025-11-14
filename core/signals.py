@@ -10,6 +10,8 @@ User = get_user_model()
 @receiver(post_save, sender=User)
 def ensure_user_profile(sender, instance, created, **kwargs):
 
+    """Create or fetch a profile each time a user record is saved."""
+
     if not instance:
 
         return
