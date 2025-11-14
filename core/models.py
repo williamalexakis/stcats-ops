@@ -1,13 +1,11 @@
 # Copyright © William Alexakis. All Rights Reserved. Use governed by LICENSE file.
 
-import uuid
-
-from datetime import date, time
-from typing import Optional, List
-
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+import uuid
+from datetime import time
+from typing import Optional, List
 
 User = settings.AUTH_USER_MODEL
 
@@ -125,6 +123,20 @@ class ClassGroup(models.Model):
     def __str__(self) -> str:
 
         return self.display_name
+
+class UserProfile(models.Model):
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile"
+    )
+    display_name = models.CharField(max_length=150, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+
+        return self.display_name or self.user.get_username()
 
 class ScheduleEntryManager(models.Manager):
 

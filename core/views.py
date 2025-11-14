@@ -16,13 +16,15 @@ from urllib.parse import urlencode
 from django.urls import reverse
 import calendar
 import hashlib
-from .models import InviteCode, ScheduleEntry, Classroom, Subject, Course, ClassGroup, AuditLog
+from .models import InviteCode, ScheduleEntry, Classroom, Subject, Course, ClassGroup, AuditLog, UserProfile
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError, Sum, Q, Count
 from django.db import transaction
 from typing import Optional, Dict
 import secrets
 import csv
+
+from core.utils.user_display import get_display_name
 
 User = get_user_model()
 
@@ -64,7 +66,7 @@ def ajax_or_redirect(
 @login_required
 def code_editor(request: HttpRequest) -> HttpResponse:
 
-    default_example = f"print(\"Hello, {request.user.get_username()}!\")\n"
+    default_example = f"print(\"Hello, {get_display_name(request.user)}!\")\n"
 
     context = {
         "initial_code" : default_example
@@ -87,7 +89,9 @@ def home(request: HttpRequest) -> HttpResponse:
                 teacher=request.user
             ).filter(
                 Q(date__gt=today) | Q(date=today, end_time__gte=current_time)
-            ).select_related("classroom", "subject", "course", "group").order_by("date", "start_time")[:5]
+            ).select_related(
+                "teacher", "teacher__profile", "classroom", "subject", "course", "group"
+            ).order_by("date", "start_time")[:5]
         )
 
     if request.GET.get("partial") == "upcoming":
@@ -111,7 +115,7 @@ def members(request: HttpRequest) -> HttpResponse:
 
     """Group users by role for the members page."""
 
-    all_users = list(User.objects.all().prefetch_related("groups"))
+    all_users = list(User.objects.all().select_related("profile").prefetch_related("groups"))
     admins = []
     teachers = []
 
@@ -127,10 +131,14 @@ def members(request: HttpRequest) -> HttpResponse:
 
             teachers.append(user)
 
-    admin_superusers = sorted((user for user in admins if user.is_superuser), key=lambda user: user.username.lower())
-    admin_staff = sorted((user for user in admins if not user.is_superuser), key=lambda user: user.username.lower())
+    def sort_key(user: User) -> str:
+
+        return get_display_name(user).lower()
+
+    admin_superusers = sorted((user for user in admins if user.is_superuser), key=sort_key)
+    admin_staff = sorted((user for user in admins if not user.is_superuser), key=sort_key)
     admins = admin_superusers + admin_staff  # Keep superusers ahead of staff admins in rendering
-    teachers = sorted(teachers, key=lambda user: user.username.lower())
+    teachers = sorted(teachers, key=sort_key)
 
     context = {
         "admins" : admins,
@@ -156,7 +164,7 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
         return redirect("home")
 
     # Get statistics
-    all_users = User.objects.all().select_related().prefetch_related("groups")
+    all_users = User.objects.all().select_related("profile").prefetch_related("groups")
     total_users = all_users.count()
     admin_count = 0
     teacher_count = 0
@@ -246,7 +254,7 @@ def admin_invites(request: HttpRequest) -> HttpResponse:
         return ajax_or_redirect(request, True, f"Invite code created. Code: {code}", "admin_invites")
 
     # Get all invite codes
-    invite_codes = InviteCode.objects.all().order_by("-creation_date")
+    invite_codes = InviteCode.objects.all().select_related("creator", "creator__profile").order_by("-creation_date")
     context = {"invite_codes" : invite_codes}
 
     if request.GET.get("partial") == "1":
@@ -266,14 +274,15 @@ def admin_audit_logs(request: HttpRequest) -> HttpResponse:
         return ajax_or_redirect(request, False, "You do not have permission to access this page.", "home", status_code=403)
 
     # Get all audit logs
-    logs_list = AuditLog.objects.all().select_related('actor')
+    logs_list = AuditLog.objects.all().select_related('actor', 'actor__profile')
 
     # Apply filters
     actor_filter = request.GET.get('actor')
     action_filter = request.GET.get('action')
     date_filter = request.GET.get('date')
+    username_filter = request.GET.get('username')
 
-    has_filters = any([actor_filter, action_filter, date_filter])
+    has_filters = any([actor_filter, action_filter, date_filter, username_filter])
 
     if actor_filter:
 
@@ -285,6 +294,10 @@ def admin_audit_logs(request: HttpRequest) -> HttpResponse:
 
     if date_filter:
         logs_list = logs_list.filter(creation_date__date=date_filter)
+
+    if username_filter:
+
+        logs_list = logs_list.filter(actor__username__icontains=username_filter)
 
     # We let up to 10 logs per page
     paginator = Paginator(logs_list, 10)
@@ -301,6 +314,7 @@ def admin_audit_logs(request: HttpRequest) -> HttpResponse:
         'actor_filter': actor_filter,
         'action_filter': action_filter,
         'date_filter': date_filter,
+        'username_filter': username_filter,
         'has_filters': has_filters,
     }
 
@@ -361,7 +375,9 @@ def promote_user(request: HttpRequest, user_id: int) -> HttpResponse:
     user.groups.clear()
     user.groups.add(admin_group)
 
-    return ajax_or_redirect(request, True, f"User '{user.username}' has been promoted to admin.", "members")
+    friendly_name = get_display_name(user)
+
+    return ajax_or_redirect(request, True, f"User '{friendly_name}' has been promoted to admin.", "members")
 
 @login_required
 @require_POST
@@ -398,7 +414,9 @@ def demote_user(request: HttpRequest, user_id: int) -> HttpResponse:
     user.groups.clear()
     user.groups.add(teacher_group)
 
-    return ajax_or_redirect(request, True, f"User '{user.username}' has been demoted to teacher.", "members")
+    friendly_name = get_display_name(user)
+
+    return ajax_or_redirect(request, True, f"User '{friendly_name}' has been demoted to teacher.", "members")
 
 @login_required
 @require_POST
@@ -423,7 +441,7 @@ def remove_user(request: HttpRequest, user_id: int) -> HttpResponse:
 
         return ajax_or_redirect(request, False, "Cannot remove your own account.", "members", status_code=400)
 
-    username = user.username
+    friendly_name = get_display_name(user)
     try:
 
         user.delete()
@@ -438,7 +456,31 @@ def remove_user(request: HttpRequest, user_id: int) -> HttpResponse:
             status_code=409
         )
 
-    return ajax_or_redirect(request, True, f"User '{username}' has been removed.", "members")
+    return ajax_or_redirect(request, True, f"User '{friendly_name}' has been removed.", "members")
+
+@login_required
+@require_POST
+def update_display_name(request: HttpRequest) -> JsonResponse:
+
+    """Allow the authenticated user to update their display name."""
+
+    display_name = (request.POST.get("display_name") or "").strip()
+
+    if len(display_name) > 150:
+
+        return JsonResponse({
+            "success": False,
+            "message": "Display name must be 150 characters or fewer."
+        }, status=400)
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.display_name = display_name
+    profile.save(update_fields=["display_name", "updated_at"])
+
+    return JsonResponse({
+        "success": True,
+        "display_name": display_name,
+    })
 
 @login_required
 def _build_scheduler_context(request: HttpRequest) -> dict:
@@ -446,7 +488,9 @@ def _build_scheduler_context(request: HttpRequest) -> dict:
     """Prepare scheduler context data shared between HTML and JSON responses."""
 
     # Get all the schedule entries
-    entries_list = ScheduleEntry.objects.all().select_related('teacher', 'created_by', 'classroom', 'subject', 'course', 'group')
+    entries_list = ScheduleEntry.objects.all().select_related(
+        'teacher', 'teacher__profile', 'created_by', 'classroom', 'subject', 'course', 'group'
+    )
 
     # Apply filters
     teacher_filter = request.GET.get('teacher')
@@ -524,7 +568,6 @@ def _build_scheduler_context(request: HttpRequest) -> dict:
 
     entries_list = entries_list.order_by('date', 'start_time', 'id')
     total_entries = entries_list.count()
-
     fallback_date = today
 
     if date_filter:
@@ -558,7 +601,6 @@ def _build_scheduler_context(request: HttpRequest) -> dict:
         year_value = fallback_date.year
 
     current_month_start = date(year_value, month_value, 1)
-
     _, month_days = calendar.monthrange(year_value, month_value)
     current_month_end = current_month_start + timedelta(days=month_days - 1)
 
@@ -585,12 +627,12 @@ def _build_scheduler_context(request: HttpRequest) -> dict:
             recurrence_counts[row["recurrence_group"]] = row["total"]
 
     entries_by_date: Dict[date, list[ScheduleEntry]] = defaultdict(list)
-
     status_label_map = dict(ScheduleEntry.STATUS_CHOICES)
 
     for entry in month_entries:
 
         status_code = entry.get_status(reference_date=today, reference_time=current_time)
+
         entry.status_code = status_code
         entry.status_label = status_label_map.get(status_code, status_code.title())
         entry.is_active = (status_code == ScheduleEntry.STATUS_ACTIVE)
@@ -599,17 +641,17 @@ def _build_scheduler_context(request: HttpRequest) -> dict:
         entry.course_display = getattr(entry.course, "display_name", None) or entry.course.name
         entry.classroom_display = getattr(entry.classroom, "display_name", None) or entry.classroom.name
         entry.group_display = getattr(entry.group, "display_name", None) if entry.group else ""
-
         entry.recurrence_series_size = recurrence_counts.get(entry.recurrence_group, 1)
         entry.has_recurrence_peers = entry.recurrence_group is not None and entry.recurrence_series_size > 1
         entry.recurrence_label = ""
+
         if entry.recurrence_group and entry.recurrence_series_size and entry.recurrence_index:
 
             entry.recurrence_label = f"Series {entry.recurrence_index} of {entry.recurrence_series_size}"
 
         entries_by_date[entry.date].append(entry)
 
-    # Pre-compute monthly counts for navigation badges
+    # We precalculate the monthly counts for navigation badges
     monthly_counts: Dict[tuple[int, int], int] = defaultdict(int)
 
     for year_part, month_part in entries_list.values_list("date__year", "date__month"):
@@ -723,6 +765,7 @@ def _build_scheduler_context(request: HttpRequest) -> dict:
         ])
         for entry in month_entries
     ]
+
     calendar_state_token = hashlib.sha256("|".join(state_basis).encode("utf-8")).hexdigest() if state_basis else "0"
 
     base_query_params = {
@@ -1578,7 +1621,7 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
         status_filter = None
 
     queryset = ScheduleEntry.objects.all().select_related(
-        "teacher", "classroom", "subject", "course", "group"
+        "teacher", "teacher__profile", "classroom", "subject", "course", "group"
     )
 
     if valid(teacher_filter):
@@ -1737,6 +1780,7 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
         status_code = entry.get_status(reference_date=today, reference_time=current_time)
         status_label = status_label_map.get(status_code, status_code.title())
         personal_note = entry.private_note if entry.teacher_id == request.user.id else ""
+        teacher_name = get_display_name(entry.teacher)
 
         if entry.recurrence_group and entry.recurrence_total_occurrences:
 
@@ -1754,7 +1798,7 @@ def export_schedule_csv(request: HttpRequest) -> HttpResponse:
             entry.end_time.strftime("%H:%M"),
             subject_name,
             course_name,
-            entry.teacher.username,
+            teacher_name,
             classroom_name,
             group_name,
             recurrence_label,

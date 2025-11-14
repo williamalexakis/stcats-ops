@@ -3,6 +3,8 @@
 from django import template
 from typing import Any
 
+from core.utils.user_display import get_display_initial, get_display_name
+
 register = template.Library()
 
 @register.filter
@@ -28,3 +30,17 @@ def is_admin(user: Any) -> bool:
         return True
 
     return user.groups.filter(name="admin").exists()
+
+@register.filter
+def display_name(user: Any) -> str:
+
+    """Return the user's preferred display name."""
+
+    return get_display_name(user)
+
+@register.filter
+def display_initial(user: Any) -> str:
+
+    """Return the first initial derived from the display name."""
+
+    return get_display_initial(user)

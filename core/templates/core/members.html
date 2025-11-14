@@ -82,6 +82,38 @@
             font-size: 14px;
         }
 
+        #member-sidecard .member-sidecard__summary {
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 12px;
+        }
+
+        #member-sidecard .member-sidecard__details {
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        #member-sidecard [data-member-display-section] {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #member-sidecard [data-member-display-section][data-member-display-mode="view"] [data-member-display-edit] {
+            display: none;
+        }
+
+        #member-sidecard [data-member-display-section][data-member-display-mode="edit"] [data-member-display-view] {
+            display: none;
+        }
+
+        #member-sidecard .member-sidecard__email:not([href]) {
+            color: var(--text-secondary);
+            pointer-events: none;
+            cursor: default;
+        }
+
         @media (max-width: 1080px) {
             .members-columns {
                 flex-direction: column;
@@ -117,8 +149,36 @@
         <div class="member-sidecard__summary">
             <div class="member-sidecard__contact">
                 <span class="member-sidecard__contact-label">Email</span>
-                <a href="#" class="member-sidecard__email" data-member-field="email">N/A</a>
+                <a class="member-sidecard__email" data-member-field="email">N/A</a>
             </div>
+        </div>
+
+        <div class="member-sidecard__details"
+             data-member-display-section
+             data-member-display-mode="view">
+            <div class="member-sidecard__contact" data-member-display-view>
+                <span class="member-sidecard__contact-label">Display Name</span>
+                <span class="member-sidecard__value" data-member-field="display-name">N/A</span>
+            </div>
+
+            <form method="post"
+                  action="{% url 'update_display_name' %}"
+                  data-member-display-form
+                  data-member-display-edit>
+                {% csrf_token %}
+                <label for="member-display-input" class="member-sidecard__contact-label">Display Name</label>
+                <input id="member-display-input"
+                       type="text"
+                       name="display_name"
+                       maxlength="150"
+                       class="member-sidecard__input"
+                       placeholder="Leave blank for no display name">
+                <div class="member-sidecard__feedback" data-member-display-feedback></div>
+                <button type="submit" class="btn-success member-sidecard__save">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Save Display Name
+                </button>
+            </form>
         </div>
     </aside>
 </div>

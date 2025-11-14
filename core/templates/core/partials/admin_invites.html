@@ -100,10 +100,10 @@
                             <td class="table__cell text-secondary">
                                 <div class="table-person">
                                     <div class="avatar {% if code.creator|is_admin %}avatar--admin{% else %}avatar--default{% endif %}">
-                                        {{ code.creator.username|first|upper }}
+                                        {{ code.creator|display_initial }}
                                     </div>
 
-                                    {{ code.creator.username }}
+                                    {{ code.creator|display_name }}
                                 </div>
                             </td>
 

@@ -35,7 +35,7 @@
 
                     {% for teacher in teachers %}
 
-                        <option value="{{ teacher.id }}">{{ teacher.username }}</option>
+                        <option value="{{ teacher.id }}">{{ teacher|display_name }}</option>
 
                     {% endfor %}
 

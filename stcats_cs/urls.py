@@ -11,7 +11,7 @@ from core.views import (
     scheduler, scheduler_updates,
     create_schedule_entry, edit_schedule_entry,
     delete_schedule_entry, export_schedule_csv,
-    update_schedule_entry_note
+    update_schedule_entry_note, update_display_name
 )
 from core.views_auth import signup, logout_view, complete_sso_signup, legacy_signup
 from core.views_scheduler_config import (
@@ -39,6 +39,7 @@ urlpatterns = [
     path("members/<int:user_id>/promote/", promote_user, name="promote_user"),
     path("members/<int:user_id>/demote/", demote_user, name="demote_user"),
     path("members/<int:user_id>/remove/", remove_user, name="remove_user"),
+    path("members/display-name/", update_display_name, name="update_display_name"),
     path("scheduler/", scheduler, name="scheduler"),
     path("scheduler/create/", create_schedule_entry, name="create_schedule_entry"),
     path("scheduler/updates/", scheduler_updates, name="scheduler_updates"),

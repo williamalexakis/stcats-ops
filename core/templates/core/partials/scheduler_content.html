@@ -318,10 +318,10 @@
                                                     {% with teacher_is_admin=entry.teacher|is_admin %}
                                                         <span class="member-card__avatar member-card__avatar--inline {% if teacher_is_admin %}member-card__avatar--admin{% else %}member-card__avatar--teacher{% endif %}"
                                                               aria-hidden="true">
-                                                            {{ entry.teacher.username|first|upper }}
+                                                            {{ entry.teacher|display_initial }}
                                                         </span>
                                                     {% endwith %}
-                                                    {{ entry.teacher.username }}
+                                                    {{ entry.teacher|display_name }}
                                                 </span>
                                             </div>
 
@@ -373,7 +373,7 @@
                                                                 data-entry-id="{{ entry.id }}"
                                                                 data-entry-date-label="{{ entry.date|date:'l, F j, Y' }}"
                                                                 data-entry-time-range="{{ entry.start_time|time:'H:i' }} – {{ entry.end_time|time:'H:i' }}"
-                                                                data-entry-teacher="{{ entry.teacher.username|escape }}"
+                                                                data-entry-teacher="{{ entry.teacher|display_name|escape }}"
                                                                 data-entry-classroom="{{ entry.classroom_display|escape }}"
                                                                 data-entry-subject="{{ entry.subject_display|escape }}"
                                                                 data-entry-course="{{ entry.course_display|escape }}"

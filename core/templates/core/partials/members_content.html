@@ -41,13 +41,15 @@
                         {% for user in admins %}
 
                             <article class="member-card">
-                                <div class="member-card__avatar member-card__avatar--admin" aria-hidden="true">
-                                    {{ user.username|first|upper }}
+                                <div class="member-card__avatar member-card__avatar--admin"
+                                     aria-hidden="true"
+                                     data-member-avatar-label="{{ user.username }}">
+                                    {{ user|display_initial }}
                                 </div>
 
                                 <div class="member-card__info">
-                                    <div class="member-card__name">
-                                        {{ user.username }}
+                                    <div class="member-card__name" data-member-name-label="{{ user.username }}">
+                                        {{ user|display_name }}
                                     </div>
 
                                     <div class="member-card__role">
@@ -73,12 +75,14 @@
                                             class="chat-action chat-action--info"
                                             data-member-info
                                             data-member-username="{{ user.username|escape }}"
+                                            data-member-display-name="{{ user.profile.display_name|default:''|escape }}"
                                             data-member-email="{{ user.email|default:'N/A'|escape }}"
                                             data-member-role="{% if user.is_superuser %}Superuser{% else %}Admin{% endif %}"
                                             data-member-role-icon="{% if user.is_superuser %}fa-solid fa-crown{% else %}fa-solid fa-user-shield{% endif %}"
                                             data-member-role-scheme="admin"
+                                            data-member-can-edit="{% if user == request.user %}true{% else %}false{% endif %}"
                                             aria-expanded="false"
-                                            aria-label="View details for {{ user.username|escape }}">
+                                            aria-label="View details for {{ user|display_name|escape }}">
                                         <i class="fa-solid fa-circle-info"></i>
                                     </button>
 
@@ -91,9 +95,9 @@
                                             data-ajax-target="#members-content">
                                             {% csrf_token %}
                                             <button type="submit"
-                                                    onclick="return confirm('Demote {{ user.username|escapejs }} to teacher?');"
+                                                    onclick="return confirm('Demote {{ user|display_name|escapejs }} to teacher?');"
                                                     class="chat-action chat-action--confirm"
-                                                    aria-label="Demote {{ user.username }}">
+                                                    aria-label="Demote {{ user|display_name }}">
                                                 <i class="fa-solid fa-arrow-right"></i>
                                             </button>
                                         </form>
@@ -106,9 +110,9 @@
                                             data-ajax-target="#members-content">
                                             {% csrf_token %}
                                             <button type="submit"
-                                                    onclick="return confirm('Are you sure you want to remove {{ user.username|escapejs }}?');"
+                                                    onclick="return confirm('Are you sure you want to remove {{ user|display_name|escapejs }}?');"
                                                     class="chat-action chat-action--danger"
-                                                    aria-label="Remove {{ user.username }}">
+                                                    aria-label="Remove {{ user|display_name }}">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </form>
@@ -141,13 +145,15 @@
                         {% for user in teachers %}
 
                             <article class="member-card">
-                                <div class="member-card__avatar member-card__avatar--teacher" aria-hidden="true">
-                                    {{ user.username|first|upper }}
+                                <div class="member-card__avatar member-card__avatar--teacher"
+                                     aria-hidden="true"
+                                     data-member-avatar-label="{{ user.username }}">
+                                    {{ user|display_initial }}
                                 </div>
 
                                 <div class="member-card__info">
-                                    <div class="member-card__name">
-                                        {{ user.username }}
+                                    <div class="member-card__name" data-member-name-label="{{ user.username }}">
+                                        {{ user|display_name }}
                                     </div>
 
                                     <div class="member-card__role">
@@ -163,12 +169,14 @@
                                             class="chat-action chat-action--info"
                                             data-member-info
                                             data-member-username="{{ user.username|escape }}"
+                                            data-member-display-name="{{ user.profile.display_name|default:''|escape }}"
                                             data-member-email="{{ user.email|default:'N/A'|escape }}"
                                             data-member-role="{% if user.is_superuser %}Superuser{% else %}Teacher{% endif %}"
                                             data-member-role-icon="{% if user.is_superuser %}fa-solid fa-crown{% else %}fa-solid fa-chalkboard-user{% endif %}"
                                             data-member-role-scheme="{% if user.is_superuser %}admin{% else %}teacher{% endif %}"
+                                            data-member-can-edit="{% if user == request.user %}true{% else %}false{% endif %}"
                                             aria-expanded="false"
-                                            aria-label="View details for {{ user.username|escape }}">
+                                            aria-label="View details for {{ user|display_name|escape }}">
                                         <i class="fa-solid fa-circle-info"></i>
                                     </button>
 
@@ -181,9 +189,9 @@
                                             data-ajax-target="#members-content">
                                             {% csrf_token %}
                                             <button type="submit"
-                                                    onclick="return confirm('Promote {{ user.username|escapejs }} to admin?');"
+                                                    onclick="return confirm('Promote {{ user|display_name|escapejs }} to admin?');"
                                                     class="chat-action chat-action--success"
-                                                    aria-label="Promote {{ user.username }}">
+                                                    aria-label="Promote {{ user|display_name }}">
                                                 <i class="fa-solid fa-arrow-left"></i>
                                             </button>
                                         </form>
@@ -196,9 +204,9 @@
                                             data-ajax-target="#members-content">
                                             {% csrf_token %}
                                             <button type="submit"
-                                                    onclick="return confirm('Are you sure you want to remove {{ user.username|escapejs }}?');"
+                                                    onclick="return confirm('Are you sure you want to remove {{ user|display_name|escapejs }}?');"
                                                     class="chat-action chat-action--danger"
-                                                    aria-label="Remove {{ user.username }}">
+                                                    aria-label="Remove {{ user|display_name }}">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </form>

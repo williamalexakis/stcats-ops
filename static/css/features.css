@@ -1528,6 +1528,24 @@
     font-size: 12px;
 }
 
+.scheduler-calendar:not(.scheduler-calendar--weekends-hidden) .calendar-entry {
+    padding: 10px;
+}
+
+.scheduler-calendar:not(.scheduler-calendar--weekends-hidden) .calendar-entry__value--teacher {
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.scheduler-calendar:not(.scheduler-calendar--weekends-hidden) .calendar-entry__badges {
+    grid-template-columns: 1fr;
+}
+
+.scheduler-calendar:not(.scheduler-calendar--weekends-hidden) .calendar-entry__actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
 .scheduler-calendar__grid[data-day-count="5"] .calendar-entry {
     padding: 18px;
     gap: 16px;
@@ -3038,4 +3056,45 @@ body.sidecard-open {
 
 .member-sidecard__email:hover {
     text-decoration: underline;
+}
+
+.member-sidecard__details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.member-sidecard__value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.member-sidecard__input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    padding: 10px 12px;
+    background: var(--card-muted);
+    color: var(--text-primary);
+}
+
+.member-sidecard__input:focus-visible {
+    outline: 2px solid var(--focus-ring);
+}
+
+.member-sidecard__feedback {
+    font-size: 13px;
+    min-height: 18px;
+}
+
+.member-sidecard__feedback--success {
+    color: var(--success-text);
+}
+
+.member-sidecard__feedback--error {
+    color: var(--error-text);
+}
+
+.member-sidecard__save {
+    margin-top: 8px;
 }

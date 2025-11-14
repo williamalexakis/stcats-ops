@@ -108,10 +108,10 @@
                             {% if log.actor %}
                                 <div class="table-person">
                                     <div class="avatar {% if log.actor|is_admin %}avatar--admin{% else %}avatar--default{% endif %}">
-                                        {{ log.actor.username|first|upper }}
+                                        {{ log.actor|display_initial }}
                                     </div>
 
-                                    <span class="font-medium">{{ log.actor.username }}</span>
+                                    <span class="font-medium">{{ log.actor|display_name }}</span>
                                 </div>
                             {% else %}
                                 <span class="text-small text-tertiary italic">System</span>
@@ -160,14 +160,14 @@
 
             {% if logs.has_previous %}
 
-                <a href="?page=1{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                <a href="?page=1{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if username_filter %}&username={{ username_filter }}{% endif %}"
                    class="pagination__button"
                    data-ajax-link="true"
                    data-ajax-target="#admin-audit-content">
                     <i class="fa-solid fa-angles-left"></i>
                 </a>
 
-                <a href="?page={{ logs.previous_page_number }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                <a href="?page={{ logs.previous_page_number }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if username_filter %}&username={{ username_filter }}{% endif %}"
                    class="pagination__button"
                    data-ajax-link="true"
                    data-ajax-target="#admin-audit-content">
@@ -186,7 +186,7 @@
 
                 {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
 
-                    <a href="?page={{ num }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                    <a href="?page={{ num }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if username_filter %}&username={{ username_filter }}{% endif %}"
                        class="pagination__button"
                        data-ajax-link="true"
                        data-ajax-target="#admin-audit-content">{{ num }}</a>
@@ -197,14 +197,14 @@
 
             {% if logs.has_next %}
 
-                <a href="?page={{ logs.next_page_number }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                <a href="?page={{ logs.next_page_number }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if username_filter %}&username={{ username_filter }}{% endif %}"
                    class="pagination__button"
                    data-ajax-link="true"
                    data-ajax-target="#admin-audit-content">
                     <i class="fa-solid fa-angle-right"></i>
                 </a>
 
-                <a href="?page={{ logs.paginator.num_pages }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                <a href="?page={{ logs.paginator.num_pages }}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if username_filter %}&username={{ username_filter }}{% endif %}"
                    class="pagination__button"
                    data-ajax-link="true"
                    data-ajax-target="#admin-audit-content">

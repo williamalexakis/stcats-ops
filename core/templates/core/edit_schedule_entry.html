@@ -35,7 +35,7 @@
 
                     {% for teacher in teachers %}
 
-                        <option value="{{ teacher.id }}" {% if teacher.id == entry.teacher.id %}selected{% endif %}>{{ teacher.username }}</option>
+                        <option value="{{ teacher.id }}" {% if teacher.id == entry.teacher.id %}selected{% endif %}>{{ teacher|display_name }}</option>
 
                     {% endfor %}
 

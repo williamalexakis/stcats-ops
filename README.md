@@ -9,7 +9,7 @@ An internal web platform that supports management and coordination for the St. C
 
 - **Microsoft SSO** – Signups and logins can be performed via Azure AD.
 - **Role Management** – Promote, demote, or remove users through the members view.
-- **Scheduling System** – Manage courses, classrooms, and time slots, then export filtered schedules as `.csv` files.
+- **Scheduling System** – Manage lessons through a calendar-style scheduler; export filtered schedules as `.csv` files.
 - **Code Editor** – Run Python code in-browser; import `.py` files and export current code.
 - **Audit Trail** – Every POST request and admin action is logged and reviewable.
 
@@ -18,7 +18,7 @@ An internal web platform that supports management and coordination for the St. C
 ### Prerequisites
 
 - Python 3.11+
-- A database connection string (SQLite or PostgreSQL).
+- A database connection string (SQLite or PostgreSQL)
 
 ### Site
 
@@ -36,8 +36,8 @@ An internal web platform that supports management and coordination for the St. C
     DEBUG=True                         # Set to False in production
     SECRET_KEY=change-me               # Provide a unique secret in production
     DATABASE_URL=sqlite:///db.sqlite3  # Or e.g. postgres://user:pass@localhost:5432/stcats for PostgreSQL
-    ALLOWED_HOSTS=127.0.0.1,localhost
-    CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
+    ALLOWED_HOSTS=127.0.0.1,localhost  # Set to website name in production
+    CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000  # Set to valid URI in production
     SESSION_COOKIE_SAMESITE=Lax               # Required for Microsoft redirects
     CSRF_COOKIE_SAMESITE=Lax                  # Required for Microsoft redirects
     SOCIAL_AUTH_AZUREAD_OAUTH2_KEY=...        # Azure AD application (client) ID

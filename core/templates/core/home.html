@@ -28,12 +28,12 @@
             <div class="home-user">
                 <div class="home-user__profile">
                     <div class="home-user__avatar {% if user.is_superuser %}home-user__avatar--superuser{% elif user|is_admin %}home-user__avatar--admin{% else %}home-user__avatar--teacher{% endif %}">
-                        {{ user.username|first|upper }}
+                        {{ user|display_initial }}
                     </div>
 
                     <div class="text-left">
                         <div class="home-user__label">Logged in as</div>
-                        <div class="home-user__name">{{ user.username }}</div>
+                        <div class="home-user__name">{{ user|display_name }}</div>
                         <div class="home-user__role">
 
                             {% if user.is_superuser %}

@@ -17,6 +17,7 @@ from core.models import (
     InviteCode,
     ScheduleEntry,
     Subject,
+    UserProfile,
 )
 from core.templatetags.core_extras import has_group, is_admin
 from datetime import datetime, date, time, timedelta
@@ -1095,6 +1096,87 @@ class AuditLogTests(TestCase):
         )
 
         self.assertEqual(log.get_target_display(), "Manual entry")
+
+class AuditLogViewFilterTests(TestCase):
+
+    """Verify audit log filters work with username input."""
+
+    def setUp(self) -> None:
+
+        self.admin = User.objects.create_user(
+            username="admin-user",
+            password="Testpass123!",
+            is_superuser=True
+        )
+        self.alice = User.objects.create_user(username="alice", password="Testpass123!")
+        self.bob = User.objects.create_user(username="bob", password="Testpass123!")
+        self.alice.profile.display_name = "Alice A."
+        self.alice.profile.save()
+        self.bob.profile.display_name = "Bob B."
+        self.bob.profile.save()
+        AuditLog.objects.create(actor=self.alice, action="admin.add", target="", user_agent="", extra={})
+        AuditLog.objects.create(actor=self.bob, action="admin.add", target="", user_agent="", extra={})
+        self.client.login(username="admin-user", password="Testpass123!")
+
+    def test_username_filter_limits_results(self) -> None:
+
+        """Filter audit logs by matching actor usernames."""
+
+        response = self.client.get(reverse("admin_audit_logs"), {"username": "alice"})
+
+        self.assertEqual(response.status_code, 200)
+        logs = list(response.context["logs"])
+        self.assertEqual(len(logs), 1)
+        self.assertEqual(logs[0].actor, self.alice)
+        self.assertContains(response, "Alice A.")
+        self.assertNotContains(response, "Bob B.")
+
+
+class DisplayNameViewTests(TestCase):
+
+    """Ensure users can manage their optional display names."""
+
+    def setUp(self) -> None:
+
+        self.user = User.objects.create_user(
+            username="displayuser",
+            password="Testpass123!"
+        )
+        self.client.login(username="displayuser", password="Testpass123!")
+
+    def test_update_display_name_success(self) -> None:
+
+        """Persist a custom display name for the authenticated user."""
+
+        response = self.client.post(
+            reverse("update_display_name"),
+            {"display_name": "Professor X"},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        profile = UserProfile.objects.get(user=self.user)
+        self.assertEqual(profile.display_name, "Professor X")
+        self.assertJSONEqual(response.content, {
+            "success": True,
+            "display_name": "Professor X",
+        })
+
+    def test_update_display_name_rejects_long_values(self) -> None:
+
+        """Return an error when the submitted display name is too long."""
+
+        response = self.client.post(
+            reverse("update_display_name"),
+            {"display_name": "x" * 200},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertJSONEqual(response.content, {
+            "success": False,
+            "message": "Display name must be 150 characters or fewer."
+        })
 
     def test_get_object_repr_returns_extra_object(self) -> None:
 
