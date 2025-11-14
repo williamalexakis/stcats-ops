@@ -24,7 +24,7 @@ A full-stack internal web platform that supports timetable scheduling, resource 
 
 1. Run the following commands:
     ```sh
-    git clone git@github.com:<org>/stcats-ops.git
+    git clone https://github.com/williamalexakis/stcats-ops.git
     cd stcats-ops
     python3 -m venv venv
     source venv/bin/activate
