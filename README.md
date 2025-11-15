@@ -13,6 +13,24 @@ A full-stack internal web platform that supports timetable scheduling, resource 
 - **Code Editor** – Run Python code in-browser; import `.py` files and export current code.
 - **Audit Trail** – Every POST request and admin action is logged and reviewable.
 
+## Tech Stack
+
+**Frontend**
+- HTML, CSS, JavaScript
+- Monaco Editor
+- Font Awesome
+
+**Backend**
+- Python, Django
+- PostgreSQL
+- Gunicorn
+- WhiteNoise
+- Pyodide
+
+**Infrastructure**
+- Microsoft Azure AD
+- Render (<https://render.com>)
+
 ## Localhost Setup
 
 ### Prerequisites
